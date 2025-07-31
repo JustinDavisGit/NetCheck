@@ -4,7 +4,9 @@ export interface CalculationInputs {
   closingDate: string;
   grtRate: number;
   listingCommission: number;
+  listingCommissionType: 'percentage' | 'flat';
   buyerCommission: number;
+  buyerCommissionType: 'percentage' | 'flat';
   mortgageBalance: number;
   escrowFee: number;
   titlePolicy: number;
@@ -40,7 +42,9 @@ export function calculateNetOut(inputs: CalculationInputs): CalculationResults {
     closingDate,
     grtRate,
     listingCommission,
+    listingCommissionType,
     buyerCommission,
+    buyerCommissionType,
     mortgageBalance,
     escrowFee,
     titlePolicy,
@@ -52,9 +56,13 @@ export function calculateNetOut(inputs: CalculationInputs): CalculationResults {
     otherExpenses,
   } = inputs;
 
-  // Commission calculations
-  const listingCommissionAmount = salePrice * (listingCommission / 100);
-  const buyerCommissionAmount = salePrice * (buyerCommission / 100);
+  // Commission calculations - handle both percentage and flat fee
+  const listingCommissionAmount = listingCommissionType === 'flat' 
+    ? listingCommission 
+    : salePrice * (listingCommission / 100);
+  const buyerCommissionAmount = buyerCommissionType === 'flat' 
+    ? buyerCommission 
+    : salePrice * (buyerCommission / 100);
   const listingGRT = listingCommissionAmount * (grtRate / 100);
   const buyerGRT = buyerCommissionAmount * (grtRate / 100);
   const totalCommissions = listingCommissionAmount + buyerCommissionAmount;

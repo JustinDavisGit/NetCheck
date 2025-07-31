@@ -197,7 +197,7 @@ export default function Calculator() {
           <div className="space-y-6">
             <ResultsSummary results={results} salePrice={inputs.salePrice} />
             <CostBreakdown results={results} />
-            <DetailedBreakdown results={results} />
+            <DetailedBreakdown results={results} inputs={inputs} />
             <GamificationElements 
               results={results} 
               salePrice={inputs.salePrice} 

@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Handshake, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Handshake, Info, Percent, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import { NM_GRT_RATES } from "@/lib/grt-rates";
 import { type CalculationInputs } from "@/lib/calculator";
@@ -28,37 +29,129 @@ export function CommissionStructure({ inputs, onInputChange }: CommissionStructu
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="listingCommission" className="text-sm font-medium text-slate-700">
-                Listing Agent Commission (%)
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Listing Agent Commission */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-slate-700">
+                Listing Agent Commission
               </Label>
-              <Input
-                id="listingCommission"
-                type="number"
-                placeholder="3"
-                value={inputs.listingCommission || ''}
-                onChange={(e) => onInputChange('listingCommission', parseFloat(e.target.value) || 0)}
-                step="0.25"
-                max="10"
-                className="mt-2"
-              />
+              
+              {/* Toggle buttons for commission type */}
+              <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+                <Button
+                  type="button"
+                  variant={inputs.listingCommissionType === 'percentage' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onInputChange('listingCommissionType', 'percentage')}
+                  className="flex-1 h-8"
+                >
+                  <Percent className="h-3 w-3 mr-1" />
+                  %
+                </Button>
+                <Button
+                  type="button"
+                  variant={inputs.listingCommissionType === 'flat' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onInputChange('listingCommissionType', 'flat')}
+                  className="flex-1 h-8"
+                >
+                  <DollarSign className="h-3 w-3 mr-1" />
+                  Flat
+                </Button>
+              </div>
+              
+              <div className="relative">
+                {inputs.listingCommissionType === 'percentage' ? (
+                  <Input
+                    id="listingCommission"
+                    type="number"
+                    placeholder="3"
+                    value={inputs.listingCommission || ''}
+                    onChange={(e) => onInputChange('listingCommission', parseFloat(e.target.value) || 0)}
+                    step="0.25"
+                    max="10"
+                    className="pr-8"
+                  />
+                ) : (
+                  <>
+                    <span className="absolute left-3 top-3 text-slate-500">$</span>
+                    <Input
+                      id="listingCommission"
+                      type="number"
+                      placeholder="12750"
+                      value={inputs.listingCommission || ''}
+                      onChange={(e) => onInputChange('listingCommission', parseFloat(e.target.value) || 0)}
+                      step="100"
+                      className="pl-8"
+                    />
+                  </>
+                )}
+                {inputs.listingCommissionType === 'percentage' && (
+                  <span className="absolute right-3 top-3 text-slate-500">%</span>
+                )}
+              </div>
             </div>
             
-            <div>
-              <Label htmlFor="buyerCommission" className="text-sm font-medium text-slate-700">
-                Buyer's Agent Commission (%)
+            {/* Buyer's Agent Commission */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-slate-700">
+                Buyer's Agent Commission
               </Label>
-              <Input
-                id="buyerCommission"
-                type="number"
-                placeholder="3"
-                value={inputs.buyerCommission || ''}
-                onChange={(e) => onInputChange('buyerCommission', parseFloat(e.target.value) || 0)}
-                step="0.25"
-                max="10"
-                className="mt-2"
-              />
+              
+              {/* Toggle buttons for commission type */}
+              <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
+                <Button
+                  type="button"
+                  variant={inputs.buyerCommissionType === 'percentage' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onInputChange('buyerCommissionType', 'percentage')}
+                  className="flex-1 h-8"
+                >
+                  <Percent className="h-3 w-3 mr-1" />
+                  %
+                </Button>
+                <Button
+                  type="button"
+                  variant={inputs.buyerCommissionType === 'flat' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onInputChange('buyerCommissionType', 'flat')}
+                  className="flex-1 h-8"
+                >
+                  <DollarSign className="h-3 w-3 mr-1" />
+                  Flat
+                </Button>
+              </div>
+              
+              <div className="relative">
+                {inputs.buyerCommissionType === 'percentage' ? (
+                  <Input
+                    id="buyerCommission"
+                    type="number"
+                    placeholder="3"
+                    value={inputs.buyerCommission || ''}
+                    onChange={(e) => onInputChange('buyerCommission', parseFloat(e.target.value) || 0)}
+                    step="0.25"
+                    max="10"
+                    className="pr-8"
+                  />
+                ) : (
+                  <>
+                    <span className="absolute left-3 top-3 text-slate-500">$</span>
+                    <Input
+                      id="buyerCommission"
+                      type="number"
+                      placeholder="12750"
+                      value={inputs.buyerCommission || ''}
+                      onChange={(e) => onInputChange('buyerCommission', parseFloat(e.target.value) || 0)}
+                      step="100"
+                      className="pl-8"
+                    />
+                  </>
+                )}
+                {inputs.buyerCommissionType === 'percentage' && (
+                  <span className="absolute right-3 top-3 text-slate-500">%</span>
+                )}
+              </div>
             </div>
             
             <div className="md:col-span-2">

@@ -5,9 +5,16 @@ import { formatCurrency, type CalculationResults } from "@/lib/calculator";
 
 interface DetailedBreakdownProps {
   results: CalculationResults | null;
+  inputs?: {
+    listingCommission: number;
+    listingCommissionType: 'percentage' | 'flat';
+    buyerCommission: number;
+    buyerCommissionType: 'percentage' | 'flat';
+    salePrice: number;
+  };
 }
 
-export function DetailedBreakdown({ results }: DetailedBreakdownProps) {
+export function DetailedBreakdown({ results, inputs }: DetailedBreakdownProps) {
   if (!results) {
     return (
       <Card className="shadow-sm border-slate-200">
@@ -25,10 +32,35 @@ export function DetailedBreakdown({ results }: DetailedBreakdownProps) {
 
   const mortgageBalance = results.totalCosts - results.totalCommissions - results.totalGRT - results.proratedPropertyTax - results.titleAndEscrowCosts - results.utilitiesAndSurvey - results.repairsAndOther;
 
+  // Format commission labels to show type
+  const formatCommissionLabel = (baseLabel: string, amount: number, commissionType: 'percentage' | 'flat', commissionValue: number, salePrice: number) => {
+    if (commissionType === 'flat') {
+      return `${baseLabel} (${formatCurrency(commissionValue)} flat fee)`;
+    } else {
+      return `${baseLabel} (${commissionValue}% of sale price)`;
+    }
+  };
+
+  const listingLabel = inputs ? formatCommissionLabel(
+    "Listing Broker Commission", 
+    results.listingCommissionAmount, 
+    inputs.listingCommissionType, 
+    inputs.listingCommission, 
+    inputs.salePrice
+  ) : "Listing Broker Commission";
+
+  const buyerLabel = inputs ? formatCommissionLabel(
+    "Buyer's Broker Commission", 
+    results.buyerCommissionAmount, 
+    inputs.buyerCommissionType, 
+    inputs.buyerCommission, 
+    inputs.salePrice
+  ) : "Buyer's Broker Commission";
+
   const lineItems = [
-    { label: "Listing Broker Commission", amount: -results.listingCommissionAmount, color: "text-red-600", category: "commission" },
+    { label: listingLabel, amount: -results.listingCommissionAmount, color: "text-red-600", category: "commission" },
     { label: "GRT on Listing Commission", amount: -results.listingGRT, color: "text-orange-600", category: "tax" },
-    { label: "Buyer's Broker Commission", amount: -results.buyerCommissionAmount, color: "text-red-600", category: "commission" },
+    { label: buyerLabel, amount: -results.buyerCommissionAmount, color: "text-red-600", category: "commission" },
     { label: "GRT on Buyer's Commission", amount: -results.buyerGRT, color: "text-orange-600", category: "tax" },
     { label: "Outstanding Mortgage Balance", amount: -mortgageBalance, color: "text-blue-600", category: "mortgage" },
     { label: "Prorated Property Tax", amount: -results.proratedPropertyTax, color: "text-purple-600", category: "tax" },
