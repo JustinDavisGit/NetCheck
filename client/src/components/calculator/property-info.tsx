@@ -5,6 +5,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Home, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import { type CalculationInputs } from "@/lib/calculator";
+import { AddressAutocomplete } from "./address-autocomplete";
+import { NM_GRT_RATES } from "@/lib/grt-rates";
 
 interface PropertyInfoProps {
   inputs: CalculationInputs;
@@ -30,17 +32,19 @@ export function PropertyInfo({ inputs, propertyAddress, onInputChange, onAddress
         <CardContent>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="propertyAddress" className="text-sm font-medium text-slate-700">
-                Property Address
-              </Label>
-              <Input
-                id="propertyAddress"
-                placeholder="123 Main St, Albuquerque, NM"
+              <AddressAutocomplete
                 value={propertyAddress}
-                onChange={(e) => onAddressChange(e.target.value)}
-                className="mt-2"
+                onChange={onAddressChange}
+                onGrtCodeChange={(code) => {
+                  // Find the GRT rate for the selected location code
+                  const grtData = NM_GRT_RATES[code];
+                  if (grtData) {
+                    onInputChange('grtRate', grtData.value);
+                  }
+                }}
+                placeholder="123 Main St, Albuquerque, NM"
+                label="Property Address"
               />
-              <p className="text-xs text-slate-500 mt-1">Address determines GRT location code</p>
             </div>
             
             <div>

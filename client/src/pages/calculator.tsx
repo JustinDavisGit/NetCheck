@@ -14,6 +14,7 @@ import { DetailedBreakdown } from "@/components/calculator/detailed-breakdown";
 import { PrintSummary } from "@/components/calculator/print-summary";
 import { GamificationElements } from "@/components/calculator/gamification-elements";
 import { CelebrationToasts } from "@/components/calculator/celebration-toasts";
+import { AddressAutocomplete } from "@/components/calculator/address-autocomplete";
 import { NM_GRT_RATES } from "@/lib/grt-rates";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
