@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper } from "lucide-react";
+import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper, Palmtree } from "lucide-react";
+import { GiCactus } from "react-icons/gi";
 import { motion } from "framer-motion";
 
 export default function Calculator() {
@@ -16,6 +17,8 @@ export default function Calculator() {
   const [titleEscrowFees, setTitleEscrowFees] = useState<number>(1);
   const [hasHoa, setHasHoa] = useState<boolean | null>(null);
   const [hoaTransferFees, setHoaTransferFees] = useState<number>(500);
+  const [livesInSpecialState, setLivesInSpecialState] = useState<boolean | null>(null);
+  const [selectedState, setSelectedState] = useState<'nm' | 'hi' | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -204,6 +207,71 @@ export default function Calculator() {
                 <span className="text-xl font-semibold text-slate-700">
                   {formatCurrency((parseFloat(salePrice) || 0) * (brokerCompensation / 100))}
                 </span>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-slate-700">
+                    Do you live in New Mexico or Hawaii?
+                  </Label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setLivesInSpecialState(true)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        livesInSpecialState === true
+                          ? 'bg-orange-500 text-white shadow-md'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setLivesInSpecialState(false); setSelectedState(null); }}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        livesInSpecialState === false
+                          ? 'bg-orange-500 text-white shadow-md'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+
+                {livesInSpecialState === true && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-center gap-3 pt-2"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setSelectedState('nm')}
+                      className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all ${
+                        selectedState === 'nm'
+                          ? 'bg-amber-500 text-white shadow-lg scale-105'
+                          : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                      }`}
+                    >
+                      <GiCactus className="w-5 h-5" />
+                      New Mexico
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedState('hi')}
+                      className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all ${
+                        selectedState === 'hi'
+                          ? 'bg-teal-500 text-white shadow-lg scale-105'
+                          : 'bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200'
+                      }`}
+                    >
+                      <Palmtree className="w-5 h-5" />
+                      Hawaii
+                    </button>
+                  </motion.div>
+                )}
               </div>
             </div>
 
