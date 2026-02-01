@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt } from "lucide-react";
+import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Calculator() {
@@ -13,6 +13,7 @@ export default function Calculator() {
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
   const [closingDate, setClosingDate] = useState<string>("");
   const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
+  const [titleEscrowFees, setTitleEscrowFees] = useState<number>(1);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -56,12 +57,13 @@ export default function Calculator() {
     const mortgage = parseFloat(mortgageBalance) || 0;
     const concession = parseFloat(sellerConcession) || 0;
     const taxProration = calculateTaxProration.proration;
+    const titleFees = price * (titleEscrowFees / 100);
 
     if (price === 0) return null;
 
     const commissionAmount = price * (brokerCompensation / 100);
     const grossEquity = price - mortgage;
-    const netProceeds = grossEquity - commissionAmount - concession - taxProration;
+    const netProceeds = grossEquity - commissionAmount - concession - taxProration - titleFees;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
@@ -69,12 +71,14 @@ export default function Calculator() {
       commissionAmount,
       concession,
       taxProration,
+      titleFees,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation, calculateTaxProration]);
+  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation, titleEscrowFees, calculateTaxProration]);
 
   const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
+  const titleSliderPercentage = ((titleEscrowFees - 0.5) / 1.5) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -243,6 +247,60 @@ export default function Calculator() {
                   <p className="text-xs text-amber-600 mt-1">Debit to seller at closing</p>
                 </div>
               )}
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-slate-400" />
+                  Title / Escrow / Attorney Fees
+                </Label>
+                <span className="text-lg font-semibold text-blue-600">{titleEscrowFees.toFixed(1)}%</span>
+              </div>
+              
+              <div className="relative pt-2">
+                <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
+                  <div 
+                    className="absolute h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full transition-all duration-150"
+                    style={{ width: `${titleSliderPercentage}%` }}
+                  />
+                </div>
+                
+                <div 
+                  className="absolute top-0 -translate-x-1/2 transition-all duration-150"
+                  style={{ left: `${titleSliderPercentage}%` }}
+                >
+                  <div className="w-8 h-8 bg-white border-2 border-blue-500 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
+                    <Scale className="w-4 h-4 text-blue-600" />
+                  </div>
+                </div>
+                
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={titleEscrowFees}
+                  onChange={(e) => setTitleEscrowFees(parseFloat(e.target.value))}
+                  className="absolute inset-0 w-full h-8 opacity-0 cursor-grab active:cursor-grabbing"
+                  style={{ top: '-2px' }}
+                />
+              </div>
+              
+              <div className="flex justify-between text-xs text-slate-400">
+                <span>0.5%</span>
+                <span>2%</span>
+              </div>
+
+              <div className="text-center pt-2">
+                <span className="text-xl font-semibold text-slate-700">
+                  {formatCurrency((parseFloat(salePrice) || 0) * (titleEscrowFees / 100))}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-400 text-center">
+                Whether a state uses attorneys or escrow officers, non-commission closing costs usually fall around 1% of the sale price, give or take.
+              </p>
             </div>
 
             {results && (
