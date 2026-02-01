@@ -20,6 +20,7 @@ export default function Calculator() {
   const [livesInSpecialState, setLivesInSpecialState] = useState<boolean | null>(null);
   const [selectedState, setSelectedState] = useState<'nm' | 'hi' | null>(null);
   const [grtRate, setGrtRate] = useState<number>(7);
+  const [getRate, setGetRate] = useState<number>(4.25);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -70,14 +71,16 @@ export default function Calculator() {
 
     const commissionAmount = price * (brokerCompensation / 100);
     const grtAmount = selectedState === 'nm' ? commissionAmount * (grtRate / 100) : 0;
+    const getAmount = selectedState === 'hi' ? commissionAmount * (getRate / 100) : 0;
     const grossEquity = price - mortgage;
-    const netProceeds = grossEquity - commissionAmount - grtAmount - concession - taxProration - titleFees - hoaFees;
+    const netProceeds = grossEquity - commissionAmount - grtAmount - getAmount - concession - taxProration - titleFees - hoaFees;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
       grossEquity,
       commissionAmount,
       grtAmount,
+      getAmount,
       concession,
       taxProration,
       titleFees,
@@ -85,12 +88,13 @@ export default function Calculator() {
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation, titleEscrowFees, hasHoa, hoaTransferFees, selectedState, grtRate, calculateTaxProration]);
+  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation, titleEscrowFees, hasHoa, hoaTransferFees, selectedState, grtRate, getRate, calculateTaxProration]);
 
   const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
   const titleSliderPercentage = ((titleEscrowFees - 0.5) / 1.5) * 100;
   const hoaSliderPercentage = ((hoaTransferFees - 250) / 750) * 100;
   const grtSliderPercentage = ((grtRate - 5) / 4) * 100;
+  const getSliderPercentage = ((getRate - 4) / 1) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -343,6 +347,76 @@ export default function Calculator() {
                           {formatCurrency((parseFloat(salePrice) || 0) * (brokerCompensation / 100) * (grtRate / 100))}
                         </span>
                         <p className="text-xs text-slate-400 mt-1">GRT on commission</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {selectedState === 'hi' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-4"
+                  >
+                    <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <Palmtree className="w-6 h-6 text-teal-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-teal-800 font-medium">Aloha!</p>
+                          <p className="text-teal-700 text-sm mt-1">
+                            Hawaii charges General Excise Tax (GET) on real estate commissions. GET ranges from 4-5% of the total commission. Think of this as a sales tax on the service.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium text-slate-700">
+                          GET Rate
+                        </Label>
+                        <span className="text-lg font-semibold text-teal-600">{getRate.toFixed(2)}%</span>
+                      </div>
+                      
+                      <div className="relative pt-2">
+                        <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
+                          <div 
+                            className="absolute h-full bg-gradient-to-r from-teal-400 to-teal-500 rounded-full transition-all duration-150"
+                            style={{ width: `${getSliderPercentage}%` }}
+                          />
+                        </div>
+                        
+                        <div 
+                          className="absolute top-0 -translate-x-1/2 transition-all duration-150"
+                          style={{ left: `${getSliderPercentage}%` }}
+                        >
+                          <div className="w-8 h-8 bg-white border-2 border-teal-500 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
+                            <Palmtree className="w-4 h-4 text-teal-600" />
+                          </div>
+                        </div>
+                        
+                        <input
+                          type="range"
+                          min="4"
+                          max="5"
+                          step="0.05"
+                          value={getRate}
+                          onChange={(e) => setGetRate(parseFloat(e.target.value))}
+                          className="absolute inset-0 w-full h-8 opacity-0 cursor-grab active:cursor-grabbing"
+                          style={{ top: '-2px' }}
+                        />
+                      </div>
+                      
+                      <div className="flex justify-between text-xs text-slate-400">
+                        <span>4%</span>
+                        <span>5%</span>
+                      </div>
+
+                      <div className="text-center pt-2">
+                        <span className="text-xl font-semibold text-teal-700">
+                          {formatCurrency((parseFloat(salePrice) || 0) * (brokerCompensation / 100) * (getRate / 100))}
+                        </span>
+                        <p className="text-xs text-slate-400 mt-1">GET on commission</p>
                       </div>
                     </div>
                   </motion.div>
