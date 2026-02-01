@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift } from "lucide-react";
+import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Calculator() {
@@ -11,6 +11,8 @@ export default function Calculator() {
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [sellerConcession, setSellerConcession] = useState<string>("");
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
+  const [closingDate, setClosingDate] = useState<string>("");
+  const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -33,26 +35,44 @@ export default function Calculator() {
     return num.toLocaleString('en-US');
   };
 
+  const calculateTaxProration = useMemo(() => {
+    if (!closingDate || !annualPropertyTax) return { proration: 0, daysOwned: 0, isDebit: true };
+    
+    const taxAmount = parseFloat(annualPropertyTax) || 0;
+    const closing = new Date(closingDate);
+    const yearStart = new Date(closing.getFullYear(), 0, 1);
+    const yearEnd = new Date(closing.getFullYear(), 11, 31);
+    
+    const totalDaysInYear = Math.ceil((yearEnd.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const daysOwned = Math.ceil((closing.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
+    const proration = (taxAmount / totalDaysInYear) * daysOwned;
+    
+    return { proration, daysOwned, totalDaysInYear, isDebit: true };
+  }, [closingDate, annualPropertyTax]);
+
   const results = useMemo(() => {
     const price = parseFloat(salePrice) || 0;
     const mortgage = parseFloat(mortgageBalance) || 0;
     const concession = parseFloat(sellerConcession) || 0;
+    const taxProration = calculateTaxProration.proration;
 
     if (price === 0) return null;
 
     const commissionAmount = price * (brokerCompensation / 100);
     const grossEquity = price - mortgage;
-    const netProceeds = grossEquity - commissionAmount - concession;
+    const netProceeds = grossEquity - commissionAmount - concession - taxProration;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
       grossEquity,
       commissionAmount,
       concession,
+      taxProration,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation]);
+  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation, calculateTaxProration]);
 
   const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
 
@@ -176,6 +196,53 @@ export default function Calculator() {
                   {formatCurrency((parseFloat(salePrice) || 0) * (brokerCompensation / 100))}
                 </span>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="closingDate" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-slate-400" />
+                Estimated Closing Date
+              </Label>
+              <Input
+                id="closingDate"
+                type="date"
+                value={closingDate}
+                onChange={(e) => setClosingDate(e.target.value)}
+                className="text-lg h-12 font-medium"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="annualPropertyTax" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-slate-400" />
+                Annual Property Taxes
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  id="annualPropertyTax"
+                  type="text"
+                  placeholder="0"
+                  value={formatInputDisplay(annualPropertyTax)}
+                  onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
+                  className="pl-8 text-lg h-12 font-medium"
+                />
+              </div>
+              <p className="text-xs text-slate-400">Paid in arrears - seller owes from Jan 1 to closing</p>
+              
+              {calculateTaxProration.proration > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-amber-800">
+                      Tax Proration ({calculateTaxProration.daysOwned} days)
+                    </span>
+                    <span className="text-sm font-semibold text-amber-700">
+                      -{formatCurrency(calculateTaxProration.proration)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-600 mt-1">Debit to seller at closing</p>
+                </div>
+              )}
             </div>
 
             {results && (
