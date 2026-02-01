@@ -150,11 +150,11 @@ export default function Calculator() {
                 <span>10%</span>
               </div>
 
-              {results && (
-                <div className="text-center text-sm text-slate-500">
-                  Commission: {formatCurrency(results.commissionAmount)}
-                </div>
-              )}
+              <div className="text-center pt-2">
+                <span className="text-xl font-semibold text-slate-700">
+                  {formatCurrency((parseFloat(salePrice) || 0) * (brokerCompensation / 100))}
+                </span>
+              </div>
             </div>
 
             {results && (
