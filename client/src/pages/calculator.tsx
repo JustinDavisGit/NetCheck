@@ -2,12 +2,14 @@ import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
+  const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -36,14 +38,20 @@ export default function Calculator() {
 
     if (price === 0) return null;
 
+    const commissionAmount = price * (brokerCompensation / 100);
     const grossEquity = price - mortgage;
-    const equityPercentage = price > 0 ? (grossEquity / price) * 100 : 0;
+    const netProceeds = grossEquity - commissionAmount;
+    const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
       grossEquity,
-      equityPercentage,
+      commissionAmount,
+      netProceeds,
+      netPercentage,
     };
-  }, [salePrice, mortgageBalance]);
+  }, [salePrice, mortgageBalance, brokerCompensation]);
+
+  const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -99,6 +107,56 @@ export default function Calculator() {
               </div>
             </div>
 
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-slate-400" />
+                  Broker Compensation
+                </Label>
+                <span className="text-lg font-semibold text-green-600">{brokerCompensation.toFixed(1)}%</span>
+              </div>
+              
+              <div className="relative pt-2">
+                <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
+                  <div 
+                    className="absolute h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full transition-all duration-150"
+                    style={{ width: `${sliderPercentage}%` }}
+                  />
+                </div>
+                
+                <div 
+                  className="absolute top-0 -translate-x-1/2 transition-all duration-150"
+                  style={{ left: `${sliderPercentage}%` }}
+                >
+                  <div className="w-8 h-8 bg-white border-2 border-green-500 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
+                    <Briefcase className="w-4 h-4 text-green-600" />
+                  </div>
+                </div>
+                
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="0.5"
+                  value={brokerCompensation}
+                  onChange={(e) => setBrokerCompensation(parseFloat(e.target.value))}
+                  className="absolute inset-0 w-full h-8 opacity-0 cursor-grab active:cursor-grabbing"
+                  style={{ top: '-2px' }}
+                />
+              </div>
+              
+              <div className="flex justify-between text-xs text-slate-400">
+                <span>1%</span>
+                <span>10%</span>
+              </div>
+
+              {results && (
+                <div className="text-center text-sm text-slate-500">
+                  Commission: {formatCurrency(results.commissionAmount)}
+                </div>
+              )}
+            </div>
+
             {results && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -107,12 +165,12 @@ export default function Calculator() {
                 className="pt-4 border-t border-slate-100"
               >
                 <div className="text-center">
-                  <p className="text-sm text-slate-500 mb-1">Gross Equity</p>
-                  <p className={`text-3xl font-bold ${results.grossEquity >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(results.grossEquity)}
+                  <p className="text-sm text-slate-500 mb-1">Estimated Net Proceeds</p>
+                  <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {formatCurrency(results.netProceeds)}
                   </p>
                   <p className="text-sm text-slate-400 mt-1">
-                    {results.equityPercentage.toFixed(1)}% of sale price
+                    {results.netPercentage.toFixed(1)}% of sale price
                   </p>
                 </div>
               </motion.div>
