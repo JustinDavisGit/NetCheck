@@ -294,7 +294,7 @@ export default function Calculator() {
                         <div>
                           <p className="text-amber-800 font-medium">Howdy, partner!</p>
                           <p className="text-amber-700 text-sm mt-1">
-                            NM charges Gross Receipts Tax (GRT) on real estate commissions. GRT ranges from 5-9% of the total commission. Think of this as a sales tax on the service.
+                            NM charges Gross Receipts Tax (GRT) on real estate commissions. GRT ranges from 5-9% of the total commission. Think of this as a sales tax on the service provided by the real estate professional.
                           </p>
                           <a 
                             href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
@@ -372,7 +372,7 @@ export default function Calculator() {
                         <div>
                           <p className="text-teal-800 font-medium">Aloha!</p>
                           <p className="text-teal-700 text-sm mt-1">
-                            Hawaii charges General Excise Tax (GET) on real estate commissions. GET ranges from 4-5% of the total commission. Think of this as a sales tax on the service.
+                            Hawaii charges General Excise Tax (GET) on real estate commissions. GET ranges from 4-5% of the total commission. Think of this as a sales tax on the service provided by the real estate professional.
                           </p>
                         </div>
                       </div>
