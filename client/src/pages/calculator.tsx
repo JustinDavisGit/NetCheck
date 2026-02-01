@@ -3,12 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase } from "lucide-react";
+import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
+  const [sellerConcession, setSellerConcession] = useState<string>("");
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
 
   const formatCurrency = (value: number) => {
@@ -35,21 +36,23 @@ export default function Calculator() {
   const results = useMemo(() => {
     const price = parseFloat(salePrice) || 0;
     const mortgage = parseFloat(mortgageBalance) || 0;
+    const concession = parseFloat(sellerConcession) || 0;
 
     if (price === 0) return null;
 
     const commissionAmount = price * (brokerCompensation / 100);
     const grossEquity = price - mortgage;
-    const netProceeds = grossEquity - commissionAmount;
+    const netProceeds = grossEquity - commissionAmount - concession;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
       grossEquity,
       commissionAmount,
+      concession,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation]);
+  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation]);
 
   const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
 
@@ -102,6 +105,24 @@ export default function Calculator() {
                   placeholder="0"
                   value={formatInputDisplay(mortgageBalance)}
                   onChange={(e) => handleCurrencyInput(e.target.value, setMortgageBalance)}
+                  className="pl-8 text-lg h-12 font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="sellerConcession" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Gift className="w-4 h-4 text-slate-400" />
+                Seller Concession / Credit to Buyer
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  id="sellerConcession"
+                  type="text"
+                  placeholder="0"
+                  value={formatInputDisplay(sellerConcession)}
+                  onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcession)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
