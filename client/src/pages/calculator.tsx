@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,80 +21,6 @@ export default function Calculator() {
   const [selectedState, setSelectedState] = useState<'nm' | 'hi' | null>(null);
   const [grtRate, setGrtRate] = useState<number>(7);
   const [getRate, setGetRate] = useState<number>(4.25);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const hasSoundPlayedRef = useRef<boolean>(false);
-
-  const playCashRegisterSound = useCallback(() => {
-    try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      const ctx = audioContextRef.current;
-      const now = ctx.currentTime;
-      
-      // Classic cash register "ka-ching!" sound
-      // First part: mechanical "ka" click
-      const clickOsc = ctx.createOscillator();
-      const clickGain = ctx.createGain();
-      clickOsc.connect(clickGain);
-      clickGain.connect(ctx.destination);
-      clickOsc.type = 'square';
-      clickOsc.frequency.setValueAtTime(150, now);
-      clickOsc.frequency.exponentialRampToValueAtTime(80, now + 0.03);
-      clickGain.gain.setValueAtTime(0.3, now);
-      clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-      clickOsc.start(now);
-      clickOsc.stop(now + 0.05);
-      
-      // Second part: bell "ching!" 
-      const bellFreqs = [1567.98, 2093.00, 2637.02]; // G6, C7, E7 - bright bell chord
-      bellFreqs.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now + 0.06);
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.setValueAtTime(0.15, now + 0.06);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-        osc.start(now + 0.06);
-        osc.stop(now + 0.6);
-      });
-      
-      // Add a metallic shimmer
-      const shimmer = ctx.createOscillator();
-      const shimmerGain = ctx.createGain();
-      shimmer.connect(shimmerGain);
-      shimmerGain.connect(ctx.destination);
-      shimmer.type = 'triangle';
-      shimmer.frequency.setValueAtTime(3500, now + 0.06);
-      shimmer.frequency.exponentialRampToValueAtTime(2500, now + 0.3);
-      shimmerGain.gain.setValueAtTime(0.08, now + 0.06);
-      shimmerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-      shimmer.start(now + 0.06);
-      shimmer.stop(now + 0.4);
-      
-    } catch (e) {
-      console.log('Audio not available');
-    }
-  }, []);
-
-  const handleSalePriceChange = useCallback((value: string) => {
-    const numericValue = value.replace(/[^0-9]/g, '');
-    setSalePrice(numericValue);
-    
-    // Play sound when user types exactly 6 digits
-    if (numericValue.length === 6 && !hasSoundPlayedRef.current) {
-      playCashRegisterSound();
-      hasSoundPlayedRef.current = true;
-    }
-    
-    // Reset if they clear the field
-    if (numericValue.length === 0) {
-      hasSoundPlayedRef.current = false;
-    }
-  }, [playCashRegisterSound]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -200,7 +126,7 @@ export default function Calculator() {
                   type="text"
                   placeholder="0"
                   value={formatInputDisplay(salePrice)}
-                  onChange={(e) => handleSalePriceChange(e.target.value)}
+                  onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
