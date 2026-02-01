@@ -30,35 +30,51 @@ export default function Calculator() {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
       const ctx = audioContextRef.current;
+      const now = ctx.currentTime;
       
-      // Create a cash register "cha-ching" sound
-      const oscillator1 = ctx.createOscillator();
-      const oscillator2 = ctx.createOscillator();
-      const gainNode = ctx.createGain();
+      // Classic cash register "ka-ching!" sound
+      // First part: mechanical "ka" click
+      const clickOsc = ctx.createOscillator();
+      const clickGain = ctx.createGain();
+      clickOsc.connect(clickGain);
+      clickGain.connect(ctx.destination);
+      clickOsc.type = 'square';
+      clickOsc.frequency.setValueAtTime(150, now);
+      clickOsc.frequency.exponentialRampToValueAtTime(80, now + 0.03);
+      clickGain.gain.setValueAtTime(0.3, now);
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      clickOsc.start(now);
+      clickOsc.stop(now + 0.05);
       
-      oscillator1.connect(gainNode);
-      oscillator2.connect(gainNode);
-      gainNode.connect(ctx.destination);
+      // Second part: bell "ching!" 
+      const bellFreqs = [1567.98, 2093.00, 2637.02]; // G6, C7, E7 - bright bell chord
+      bellFreqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + 0.06);
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.setValueAtTime(0.15, now + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        osc.start(now + 0.06);
+        osc.stop(now + 0.6);
+      });
       
-      // First "cha" - lower tone
-      oscillator1.frequency.setValueAtTime(800, ctx.currentTime);
-      oscillator1.frequency.setValueAtTime(600, ctx.currentTime + 0.05);
+      // Add a metallic shimmer
+      const shimmer = ctx.createOscillator();
+      const shimmerGain = ctx.createGain();
+      shimmer.connect(shimmerGain);
+      shimmerGain.connect(ctx.destination);
+      shimmer.type = 'triangle';
+      shimmer.frequency.setValueAtTime(3500, now + 0.06);
+      shimmer.frequency.exponentialRampToValueAtTime(2500, now + 0.3);
+      shimmerGain.gain.setValueAtTime(0.08, now + 0.06);
+      shimmerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      shimmer.start(now + 0.06);
+      shimmer.stop(now + 0.4);
       
-      // Second "ching" - higher bell tone
-      oscillator2.frequency.setValueAtTime(1200, ctx.currentTime + 0.1);
-      oscillator2.frequency.setValueAtTime(1500, ctx.currentTime + 0.15);
-      oscillator2.frequency.setValueAtTime(1200, ctx.currentTime + 0.25);
-      
-      oscillator1.type = 'square';
-      oscillator2.type = 'sine';
-      
-      gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-      
-      oscillator1.start(ctx.currentTime);
-      oscillator1.stop(ctx.currentTime + 0.1);
-      oscillator2.start(ctx.currentTime + 0.1);
-      oscillator2.stop(ctx.currentTime + 0.4);
     } catch (e) {
       console.log('Audio not available');
     }
@@ -68,8 +84,8 @@ export default function Calculator() {
     const numericValue = value.replace(/[^0-9]/g, '');
     setSalePrice(numericValue);
     
-    // Play sound when user types 5-6 digits (typical home price like 100000-999999)
-    if (numericValue.length >= 5 && !hasSoundPlayedRef.current) {
+    // Play sound when user types exactly 6 digits
+    if (numericValue.length === 6 && !hasSoundPlayedRef.current) {
       playCashRegisterSound();
       hasSoundPlayedRef.current = true;
     }
