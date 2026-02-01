@@ -296,6 +296,14 @@ export default function Calculator() {
                           <p className="text-amber-700 text-sm mt-1">
                             NM charges Gross Receipts Tax (GRT) on real estate commissions. GRT ranges from 5-9% of the total commission. Think of this as a sales tax on the service.
                           </p>
+                          <a 
+                            href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-800 text-sm mt-2 underline"
+                          >
+                            View GRT rates by location (PDF)
+                          </a>
                         </div>
                       </div>
                     </div>
