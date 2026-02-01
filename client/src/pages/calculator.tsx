@@ -244,8 +244,9 @@ export default function Calculator() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-center gap-3 pt-2"
+                    className="flex items-center justify-center gap-3 pt-2"
                   >
+                    <span className="text-sm text-slate-600 font-medium">Which one?</span>
                     <button
                       type="button"
                       onClick={() => setSelectedState('nm')}
