@@ -1,11 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper, Palmtree } from "lucide-react";
 import { GiCactus } from "react-icons/gi";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
@@ -21,6 +21,81 @@ export default function Calculator() {
   const [selectedState, setSelectedState] = useState<'nm' | 'hi' | null>(null);
   const [grtRate, setGrtRate] = useState<number>(7);
   const [getRate, setGetRate] = useState<number>(4.25);
+  const [showMoneyAnimation, setShowMoneyAnimation] = useState(false);
+  const [moneyBills, setMoneyBills] = useState<Array<{ id: number; x: number; rotation: number; delay: number }>>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const lastSalePriceRef = useRef<string>("");
+
+  const playCashRegisterSound = useCallback(() => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = audioContextRef.current;
+      
+      // Create a cash register "cha-ching" sound
+      const oscillator1 = ctx.createOscillator();
+      const oscillator2 = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      oscillator1.connect(gainNode);
+      oscillator2.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      // First "cha" - lower tone
+      oscillator1.frequency.setValueAtTime(800, ctx.currentTime);
+      oscillator1.frequency.setValueAtTime(600, ctx.currentTime + 0.05);
+      
+      // Second "ching" - higher bell tone
+      oscillator2.frequency.setValueAtTime(1200, ctx.currentTime + 0.1);
+      oscillator2.frequency.setValueAtTime(1500, ctx.currentTime + 0.15);
+      oscillator2.frequency.setValueAtTime(1200, ctx.currentTime + 0.25);
+      
+      oscillator1.type = 'square';
+      oscillator2.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      
+      oscillator1.start(ctx.currentTime);
+      oscillator1.stop(ctx.currentTime + 0.1);
+      oscillator2.start(ctx.currentTime + 0.1);
+      oscillator2.stop(ctx.currentTime + 0.4);
+    } catch (e) {
+      console.log('Audio not available');
+    }
+  }, []);
+
+  const triggerMoneyAnimation = useCallback(() => {
+    const bills = Array.from({ length: 20 }, (_, i) => ({
+      id: Date.now() + i,
+      x: Math.random() * 100 - 50,
+      rotation: Math.random() * 720 - 360,
+      delay: Math.random() * 0.3,
+    }));
+    setMoneyBills(bills);
+    setShowMoneyAnimation(true);
+    playCashRegisterSound();
+    
+    setTimeout(() => {
+      setShowMoneyAnimation(false);
+    }, 2000);
+  }, [playCashRegisterSound]);
+
+  const handleSalePriceChange = useCallback((value: string) => {
+    const numericValue = value.replace(/[^0-9]/g, '');
+    const newPrice = numericValue;
+    const oldPrice = lastSalePriceRef.current;
+    
+    setSalePrice(newPrice);
+    
+    // Trigger animation when going from empty/zero to a real value
+    if (newPrice && parseInt(newPrice) > 0 && (!oldPrice || parseInt(oldPrice) === 0)) {
+      triggerMoneyAnimation();
+    }
+    
+    lastSalePriceRef.current = newPrice;
+  }, [triggerMoneyAnimation]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -97,7 +172,53 @@ export default function Calculator() {
   const getSliderPercentage = ((getRate - 4) / 1) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Money Gun Animation */}
+      <AnimatePresence>
+        {showMoneyAnimation && (
+          <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+            {moneyBills.map((bill) => (
+              <motion.div
+                key={bill.id}
+                initial={{ 
+                  x: '50vw', 
+                  y: '40vh',
+                  scale: 0,
+                  rotate: 0,
+                  opacity: 1
+                }}
+                animate={{ 
+                  x: `calc(50vw + ${bill.x}vw)`,
+                  y: ['40vh', '20vh', '110vh'],
+                  scale: [0, 1.2, 1],
+                  rotate: bill.rotation,
+                  opacity: [1, 1, 0]
+                }}
+                transition={{ 
+                  duration: 1.8,
+                  delay: bill.delay,
+                  ease: [0.25, 0.46, 0.45, 0.94]
+                }}
+                className="absolute text-4xl"
+                style={{ filter: 'drop-shadow(2px 4px 6px rgba(0,0,0,0.3))' }}
+              >
+                💵
+              </motion.div>
+            ))}
+            {/* Money gun emoji */}
+            <motion.div
+              initial={{ scale: 0, rotate: -20 }}
+              animate={{ scale: [0, 1.5, 1.2], rotate: [-20, 10, -5] }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 text-6xl"
+            >
+              🔫💰
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -126,7 +247,7 @@ export default function Calculator() {
                   type="text"
                   placeholder="0"
                   value={formatInputDisplay(salePrice)}
-                  onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
+                  onChange={(e) => handleSalePriceChange(e.target.value)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
