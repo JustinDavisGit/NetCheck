@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale } from "lucide-react";
+import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Calculator() {
@@ -14,6 +14,8 @@ export default function Calculator() {
   const [closingDate, setClosingDate] = useState<string>("");
   const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
   const [titleEscrowFees, setTitleEscrowFees] = useState<number>(1);
+  const [hasHoa, setHasHoa] = useState<boolean | null>(null);
+  const [hoaTransferFees, setHoaTransferFees] = useState<number>(500);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -58,12 +60,13 @@ export default function Calculator() {
     const concession = parseFloat(sellerConcession) || 0;
     const taxProration = calculateTaxProration.proration;
     const titleFees = price * (titleEscrowFees / 100);
+    const hoaFees = hasHoa ? hoaTransferFees : 0;
 
     if (price === 0) return null;
 
     const commissionAmount = price * (brokerCompensation / 100);
     const grossEquity = price - mortgage;
-    const netProceeds = grossEquity - commissionAmount - concession - taxProration - titleFees;
+    const netProceeds = grossEquity - commissionAmount - concession - taxProration - titleFees - hoaFees;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
@@ -72,13 +75,15 @@ export default function Calculator() {
       concession,
       taxProration,
       titleFees,
+      hoaFees,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation, titleEscrowFees, calculateTaxProration]);
+  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation, titleEscrowFees, hasHoa, hoaTransferFees, calculateTaxProration]);
 
   const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
   const titleSliderPercentage = ((titleEscrowFees - 0.5) / 1.5) * 100;
+  const hoaSliderPercentage = ((hoaTransferFees - 250) / 750) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -301,6 +306,101 @@ export default function Calculator() {
               <p className="text-xs text-slate-400 text-center">
                 Whether a state uses attorneys or escrow officers, non-commission closing costs usually fall around 1% of the sale price, give or take.
               </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-slate-400" />
+                  HOA?
+                </Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setHasHoa(true)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      hasHoa === true
+                        ? 'bg-purple-500 text-white shadow-md'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    Yes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHasHoa(false)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      hasHoa === false
+                        ? 'bg-purple-500 text-white shadow-md'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+
+              {hasHoa === true && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium text-slate-700">
+                      HOA Transfer Fees
+                    </Label>
+                    <span className="text-lg font-semibold text-purple-600">{formatCurrency(hoaTransferFees)}</span>
+                  </div>
+                  
+                  <div className="relative pt-2">
+                    <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
+                      <div 
+                        className="absolute h-full bg-gradient-to-r from-purple-400 to-purple-500 rounded-full transition-all duration-150"
+                        style={{ width: `${hoaSliderPercentage}%` }}
+                      />
+                    </div>
+                    
+                    <div 
+                      className="absolute top-0 -translate-x-1/2 transition-all duration-150"
+                      style={{ left: `${hoaSliderPercentage}%` }}
+                    >
+                      <div className="w-8 h-8 bg-white border-2 border-purple-500 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
+                        <Building2 className="w-4 h-4 text-purple-600" />
+                      </div>
+                    </div>
+                    
+                    <input
+                      type="range"
+                      min="250"
+                      max="1000"
+                      step="25"
+                      value={hoaTransferFees}
+                      onChange={(e) => setHoaTransferFees(parseFloat(e.target.value))}
+                      className="absolute inset-0 w-full h-8 opacity-0 cursor-grab active:cursor-grabbing"
+                      style={{ top: '-2px' }}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-between text-xs text-slate-400">
+                    <span>$250</span>
+                    <span>$1,000</span>
+                  </div>
+                </motion.div>
+              )}
+
+              {hasHoa === false && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-green-50 border border-green-200 rounded-lg p-4 text-center"
+                >
+                  <PartyPopper className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                  <p className="text-green-700 font-medium">You lucky goose!</p>
+                  <p className="text-green-600 text-sm">No HOA fees to worry about</p>
+                </motion.div>
+              )}
             </div>
 
             {results && (
