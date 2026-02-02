@@ -362,24 +362,6 @@ export default function Calculator() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="sellerConcession" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Gift className="w-4 h-4 text-slate-400" />
-                Seller Concession / Credit to Buyer
-              </Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  id="sellerConcession"
-                  type="text"
-                  placeholder="0"
-                  value={formatInputDisplay(sellerConcession)}
-                  onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcession)}
-                  className="pl-8 text-lg h-12 font-medium"
-                />
-              </div>
-            </div>
-
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -838,6 +820,24 @@ export default function Calculator() {
                   <p className="text-green-600 text-sm">No HOA fees to worry about</p>
                 </motion.div>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="sellerConcession" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Gift className="w-4 h-4 text-slate-400" />
+                Seller Concession / Credit to Buyer
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  id="sellerConcession"
+                  type="text"
+                  placeholder="0"
+                  value={formatInputDisplay(sellerConcession)}
+                  onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcession)}
+                  className="pl-8 text-lg h-12 font-medium"
+                />
+              </div>
             </div>
 
             {results && (
