@@ -742,7 +742,7 @@ export default function Calculator() {
                 ) : (
                   <>
                     <Share2 className="w-4 h-4" />
-                    Share This Estimate
+                    Share This Estimated Net
                   </>
                 )}
               </Button>
