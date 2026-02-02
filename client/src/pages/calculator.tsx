@@ -266,7 +266,7 @@ export default function Calculator() {
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                   <Briefcase className="w-4 h-4 text-slate-400" />
-                  Broker Compensation
+                  Real Estate Brokerage Compensation (Listing Agent + Buyer's Broker)
                 </Label>
                 <span className="text-lg font-semibold text-green-600">{brokerCompensation.toFixed(1)}%</span>
               </div>
