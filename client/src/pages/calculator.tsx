@@ -229,6 +229,19 @@ export default function Calculator() {
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
+              {salePrice && mortgageBalance && parseFloat(salePrice) > 0 && (
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm text-slate-500 mt-2"
+                >
+                  You have approximately{' '}
+                  <span className="font-semibold text-green-600">
+                    {(((parseFloat(salePrice) - parseFloat(mortgageBalance)) / parseFloat(salePrice)) * 100).toFixed(1)}%
+                  </span>{' '}
+                  equity in your home
+                </motion.p>
+              )}
             </div>
 
             <div className="space-y-2">
