@@ -23,6 +23,10 @@ export default function Calculator() {
   const [selectedState, setSelectedState] = useState<'nm' | 'hi' | null>(null);
   const [grtRate, setGrtRate] = useState<number>(7);
   const [getRate, setGetRate] = useState<number>(4.25);
+  const [hasSecondaryLoans, setHasSecondaryLoans] = useState<boolean | null>(null);
+  const [secondMortgage, setSecondMortgage] = useState<string>("");
+  const [heloc, setHeloc] = useState<string>("");
+  const [solarLoan, setSolarLoan] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
@@ -143,6 +147,10 @@ export default function Calculator() {
   const results = useMemo(() => {
     const price = parseFloat(salePrice) || 0;
     const mortgage = parseFloat(mortgageBalance) || 0;
+    const secondMort = parseFloat(secondMortgage) || 0;
+    const helocAmount = parseFloat(heloc) || 0;
+    const solarAmount = parseFloat(solarLoan) || 0;
+    const totalMortgages = mortgage + secondMort + helocAmount + solarAmount;
     const concession = parseFloat(sellerConcession) || 0;
     const taxProration = calculateTaxProration.proration;
     const titleFees = price * (titleEscrowFees / 100);
@@ -153,7 +161,7 @@ export default function Calculator() {
     const commissionAmount = price * (brokerCompensation / 100);
     const grtAmount = selectedState === 'nm' ? commissionAmount * (grtRate / 100) : 0;
     const getAmount = selectedState === 'hi' ? commissionAmount * (getRate / 100) : 0;
-    const grossEquity = price - mortgage;
+    const grossEquity = price - totalMortgages;
     const netProceeds = grossEquity - commissionAmount - grtAmount - getAmount - concession - taxProration - titleFees - hoaFees;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
@@ -169,7 +177,7 @@ export default function Calculator() {
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, sellerConcession, brokerCompensation, titleEscrowFees, hasHoa, hoaTransferFees, selectedState, grtRate, getRate, calculateTaxProration]);
+  }, [salePrice, mortgageBalance, secondMortgage, heloc, solarLoan, sellerConcession, brokerCompensation, titleEscrowFees, hasHoa, hoaTransferFees, selectedState, grtRate, getRate, calculateTaxProration]);
 
   const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
   const titleSliderPercentage = ((titleEscrowFees - 0.5) / 1.5) * 100;
@@ -241,6 +249,116 @@ export default function Calculator() {
                   </span>{' '}
                   equity in your home
                 </motion.p>
+              )}
+
+              {mortgageBalance && parseFloat(mortgageBalance) > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 space-y-3"
+                >
+                  <p className="text-sm font-medium text-slate-700">
+                    Any Second Mortgage, HELOC, or Solar Balance to be paid at Closing?
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setHasSecondaryLoans(true)}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                        hasSecondaryLoans === true
+                          ? 'bg-slate-800 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHasSecondaryLoans(false);
+                        setSecondMortgage("");
+                        setHeloc("");
+                        setSolarLoan("");
+                      }}
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                        hasSecondaryLoans === false
+                          ? 'bg-slate-800 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      No
+                    </button>
+                  </div>
+
+                  {hasSecondaryLoans === false && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-green-50 border border-green-200 rounded-lg p-3"
+                    >
+                      <p className="text-green-700 text-sm font-medium text-center">
+                        Sweet! That means more dinero in your pocket! 💰
+                      </p>
+                    </motion.div>
+                  )}
+
+                  {hasSecondaryLoans === true && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-3 pt-2"
+                    >
+                      <div className="space-y-1">
+                        <Label htmlFor="secondMortgage" className="text-xs font-medium text-slate-600">
+                          Second Mortgage
+                        </Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                          <Input
+                            id="secondMortgage"
+                            type="text"
+                            placeholder="0"
+                            value={formatInputDisplay(secondMortgage)}
+                            onChange={(e) => handleCurrencyInput(e.target.value, setSecondMortgage)}
+                            className="pl-6 text-sm h-10"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="heloc" className="text-xs font-medium text-slate-600">
+                          HELOC
+                        </Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                          <Input
+                            id="heloc"
+                            type="text"
+                            placeholder="0"
+                            value={formatInputDisplay(heloc)}
+                            onChange={(e) => handleCurrencyInput(e.target.value, setHeloc)}
+                            className="pl-6 text-sm h-10"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="solarLoan" className="text-xs font-medium text-slate-600">
+                          Solar Loan Balance
+                        </Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                          <Input
+                            id="solarLoan"
+                            type="text"
+                            placeholder="0"
+                            value={formatInputDisplay(solarLoan)}
+                            onChange={(e) => handleCurrencyInput(e.target.value, setSolarLoan)}
+                            className="pl-6 text-sm h-10"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
               )}
             </div>
 
