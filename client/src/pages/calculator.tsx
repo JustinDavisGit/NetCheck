@@ -1,11 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper, Palmtree } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper, Palmtree, Share2, Check } from "lucide-react";
 import { GiCactus } from "react-icons/gi";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
@@ -21,6 +23,85 @@ export default function Calculator() {
   const [selectedState, setSelectedState] = useState<'nm' | 'hi' | null>(null);
   const [grtRate, setGrtRate] = useState<number>(7);
   const [getRate, setGetRate] = useState<number>(4.25);
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
+
+  // Load state from URL parameters on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('sp')) setSalePrice(params.get('sp') || '');
+    if (params.get('mb')) setMortgageBalance(params.get('mb') || '');
+    if (params.get('sc')) setSellerConcession(params.get('sc') || '');
+    if (params.get('bc')) setBrokerCompensation(parseFloat(params.get('bc') || '6'));
+    if (params.get('cd')) setClosingDate(params.get('cd') || '');
+    if (params.get('apt')) setAnnualPropertyTax(params.get('apt') || '');
+    if (params.get('tef')) setTitleEscrowFees(parseFloat(params.get('tef') || '1'));
+    if (params.get('hoa') === 'true') setHasHoa(true);
+    if (params.get('hoa') === 'false') setHasHoa(false);
+    if (params.get('htf')) setHoaTransferFees(parseFloat(params.get('htf') || '500'));
+    if (params.get('state') === 'nm' || params.get('state') === 'hi') {
+      setLivesInSpecialState(true);
+      setSelectedState(params.get('state') as 'nm' | 'hi');
+    }
+    if (params.get('grt')) setGrtRate(parseFloat(params.get('grt') || '7'));
+    if (params.get('get')) setGetRate(parseFloat(params.get('get') || '4.25'));
+  }, []);
+
+  const generateShareUrl = () => {
+    const params = new URLSearchParams();
+    if (salePrice) params.set('sp', salePrice);
+    if (mortgageBalance) params.set('mb', mortgageBalance);
+    if (sellerConcession) params.set('sc', sellerConcession);
+    if (brokerCompensation !== 6) params.set('bc', brokerCompensation.toString());
+    if (closingDate) params.set('cd', closingDate);
+    if (annualPropertyTax) params.set('apt', annualPropertyTax);
+    if (titleEscrowFees !== 1) params.set('tef', titleEscrowFees.toString());
+    if (hasHoa !== null) params.set('hoa', hasHoa.toString());
+    if (hasHoa && hoaTransferFees !== 500) params.set('htf', hoaTransferFees.toString());
+    if (selectedState) params.set('state', selectedState);
+    if (selectedState === 'nm' && grtRate !== 7) params.set('grt', grtRate.toString());
+    if (selectedState === 'hi' && getRate !== 4.25) params.set('get', getRate.toString());
+    
+    const baseUrl = window.location.origin + window.location.pathname;
+    return `${baseUrl}?${params.toString()}`;
+  };
+
+  const handleShare = async () => {
+    const shareUrl = generateShareUrl();
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Net-Out Calculator Estimate',
+          text: 'Check out this estimated net proceeds calculation',
+          url: shareUrl,
+        });
+      } catch (err) {
+        // User cancelled or error - fall back to copy
+        await copyToClipboard(shareUrl);
+      }
+    } else {
+      await copyToClipboard(shareUrl);
+    }
+  };
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Share this link so others can view and adjust the estimate.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Couldn't copy link",
+        description: "Please copy the URL from your browser's address bar.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -646,6 +727,29 @@ export default function Calculator() {
                 </div>
               </motion.div>
             )}
+
+            <div className="pt-6 border-t border-slate-100 mt-6">
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 text-green-600" />
+                    Link Copied!
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4" />
+                    Share This Estimate
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-slate-400 text-center mt-2">
+                Recipients can view and adjust the numbers
+              </p>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
