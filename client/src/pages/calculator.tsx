@@ -648,10 +648,6 @@ export default function Calculator() {
             )}
           </CardContent>
         </Card>
-
-        <p className="text-center text-xs text-slate-400 mt-6">
-          For New Mexico real estate professionals
-        </p>
       </motion.div>
     </div>
   );
