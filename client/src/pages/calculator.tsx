@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -187,17 +187,49 @@ export default function Calculator() {
     setShowResults(false);
     setIsCalculating(true);
     setCalcPhase('calculating');
+    setDisplayedNet(0);
 
     setTimeout(() => {
       setCalcPhase('applying');
-    }, 500);
+    }, 900);
 
     setTimeout(() => {
       setCalcPhase('done');
       setShowResults(true);
       setIsCalculating(false);
-    }, 1100);
+    }, 2000);
   };
+
+  const animationRef = useRef<number | null>(null);
+
+  const animateNumber = useCallback((target: number, duration: number = 800) => {
+    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    const start = performance.now();
+    const startVal = 0;
+
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayedNet(startVal + (target - startVal) * eased);
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  const [displayedNet, setDisplayedNet] = useState(0);
+
+  useEffect(() => {
+    if (showResults && results) {
+      animateNumber(results.netProceeds);
+    }
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [showResults, results, animateNumber]);
 
   const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
   const titleSliderPercentage = ((titleEscrowFees - 0.5) / 1.5) * 100;
@@ -902,13 +934,13 @@ export default function Calculator() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.4 }}
                   className="pt-4 border-t border-slate-100"
                 >
                   <div className="text-center">
                     <p className="text-sm text-slate-500 mb-1">Here's your estimated net</p>
                     <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(results.netProceeds)}
+                      {formatCurrency(displayedNet)}
                     </p>
                     <p className="text-sm text-slate-400 mt-1">
                       {results.netPercentage.toFixed(1)}% of sale price
