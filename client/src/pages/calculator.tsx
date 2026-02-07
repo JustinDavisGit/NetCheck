@@ -945,6 +945,20 @@ export default function Calculator() {
                     <p className="text-sm text-slate-400 mt-1">
                       {results.netPercentage.toFixed(1)}% of sale price
                     </p>
+                    <Button
+                      onClick={() => {
+                        setShowResults(false);
+                        setCalcPhase('idle');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      variant="outline"
+                      className="mt-4 w-full"
+                    >
+                      Try another scenario
+                    </Button>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Change sale price, closing date, seller concessions, etc...
+                    </p>
                   </div>
                 </motion.div>
               )}
