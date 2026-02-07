@@ -191,13 +191,13 @@ export default function Calculator() {
 
     setTimeout(() => {
       setCalcPhase('applying');
-    }, 900);
+    }, 550);
 
     setTimeout(() => {
       setCalcPhase('done');
       setShowResults(true);
       setIsCalculating(false);
-    }, 2000);
+    }, 1200);
   };
 
   const animationRef = useRef<number | null>(null);
@@ -895,8 +895,8 @@ export default function Calculator() {
             <div className="pt-4 space-y-4">
               <Button
                 onClick={handleRunNetCheck}
-                disabled={!results || isCalculating}
-                className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700 text-white"
+                disabled={!results || isCalculating || showResults}
+                className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
               >
                 {isCalculating ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
