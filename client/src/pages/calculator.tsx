@@ -21,7 +21,7 @@ export default function Calculator() {
   const [hoaTransferFees, setHoaTransferFees] = useState<number>(500);
   const [livesInSpecialState, setLivesInSpecialState] = useState<boolean | null>(null);
   const [selectedState, setSelectedState] = useState<'nm' | 'hi' | null>(null);
-  const [grtRate, setGrtRate] = useState<number>(7);
+  const [grtRate, setGrtRate] = useState<number>(7.625);
   const [getRate, setGetRate] = useState<number>(4.25);
   const [hasSecondaryLoans, setHasSecondaryLoans] = useState<boolean | null>(null);
   const [secondMortgage, setSecondMortgage] = useState<string>("");
@@ -50,7 +50,7 @@ export default function Calculator() {
       setLivesInSpecialState(true);
       setSelectedState(params.get('state') as 'nm' | 'hi');
     }
-    if (params.get('grt')) setGrtRate(parseFloat(params.get('grt') || '7'));
+    if (params.get('grt')) setGrtRate(parseFloat(params.get('grt') || '7.625'));
     if (params.get('get')) setGetRate(parseFloat(params.get('get') || '4.25'));
   }, []);
 
@@ -66,7 +66,7 @@ export default function Calculator() {
     if (hasHoa !== null) params.set('hoa', hasHoa.toString());
     if (hasHoa && hoaTransferFees !== 500) params.set('htf', hoaTransferFees.toString());
     if (selectedState) params.set('state', selectedState);
-    if (selectedState === 'nm' && grtRate !== 7) params.set('grt', grtRate.toString());
+    if (selectedState === 'nm' && grtRate !== 7.625) params.set('grt', grtRate.toString());
     if (selectedState === 'hi' && getRate !== 4.25) params.set('get', getRate.toString());
     
     const baseUrl = window.location.origin + window.location.pathname;
@@ -560,7 +560,7 @@ export default function Calculator() {
                         <Label className="text-sm font-medium text-slate-700">
                           GRT Rate
                         </Label>
-                        <span className="text-lg font-semibold text-amber-600">{grtRate.toFixed(1)}%</span>
+                        <span className="text-lg font-semibold text-amber-600">{grtRate.toFixed(4)}%</span>
                       </div>
                       
                       <div className="relative pt-2">
@@ -584,9 +584,9 @@ export default function Calculator() {
                           type="range"
                           min="5"
                           max="9"
-                          step="0.1"
+                          step="0.0625"
                           value={grtRate}
-                          onChange={(e) => setGrtRate(parseFloat(e.target.value))}
+                          onChange={(e) => setGrtRate(parseFloat(parseFloat(e.target.value).toFixed(4)))}
                           className="absolute inset-0 w-full h-8 opacity-0 cursor-grab active:cursor-grabbing"
                           style={{ top: '-2px' }}
                         />
