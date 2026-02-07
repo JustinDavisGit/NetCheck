@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper, Palmtree, Share2, Check, Loader2 } from "lucide-react";
+import { DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper, Palmtree, Share2, Check, Loader2 } from "lucide-react";
 import { GiCactus } from "react-icons/gi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -246,10 +246,11 @@ export default function Calculator() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">
-            <CalculatorIcon className="w-8 h-8 text-emerald-500" />
+          <div className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-emerald-400 mb-4 shadow-lg">
+            <span className="text-3xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif" }}>
+              Net<span className="font-light">Check</span>
+            </span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Net-Out Calculator</h1>
           <p className="text-slate-500 mt-1">Calculate your estimated proceeds</p>
         </div>
 
