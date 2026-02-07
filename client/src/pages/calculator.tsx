@@ -4,9 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper, Palmtree, Share2, Check } from "lucide-react";
+import { Calculator as CalculatorIcon, DollarSign, Home, Wallet, Briefcase, Gift, Calendar, Receipt, Scale, Building2, PartyPopper, Palmtree, Share2, Check, Loader2 } from "lucide-react";
 import { GiCactus } from "react-icons/gi";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Calculator() {
@@ -28,6 +28,9 @@ export default function Calculator() {
   const [heloc, setHeloc] = useState<string>("");
   const [solarLoan, setSolarLoan] = useState<string>("");
   const [copied, setCopied] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calcPhase, setCalcPhase] = useState<'idle' | 'calculating' | 'applying' | 'done'>('idle');
   const { toast } = useToast();
 
   // Load state from URL parameters on mount
@@ -178,6 +181,23 @@ export default function Calculator() {
       netPercentage,
     };
   }, [salePrice, mortgageBalance, secondMortgage, heloc, solarLoan, sellerConcession, brokerCompensation, titleEscrowFees, hasHoa, hoaTransferFees, selectedState, grtRate, getRate, calculateTaxProration]);
+
+  const handleRunNetCheck = () => {
+    if (!results) return;
+    setShowResults(false);
+    setIsCalculating(true);
+    setCalcPhase('calculating');
+
+    setTimeout(() => {
+      setCalcPhase('applying');
+    }, 500);
+
+    setTimeout(() => {
+      setCalcPhase('done');
+      setShowResults(true);
+      setIsCalculating(false);
+    }, 1100);
+  };
 
   const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
   const titleSliderPercentage = ((titleEscrowFees - 0.5) / 1.5) * 100;
@@ -840,24 +860,63 @@ export default function Calculator() {
               </div>
             </div>
 
-            {results && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-                className="pt-4 border-t border-slate-100"
+            <div className="pt-4 space-y-4">
+              <Button
+                onClick={handleRunNetCheck}
+                disabled={!results || isCalculating}
+                className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700 text-white"
               >
-                <div className="text-center">
-                  <p className="text-sm text-slate-500 mb-1">Estimated Net Proceeds</p>
-                  <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(results.netProceeds)}
-                  </p>
-                  <p className="text-sm text-slate-400 mt-1">
-                    {results.netPercentage.toFixed(1)}% of sale price
-                  </p>
-                </div>
-              </motion.div>
-            )}
+                {isCalculating ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  "Run NetCheck"
+                )}
+              </Button>
+
+              <AnimatePresence mode="wait">
+                {isCalculating && calcPhase === 'calculating' && (
+                  <motion.p
+                    key="calculating"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="text-sm text-slate-500 text-center"
+                  >
+                    Calculating your estimated net...
+                  </motion.p>
+                )}
+                {isCalculating && calcPhase === 'applying' && (
+                  <motion.p
+                    key="applying"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="text-sm text-slate-500 text-center"
+                  >
+                    Applying typical closing costs...
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              {showResults && results && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="pt-4 border-t border-slate-100"
+                >
+                  <div className="text-center">
+                    <p className="text-sm text-slate-500 mb-1">Here's your estimated net</p>
+                    <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(results.netProceeds)}
+                    </p>
+                    <p className="text-sm text-slate-400 mt-1">
+                      {results.netPercentage.toFixed(1)}% of sale price
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
 
             <div className="pt-6 border-t border-slate-100 mt-6">
               <Button
