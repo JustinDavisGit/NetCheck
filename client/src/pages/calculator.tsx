@@ -238,7 +238,7 @@ export default function Calculator() {
   const getSliderPercentage = ((getRate - 4) / 1) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -246,8 +246,8 @@ export default function Calculator() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-            <CalculatorIcon className="w-8 h-8 text-green-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4">
+            <CalculatorIcon className="w-8 h-8 text-emerald-500" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Net-Out Calculator</h1>
           <p className="text-slate-500 mt-1">Calculate your estimated proceeds</p>
@@ -257,7 +257,7 @@ export default function Calculator() {
           <CardContent className="p-6 space-y-6">
             <div className="space-y-2">
               <Label htmlFor="salePrice" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Home className="w-4 h-4 text-slate-400" />
+                <Home className="w-4 h-4 text-blue-400" />
                 Projected Sale Price
               </Label>
               <div className="relative">
@@ -275,7 +275,7 @@ export default function Calculator() {
 
             <div className="space-y-2">
               <Label htmlFor="mortgageBalance" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-slate-400" />
+                <Wallet className="w-4 h-4 text-blue-400" />
                 Mortgage Balance
               </Label>
               <div className="relative">
@@ -296,7 +296,7 @@ export default function Calculator() {
                   className="text-sm text-slate-500 mt-2"
                 >
                   You have approximately{' '}
-                  <span className="font-semibold text-green-600">
+                  <span className="font-semibold text-emerald-500">
                     {(((parseFloat(salePrice) - parseFloat(mortgageBalance)) / parseFloat(salePrice)) * 100).toFixed(1)}%
                   </span>{' '}
                   equity in your home
@@ -318,7 +318,7 @@ export default function Calculator() {
                       onClick={() => setHasSecondaryLoans(true)}
                       className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
                         hasSecondaryLoans === true
-                          ? 'bg-slate-800 text-white'
+                          ? 'bg-blue-500 text-white'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
@@ -334,7 +334,7 @@ export default function Calculator() {
                       }}
                       className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
                         hasSecondaryLoans === false
-                          ? 'bg-slate-800 text-white'
+                          ? 'bg-blue-500 text-white'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
@@ -346,9 +346,9 @@ export default function Calculator() {
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-green-50 border border-green-200 rounded-lg p-3"
+                      className="bg-emerald-50 border border-emerald-200 rounded-lg p-3"
                     >
-                      <p className="text-green-700 text-sm font-medium text-center">
+                      <p className="text-emerald-600 text-sm font-medium text-center">
                         Sweet! That means more dinero in your pocket! 💰
                       </p>
                     </motion.div>
@@ -417,16 +417,16 @@ export default function Calculator() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-slate-400" />
+                  <Briefcase className="w-4 h-4 text-blue-400" />
                   Real Estate Brokerage Compensation (Listing Agent + Buyer's Broker)
                 </Label>
-                <span className="text-lg font-semibold text-green-600">{brokerCompensation.toFixed(1)}%</span>
+                <span className="text-lg font-semibold text-blue-500">{brokerCompensation.toFixed(1)}%</span>
               </div>
               
               <div className="relative pt-2">
                 <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
                   <div 
-                    className="absolute h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full transition-all duration-150"
+                    className="absolute h-full bg-gradient-to-r from-emerald-300 to-emerald-400 rounded-full transition-all duration-150"
                     style={{ width: `${sliderPercentage}%` }}
                   />
                 </div>
@@ -435,8 +435,8 @@ export default function Calculator() {
                   className="absolute top-0 -translate-x-1/2 transition-all duration-150"
                   style={{ left: `${sliderPercentage}%` }}
                 >
-                  <div className="w-8 h-8 bg-white border-2 border-green-500 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
-                    <Briefcase className="w-4 h-4 text-green-600" />
+                  <div className="w-8 h-8 bg-white border-2 border-emerald-400 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
+                    <Briefcase className="w-4 h-4 text-emerald-500" />
                   </div>
                 </div>
                 
@@ -474,7 +474,7 @@ export default function Calculator() {
                       onClick={() => setLivesInSpecialState(true)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                         livesInSpecialState === true
-                          ? 'bg-orange-500 text-white shadow-md'
+                          ? 'bg-blue-500 text-white shadow-md'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
@@ -485,7 +485,7 @@ export default function Calculator() {
                       onClick={() => { setLivesInSpecialState(false); setSelectedState(null); }}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                         livesInSpecialState === false
-                          ? 'bg-orange-500 text-white shadow-md'
+                          ? 'bg-blue-500 text-white shadow-md'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
@@ -680,7 +680,7 @@ export default function Calculator() {
 
             <div className="space-y-2">
               <Label htmlFor="closingDate" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-slate-400" />
+                <Calendar className="w-4 h-4 text-blue-400" />
                 Estimated Closing Date
               </Label>
               <Input
@@ -694,7 +694,7 @@ export default function Calculator() {
 
             <div className="space-y-2">
               <Label htmlFor="annualPropertyTax" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-slate-400" />
+                <Receipt className="w-4 h-4 text-blue-400" />
                 Annual Property Taxes
               </Label>
               <div className="relative">
@@ -728,7 +728,7 @@ export default function Calculator() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <Scale className="w-4 h-4 text-slate-400" />
+                  <Scale className="w-4 h-4 text-blue-400" />
                   Title / Escrow / Attorney Fees
                 </Label>
                 <span className="text-lg font-semibold text-blue-600">{titleEscrowFees.toFixed(1)}%</span>
@@ -782,7 +782,7 @@ export default function Calculator() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-slate-400" />
+                  <Building2 className="w-4 h-4 text-blue-400" />
                   HOA?
                 </Label>
                 <div className="flex gap-2">
@@ -791,7 +791,7 @@ export default function Calculator() {
                     onClick={() => setHasHoa(true)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                       hasHoa === true
-                        ? 'bg-purple-500 text-white shadow-md'
+                        ? 'bg-blue-500 text-white shadow-md'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
@@ -802,7 +802,7 @@ export default function Calculator() {
                     onClick={() => setHasHoa(false)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                       hasHoa === false
-                        ? 'bg-purple-500 text-white shadow-md'
+                        ? 'bg-blue-500 text-white shadow-md'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
@@ -822,13 +822,13 @@ export default function Calculator() {
                     <Label className="text-sm font-medium text-slate-700">
                       HOA Transfer Fees
                     </Label>
-                    <span className="text-lg font-semibold text-purple-600">{formatCurrency(hoaTransferFees)}</span>
+                    <span className="text-lg font-semibold text-blue-500">{formatCurrency(hoaTransferFees)}</span>
                   </div>
                   
                   <div className="relative pt-2">
                     <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
                       <div 
-                        className="absolute h-full bg-gradient-to-r from-purple-400 to-purple-500 rounded-full transition-all duration-150"
+                        className="absolute h-full bg-gradient-to-r from-blue-300 to-blue-400 rounded-full transition-all duration-150"
                         style={{ width: `${hoaSliderPercentage}%` }}
                       />
                     </div>
@@ -837,8 +837,8 @@ export default function Calculator() {
                       className="absolute top-0 -translate-x-1/2 transition-all duration-150"
                       style={{ left: `${hoaSliderPercentage}%` }}
                     >
-                      <div className="w-8 h-8 bg-white border-2 border-purple-500 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
-                        <Building2 className="w-4 h-4 text-purple-600" />
+                      <div className="w-8 h-8 bg-white border-2 border-blue-400 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
+                        <Building2 className="w-4 h-4 text-blue-500" />
                       </div>
                     </div>
                     
@@ -865,18 +865,18 @@ export default function Calculator() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-green-50 border border-green-200 rounded-lg p-4 text-center"
+                  className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center"
                 >
-                  <PartyPopper className="w-6 h-6 text-green-500 mx-auto mb-2" />
-                  <p className="text-green-700 font-medium">You lucky goose!</p>
-                  <p className="text-green-600 text-sm">No HOA fees to worry about</p>
+                  <PartyPopper className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
+                  <p className="text-emerald-600 font-medium">You lucky goose!</p>
+                  <p className="text-emerald-500 text-sm">No HOA fees to worry about</p>
                 </motion.div>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="sellerConcession" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Gift className="w-4 h-4 text-slate-400" />
+                <Gift className="w-4 h-4 text-blue-400" />
                 Seller Concession / Credit to Buyer
               </Label>
               <div className="relative">
@@ -896,7 +896,7 @@ export default function Calculator() {
               <Button
                 onClick={handleRunNetCheck}
                 disabled={!results || isCalculating || showResults}
-                className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                className="w-full h-12 text-lg font-semibold bg-emerald-400 hover:bg-emerald-500 text-white disabled:opacity-50"
               >
                 {isCalculating ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -939,7 +939,7 @@ export default function Calculator() {
                 >
                   <div className="text-center">
                     <p className="text-sm text-slate-500 mb-1">Here's your estimated net</p>
-                    <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                       {formatCurrency(displayedNet)}
                     </p>
                     <p className="text-sm text-slate-400 mt-1">
@@ -972,7 +972,7 @@ export default function Calculator() {
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 text-green-600" />
+                    <Check className="w-4 h-4 text-emerald-500" />
                     Link Copied!
                   </>
                 ) : (
