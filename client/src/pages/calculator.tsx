@@ -410,7 +410,7 @@ export default function Calculator() {
                 {isCalculating ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <>{"Run "}<span style={{letterSpacing: 0}}><span className="font-extrabold">Net</span><span className="font-light">Check</span></span></>
+                  <span style={{letterSpacing: '-0.02em'}}>{"Run "}<span className="font-extrabold">Net</span><span className="font-light">Check</span></span>
                 )}
               </Button>
 
