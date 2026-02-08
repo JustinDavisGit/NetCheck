@@ -15,7 +15,6 @@ export default function Calculator() {
   const [hasSecondaryLoans, setHasSecondaryLoans] = useState<boolean | null>(null);
   const [secondMortgage, setSecondMortgage] = useState<string>("");
   const [heloc, setHeloc] = useState<string>("");
-  const [solarLoan, setSolarLoan] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -103,8 +102,7 @@ export default function Calculator() {
     const mortgage = parseFloat(mortgageBalance) || 0;
     const secondMort = parseFloat(secondMortgage) || 0;
     const helocAmount = parseFloat(heloc) || 0;
-    const solarAmount = parseFloat(solarLoan) || 0;
-    const totalMortgages = mortgage + secondMort + helocAmount + solarAmount;
+    const totalMortgages = mortgage + secondMort + helocAmount;
 
     if (price === 0) return null;
 
@@ -119,7 +117,7 @@ export default function Calculator() {
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, secondMortgage, heloc, solarLoan, brokerCompensation]);
+  }, [salePrice, mortgageBalance, secondMortgage, heloc, brokerCompensation]);
 
   const handleRunNetCheck = () => {
     if (!results) return;
@@ -246,7 +244,7 @@ export default function Calculator() {
                   className="mt-4 space-y-3"
                 >
                   <p className="text-sm font-medium text-slate-700">
-                    Any Second Mortgage, HELOC, or Solar Balance to be paid at Closing?
+                    Any second mortgage or HELOC (home equity line of credit) to be paid at closing?
                   </p>
                   <div className="flex gap-3">
                     <button
@@ -266,7 +264,6 @@ export default function Calculator() {
                         setHasSecondaryLoans(false);
                         setSecondMortgage("");
                         setHeloc("");
-                        setSolarLoan("");
                       }}
                       className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
                         hasSecondaryLoans === false
@@ -324,22 +321,6 @@ export default function Calculator() {
                             placeholder="0"
                             value={formatInputDisplay(heloc)}
                             onChange={(e) => handleCurrencyInput(e.target.value, setHeloc)}
-                            className="pl-6 text-sm h-10"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="solarLoan" className="text-xs font-medium text-slate-600">
-                          Solar Loan Balance
-                        </Label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                          <Input
-                            id="solarLoan"
-                            type="text"
-                            placeholder="0"
-                            value={formatInputDisplay(solarLoan)}
-                            onChange={(e) => handleCurrencyInput(e.target.value, setSolarLoan)}
                             className="pl-6 text-sm h-10"
                           />
                         </div>
