@@ -410,7 +410,7 @@ export default function Calculator() {
                 {isCalculating ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  "Run NetCheck"
+                  <>Run <span className="font-extrabold">Net</span><span className="font-light">Check</span></>
                 )}
               </Button>
 
