@@ -231,7 +231,7 @@ export default function Calculator() {
     };
   }, [showResults, results, animateNumber]);
 
-  const sliderPercentage = ((brokerCompensation - 1) / 9) * 100;
+  const sliderPercentage = (brokerCompensation / 8) * 100;
   const titleSliderPercentage = ((titleEscrowFees - 0.5) / 1.5) * 100;
   const hoaSliderPercentage = ((hoaTransferFees - 250) / 750) * 100;
   const grtSliderPercentage = ((grtRate - 5) / 4) * 100;
@@ -419,7 +419,7 @@ export default function Calculator() {
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                   <Briefcase className="w-4 h-4 text-blue-400" />
-                  Real Estate Brokerage Compensation (Listing Agent + Buyer's Broker)
+                  Real Estate Brokerage Compensation
                 </Label>
                 <span className="text-lg font-semibold text-blue-500">{brokerCompensation.toFixed(1)}%</span>
               </div>
@@ -443,8 +443,8 @@ export default function Calculator() {
                 
                 <input
                   type="range"
-                  min="1"
-                  max="10"
+                  min="0"
+                  max="8"
                   step="0.5"
                   value={brokerCompensation}
                   onChange={(e) => setBrokerCompensation(parseFloat(e.target.value))}
@@ -454,8 +454,8 @@ export default function Calculator() {
               </div>
               
               <div className="flex justify-between text-xs text-slate-400">
-                <span>1%</span>
-                <span>10%</span>
+                <span>0%</span>
+                <span>8%</span>
               </div>
 
               <div className="text-center pt-2">
