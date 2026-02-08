@@ -374,12 +374,6 @@ export default function Calculator() {
                 <span>8%</span>
               </div>
 
-              <div className="text-center pt-2">
-                <span className="text-xl font-semibold text-slate-700">
-                  {formatCurrency((parseFloat(salePrice) || 0) * (brokerCompensation / 100))}
-                </span>
-              </div>
-
             </div>
 
             <div className="pt-4 space-y-4">
