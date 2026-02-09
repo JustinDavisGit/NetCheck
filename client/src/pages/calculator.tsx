@@ -315,24 +315,24 @@ export default function Calculator() {
                     <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                       {formatCurrency(displayedNet)}
                     </p>
-                    <div className="mt-4 bg-slate-50 rounded-lg p-4 text-left space-y-2">
+                    <div className="mt-4 bg-slate-50 rounded-lg p-4 text-left space-y-2.5">
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Sale Price</span>
+                        <span className="text-slate-500">Sale Price</span>
                         <span className="font-medium text-slate-700">{formatCurrency(parseFloat(salePrice) || 0)}</span>
                       </div>
                       {parseFloat(mortgageBalance) > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-600">Mortgage Balance</span>
+                          <span className="text-slate-500">Mortgage Balance</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(parseFloat(mortgageBalance) || 0)}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Commission ({brokerCompensation.toFixed(1)}%)</span>
+                        <span className="text-slate-500">Commission ({brokerCompensation.toFixed(1)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(results.commissionAmount)}</span>
                       </div>
-                      <div className="border-t border-slate-200 pt-2 mt-2 flex justify-between text-sm font-semibold">
-                        <span className="text-slate-700">Estimated Net</span>
-                        <span className={results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}>
+                      <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
+                        <span className="font-bold text-slate-800">Estimated Net</span>
+                        <span className={`font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                           {formatCurrency(results.netProceeds)}
                         </span>
                       </div>
