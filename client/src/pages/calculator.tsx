@@ -355,7 +355,7 @@ export default function Calculator() {
               )}
             </div>
 
-            <div className="pt-6 border-t border-slate-100 mt-6">
+            <div className="pt-4 mt-4">
               <Button
                 onClick={handleShare}
                 variant="outline"
