@@ -345,7 +345,7 @@ export default function Calculator() {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       variant="outline"
-                      className="mt-4 w-full"
+                      className="mt-4 mb-2 w-full"
                     >
                       <Pencil className="w-4 h-4 -mr-0.5" />
                       Adjust your numbers
@@ -355,7 +355,7 @@ export default function Calculator() {
               )}
             </div>
 
-            <div className="-mt-7">
+            <div className="-mt-8">
               <Button
                 onClick={handleShare}
                 variant="outline"
