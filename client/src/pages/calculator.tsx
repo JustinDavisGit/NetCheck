@@ -12,9 +12,6 @@ export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
-  const [hasSecondaryLoans, setHasSecondaryLoans] = useState<boolean | null>(null);
-  const [secondMortgage, setSecondMortgage] = useState<string>("");
-  const [heloc, setHeloc] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -100,9 +97,7 @@ export default function Calculator() {
   const results = useMemo(() => {
     const price = parseFloat(salePrice) || 0;
     const mortgage = parseFloat(mortgageBalance) || 0;
-    const secondMort = parseFloat(secondMortgage) || 0;
-    const helocAmount = parseFloat(heloc) || 0;
-    const totalMortgages = mortgage + secondMort + helocAmount;
+    const totalMortgages = mortgage;
 
     if (price === 0) return null;
 
@@ -117,7 +112,7 @@ export default function Calculator() {
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, secondMortgage, heloc, brokerCompensation]);
+  }, [salePrice, mortgageBalance, brokerCompensation]);
 
   const handleRunNetCheck = () => {
     if (!results) return;
@@ -223,112 +218,6 @@ export default function Calculator() {
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
-              {salePrice && mortgageBalance && parseFloat(salePrice) > 0 && (
-                <motion.p
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-slate-500 mt-2"
-                >
-                  You have approximately{' '}
-                  <span className="font-semibold text-emerald-500">
-                    {(((parseFloat(salePrice) - parseFloat(mortgageBalance)) / parseFloat(salePrice)) * 100).toFixed(1)}%
-                  </span>{' '}
-                  equity in your home
-                </motion.p>
-              )}
-
-              {mortgageBalance && parseFloat(mortgageBalance) > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 space-y-3"
-                >
-                  <p className="text-sm font-medium text-slate-700">
-                    Any second mortgage or HELOC (home equity line of credit) to be paid at closing?
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setHasSecondaryLoans(true)}
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                        hasSecondaryLoans === true
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      Yes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHasSecondaryLoans(false);
-                        setSecondMortgage("");
-                        setHeloc("");
-                      }}
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                        hasSecondaryLoans === false
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      No
-                    </button>
-                  </div>
-
-                  {hasSecondaryLoans === false && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="bg-emerald-50 border border-emerald-200 rounded-lg p-3"
-                    >
-                      <p className="text-emerald-600 text-sm font-medium text-center">
-                        Sweet! That means more dinero in your pocket! 💰
-                      </p>
-                    </motion.div>
-                  )}
-
-                  {hasSecondaryLoans === true && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="space-y-3 pt-2"
-                    >
-                      <div className="space-y-1">
-                        <Label htmlFor="secondMortgage" className="text-xs font-medium text-slate-600">
-                          Second Mortgage
-                        </Label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                          <Input
-                            id="secondMortgage"
-                            type="text"
-                            placeholder="0"
-                            value={formatInputDisplay(secondMortgage)}
-                            onChange={(e) => handleCurrencyInput(e.target.value, setSecondMortgage)}
-                            className="pl-6 text-sm h-10"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="heloc" className="text-xs font-medium text-slate-600">
-                          HELOC
-                        </Label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                          <Input
-                            id="heloc"
-                            type="text"
-                            placeholder="0"
-                            value={formatInputDisplay(heloc)}
-                            onChange={(e) => handleCurrencyInput(e.target.value, setHeloc)}
-                            className="pl-6 text-sm h-10"
-                          />
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </motion.div>
-              )}
             </div>
 
             <div className="space-y-4">
