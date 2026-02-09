@@ -347,7 +347,7 @@ export default function Calculator() {
                       variant="outline"
                       className="mt-4 w-full"
                     >
-                      Try another scenario
+                      Adjust your numbers
                     </Button>
                     <p className="text-xs text-slate-400 mt-1">
                       Change sale price, mortgage balance, commission, etc...
