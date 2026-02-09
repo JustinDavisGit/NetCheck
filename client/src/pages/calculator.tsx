@@ -350,9 +350,6 @@ export default function Calculator() {
                       <Pencil className="w-4 h-4 -mr-0.5" />
                       Adjust your numbers
                     </Button>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Change sale price, mortgage balance, commission, etc...
-                    </p>
                   </div>
                 </motion.div>
               )}
