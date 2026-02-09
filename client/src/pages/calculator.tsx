@@ -179,7 +179,7 @@ export default function Calculator() {
               Net<span className="font-light">Check</span>
             </span>
           </div>
-          <p className="text-slate-500 mt-1">See what you'll actually net at closing.</p>
+          <p className="text-slate-500 mt-1">Estimate what you'll take home at closing.</p>
         </div>
 
         <Card className="shadow-lg border-0">
