@@ -347,7 +347,7 @@ export default function Calculator() {
                       variant="outline"
                       className="mt-4 w-full"
                     >
-                      <Pencil className="w-4 h-4 mr-1" />
+                      <Pencil className="w-4 h-4 mr-0.5" />
                       Adjust your numbers
                     </Button>
                     <p className="text-xs text-slate-400 mt-1">
