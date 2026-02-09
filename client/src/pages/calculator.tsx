@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, Wallet, Briefcase, Share2, Check, Loader2 } from "lucide-react";
+import { DollarSign, Home, Wallet, Briefcase, Share2, Check, Loader2, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -347,6 +347,7 @@ export default function Calculator() {
                       variant="outline"
                       className="mt-4 w-full"
                     >
+                      <Pencil className="w-4 h-4 mr-1" />
                       Adjust your numbers
                     </Button>
                     <p className="text-xs text-slate-400 mt-1">
