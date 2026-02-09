@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil } from "lucide-react";
+import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +16,8 @@ export default function Calculator() {
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calcPhase, setCalcPhase] = useState<'idle' | 'calculating' | 'applying' | 'done'>('idle');
+  const [showClosingCostsInfo, setShowClosingCostsInfo] = useState(false);
+  const closingCostsRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Load state from URL parameters on mount
@@ -162,6 +164,17 @@ export default function Calculator() {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [showResults, results, animateNumber]);
+
+  useEffect(() => {
+    if (!showClosingCostsInfo) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (closingCostsRef.current && !closingCostsRef.current.contains(e.target as Node)) {
+        setShowClosingCostsInfo(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showClosingCostsInfo]);
 
   const sliderPercentage = (brokerCompensation / 8) * 100;
 
@@ -338,10 +351,36 @@ export default function Calculator() {
                       </div>
                     </div>
 
+                    <div className="mt-3 relative" ref={closingCostsRef}>
+                      <p className="text-xs text-slate-400 text-center leading-relaxed">
+                        Does not include title/escrow, attorney fees, prorated taxes, or negotiated concessions.
+                        <button
+                          onClick={() => setShowClosingCostsInfo(!showClosingCostsInfo)}
+                          aria-label="Closing costs info"
+                          className="inline-flex items-center ml-1 align-middle text-slate-400 hover:text-slate-500 transition-colors"
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      </p>
+                      {showClosingCostsInfo && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-md p-3 z-10"
+                        >
+                          <p className="text-xs text-slate-500 leading-relaxed">
+                            In many areas, sellers often budget around 0.75%–1.0% of the sale price for title, escrow, or attorney-related closing costs. Actual amounts vary by location and transaction.
+                          </p>
+                        </motion.div>
+                      )}
+                    </div>
+
                     <Button
                       onClick={() => {
                         setShowResults(false);
                         setCalcPhase('idle');
+                        setShowClosingCostsInfo(false);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       variant="outline"
