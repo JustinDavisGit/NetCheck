@@ -345,37 +345,34 @@ export default function Calculator() {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       variant="outline"
-                      className="mt-4 mb-2 w-full"
+                      className="mt-4 w-full"
                     >
                       <Pencil className="w-4 h-4 -mr-0.5" />
                       Adjust your numbers
                     </Button>
+                    <Button
+                      onClick={handleShare}
+                      variant="outline"
+                      className="mt-2 w-full flex items-center justify-center gap-2"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-4 h-4 text-emerald-500" />
+                          Link Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="w-4 h-4" />
+                          Share this estimated net
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-slate-400 text-center mt-2">
+                      Recipients can view and adjust the numbers
+                    </p>
                   </div>
                 </motion.div>
               )}
-            </div>
-
-            <div className="-mt-8">
-              <Button
-                onClick={handleShare}
-                variant="outline"
-                className="w-full flex items-center justify-center gap-2"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 text-emerald-500" />
-                    Link Copied!
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-4 h-4" />
-                    Share this estimated net
-                  </>
-                )}
-              </Button>
-              <p className="text-xs text-slate-400 text-center mt-2">
-                Recipients can view and adjust the numbers
-              </p>
             </div>
           </CardContent>
         </Card>
