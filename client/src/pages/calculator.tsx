@@ -305,10 +305,10 @@ export default function Calculator() {
 
               {showResults && results && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4 }}
-                  className="pt-4 border-t border-slate-100"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="pt-6 mt-2"
                 >
                   <div className="text-center">
                     <p className="text-sm text-slate-500 mb-1">Here's your estimated net</p>
