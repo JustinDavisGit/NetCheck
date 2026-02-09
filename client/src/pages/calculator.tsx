@@ -327,12 +327,12 @@ export default function Calculator() {
                       {parseFloat(mortgageBalance) > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-600">Mortgage Balance</span>
-                          <span className="font-medium text-red-500">-{formatCurrency(parseFloat(mortgageBalance) || 0)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(parseFloat(mortgageBalance) || 0)}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-600">Commission ({brokerCompensation.toFixed(1)}%)</span>
-                        <span className="font-medium text-red-500">-{formatCurrency(results.commissionAmount)}</span>
+                        <span className="font-medium text-slate-600">-{formatCurrency(results.commissionAmount)}</span>
                       </div>
                       <div className="border-t border-slate-200 pt-2 mt-2 flex justify-between text-sm font-semibold">
                         <span className="text-slate-700">Estimated Net</span>
