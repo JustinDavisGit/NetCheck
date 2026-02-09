@@ -17,15 +17,29 @@ export default function Calculator() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [calcPhase, setCalcPhase] = useState<'idle' | 'calculating' | 'applying' | 'done'>('idle');
   const [showClosingCostsInfo, setShowClosingCostsInfo] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const closingCostsRef = useRef<HTMLDivElement>(null);
+  const calcTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const { toast } = useToast();
 
   // Load state from URL parameters on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('sp')) setSalePrice(params.get('sp') || '');
-    if (params.get('mb')) setMortgageBalance(params.get('mb') || '');
-    if (params.get('bc')) setBrokerCompensation(parseFloat(params.get('bc') || '6'));
+    const sp = params.get('sp');
+    const mb = params.get('mb');
+    const bc = params.get('bc');
+    if (sp) {
+      const cleaned = sp.replace(/[^0-9]/g, '');
+      if (cleaned) setSalePrice(cleaned);
+    }
+    if (mb) {
+      const cleaned = mb.replace(/[^0-9]/g, '');
+      if (cleaned) setMortgageBalance(cleaned);
+    }
+    if (bc) {
+      const parsed = parseFloat(bc);
+      if (!isNaN(parsed) && parsed >= 0 && parsed <= 8) setBrokerCompensation(parsed);
+    }
   }, []);
 
   const generateShareUrl = () => {
@@ -76,6 +90,7 @@ export default function Calculator() {
   };
 
   const formatCurrency = (value: number) => {
+    if (!isFinite(value) || isNaN(value)) value = 0;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -87,6 +102,7 @@ export default function Calculator() {
   const handleCurrencyInput = (value: string, setter: (val: string) => void) => {
     const numericValue = value.replace(/[^0-9]/g, '');
     setter(numericValue);
+    if (validationError) setValidationError(null);
   };
 
   const formatInputDisplay = (value: string) => {
@@ -117,22 +133,35 @@ export default function Calculator() {
   }, [salePrice, mortgageBalance, brokerCompensation]);
 
   const handleRunNetCheck = () => {
-    if (!results) return;
+    if (!results) {
+      setValidationError("Enter a sale price to run your estimate.");
+      return;
+    }
+    setValidationError(null);
     setShowResults(false);
     setIsCalculating(true);
     setCalcPhase('calculating');
     setDisplayedNet(0);
 
-    setTimeout(() => {
-      setCalcPhase('applying');
-    }, 550);
+    calcTimeoutsRef.current.forEach(clearTimeout);
+    calcTimeoutsRef.current = [];
 
-    setTimeout(() => {
+    calcTimeoutsRef.current.push(setTimeout(() => {
+      setCalcPhase('applying');
+    }, 550));
+
+    calcTimeoutsRef.current.push(setTimeout(() => {
       setCalcPhase('done');
       setShowResults(true);
       setIsCalculating(false);
-    }, 1200);
+    }, 1200));
   };
+
+  useEffect(() => {
+    return () => {
+      calcTimeoutsRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   const salePriceRef = useRef<HTMLInputElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -283,7 +312,7 @@ export default function Calculator() {
             <div className="pt-4 space-y-4">
               <Button
                 onClick={handleRunNetCheck}
-                disabled={!results || isCalculating || showResults}
+                disabled={isCalculating || showResults}
                 className="w-full h-12 text-lg font-semibold bg-emerald-400 hover:bg-emerald-500 text-white disabled:opacity-50"
               >
                 {isCalculating ? (
@@ -292,6 +321,16 @@ export default function Calculator() {
                   <span style={{letterSpacing: '-0.02em'}}>{"Run "}<span className="font-extrabold">Net</span><span className="font-light">Check</span></span>
                 )}
               </Button>
+
+              {validationError && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm text-red-400 text-center"
+                >
+                  {validationError}
+                </motion.p>
+              )}
 
               <AnimatePresence mode="wait">
                 {isCalculating && calcPhase === 'calculating' && (
