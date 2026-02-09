@@ -355,7 +355,7 @@ export default function Calculator() {
               )}
             </div>
 
-            <div className="-mt-3">
+            <div className="-mt-5">
               <Button
                 onClick={handleShare}
                 variant="outline"
