@@ -134,6 +134,7 @@ export default function Calculator() {
     }, 1200);
   };
 
+  const salePriceRef = useRef<HTMLInputElement>(null);
   const animationRef = useRef<number | null>(null);
 
   const animateNumber = useCallback((target: number, duration: number = 800) => {
@@ -206,6 +207,7 @@ export default function Calculator() {
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   id="salePrice"
+                  ref={salePriceRef}
                   type="text"
                   placeholder="0"
                   value={formatInputDisplay(salePrice)}
@@ -381,7 +383,8 @@ export default function Calculator() {
                         setShowResults(false);
                         setCalcPhase('idle');
                         setShowClosingCostsInfo(false);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        salePriceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        setTimeout(() => salePriceRef.current?.focus(), 400);
                       }}
                       variant="outline"
                       className="mt-4 w-full"
