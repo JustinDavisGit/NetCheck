@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, Wallet, Briefcase, Share2, Check, Loader2, Pencil } from "lucide-react";
+import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -204,7 +204,7 @@ export default function Calculator() {
 
             <div className="space-y-2">
               <Label htmlFor="mortgageBalance" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-blue-400" />
+                <FileText className="w-4 h-4 text-blue-400" />
                 Mortgage Balance
               </Label>
               <div className="relative">
