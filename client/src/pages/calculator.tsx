@@ -315,10 +315,6 @@ export default function Calculator() {
                     <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                       {formatCurrency(displayedNet)}
                     </p>
-                    <p className="text-sm text-slate-400 mt-1">
-                      {results.netPercentage.toFixed(1)}% of sale price
-                    </p>
-
                     <div className="mt-4 bg-slate-50 rounded-lg p-4 text-left space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-600">Sale Price</span>
