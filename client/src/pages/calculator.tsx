@@ -480,7 +480,7 @@ export default function Calculator() {
 
               <div className="mt-2 flex items-center justify-between">
                 <Label className="text-xs font-medium text-slate-400">
-                  Title/Escrow Fee
+                  Title/Escrow Fees (usually about 1% of sale price)
                 </Label>
                 <div className="flex items-center gap-1">
                   <input
