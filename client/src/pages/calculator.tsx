@@ -349,7 +349,7 @@ export default function Calculator() {
                     href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[10px] text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+                    className="text-xs text-blue-400 hover:text-blue-500 hover:underline transition-colors"
                   >
                     (Location Codes)
                   </a>
