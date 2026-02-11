@@ -452,23 +452,6 @@ export default function Calculator() {
               </div>
 
               <div className="mt-3 flex items-center justify-between">
-                <Label className="text-xs font-medium text-slate-400">
-                  Title/Escrow Fee
-                </Label>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={titleEscrowInput}
-                    onChange={(e) => handleTitleEscrowChange(e.target.value)}
-                    onBlur={handleTitleEscrowBlur}
-                    className="w-[56px] text-right text-sm font-semibold text-slate-500 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
-                  />
-                  <span className="text-xs text-slate-400">%</span>
-                </div>
-              </div>
-
-              <div className="mt-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Label className="text-xs font-medium text-slate-400">
                     NM GRT on Commission
@@ -490,6 +473,23 @@ export default function Calculator() {
                     onChange={(e) => handleGrtInputChange(e.target.value)}
                     onBlur={handleGrtBlur}
                     className="w-[72px] text-right text-sm font-semibold text-slate-500 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                  />
+                  <span className="text-xs text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between">
+                <Label className="text-xs font-medium text-slate-400">
+                  Title/Escrow Fee
+                </Label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={titleEscrowInput}
+                    onChange={(e) => handleTitleEscrowChange(e.target.value)}
+                    onBlur={handleTitleEscrowBlur}
+                    className="w-[56px] text-right text-sm font-semibold text-slate-500 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                   />
                   <span className="text-xs text-slate-400">%</span>
                 </div>
