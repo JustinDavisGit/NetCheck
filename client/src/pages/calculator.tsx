@@ -14,6 +14,10 @@ export default function Calculator() {
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
   const [grtRate, setGrtRate] = useState<number>(7.625);
   const [grtInput, setGrtInput] = useState<string>("7.6250");
+  const [hasAdditionalLiens, setHasAdditionalLiens] = useState(false);
+  const [secondMortgage, setSecondMortgage] = useState<string>("");
+  const [heloc, setHeloc] = useState<string>("");
+  const [solarLoan, setSolarLoan] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -126,13 +130,16 @@ export default function Calculator() {
   const results = useMemo(() => {
     const price = parseFloat(salePrice) || 0;
     const mortgage = parseFloat(mortgageBalance) || 0;
-    const totalMortgages = mortgage;
+    const secondMtg = hasAdditionalLiens ? (parseFloat(secondMortgage) || 0) : 0;
+    const helocAmt = hasAdditionalLiens ? (parseFloat(heloc) || 0) : 0;
+    const solarAmt = hasAdditionalLiens ? (parseFloat(solarLoan) || 0) : 0;
+    const totalLiens = mortgage + secondMtg + helocAmt + solarAmt;
 
     if (price === 0) return null;
 
     const commissionAmount = price * (brokerCompensation / 100);
     const grtAmount = commissionAmount * (grtRate / 100);
-    const grossEquity = price - totalMortgages;
+    const grossEquity = price - totalLiens;
     const netProceeds = grossEquity - commissionAmount - grtAmount;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
@@ -140,10 +147,13 @@ export default function Calculator() {
       grossEquity,
       commissionAmount,
       grtAmount,
+      secondMtg,
+      helocAmt,
+      solarAmt,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -297,6 +307,83 @@ export default function Calculator() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <p className="text-xs text-slate-500">
+                Any second mortgage, HELOC, or solar loan balance to be paid at closing?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setHasAdditionalLiens(true)}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${hasAdditionalLiens ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHasAdditionalLiens(false)}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${!hasAdditionalLiens ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                >
+                  No
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {hasAdditionalLiens && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden space-y-3 pt-1"
+                  >
+                    <div>
+                      <Label htmlFor="secondMortgage" className="text-xs font-medium text-slate-500">Second Mortgage</Label>
+                      <div className="relative mt-1">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                        <Input
+                          id="secondMortgage"
+                          type="text"
+                          placeholder="0"
+                          value={formatInputDisplay(secondMortgage)}
+                          onChange={(e) => handleCurrencyInput(e.target.value, setSecondMortgage)}
+                          className="pl-7 text-sm h-10"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="heloc" className="text-xs font-medium text-slate-500">HELOC</Label>
+                      <div className="relative mt-1">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                        <Input
+                          id="heloc"
+                          type="text"
+                          placeholder="0"
+                          value={formatInputDisplay(heloc)}
+                          onChange={(e) => handleCurrencyInput(e.target.value, setHeloc)}
+                          className="pl-7 text-sm h-10"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="solarLoan" className="text-xs font-medium text-slate-500">Solar Loan Balance</Label>
+                      <div className="relative mt-1">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                        <Input
+                          id="solarLoan"
+                          type="text"
+                          placeholder="0"
+                          value={formatInputDisplay(solarLoan)}
+                          onChange={(e) => handleCurrencyInput(e.target.value, setSolarLoan)}
+                          className="pl-7 text-sm h-10"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -438,6 +525,24 @@ export default function Calculator() {
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Mortgage Balance</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(parseFloat(mortgageBalance) || 0)}</span>
+                        </div>
+                      )}
+                      {results.secondMtg > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Second Mortgage</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.secondMtg)}</span>
+                        </div>
+                      )}
+                      {results.helocAmt > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">HELOC</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.helocAmt)}</span>
+                        </div>
+                      )}
+                      {results.solarAmt > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Solar Loan Balance</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.solarAmt)}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-sm">
