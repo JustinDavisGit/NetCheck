@@ -18,6 +18,8 @@ export default function Calculator() {
   const [secondMortgage, setSecondMortgage] = useState<string>("");
   const [heloc, setHeloc] = useState<string>("");
   const [solarLoan, setSolarLoan] = useState<string>("");
+  const [titleEscrowRate, setTitleEscrowRate] = useState<number>(1);
+  const [titleEscrowInput, setTitleEscrowInput] = useState<string>("1.00");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -139,21 +141,23 @@ export default function Calculator() {
 
     const commissionAmount = price * (brokerCompensation / 100);
     const grtAmount = commissionAmount * (grtRate / 100);
+    const titleEscrowAmount = price * (titleEscrowRate / 100);
     const grossEquity = price - totalLiens;
-    const netProceeds = grossEquity - commissionAmount - grtAmount;
+    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
       grossEquity,
       commissionAmount,
       grtAmount,
+      titleEscrowAmount,
       secondMtg,
       helocAmt,
       solarAmt,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -249,6 +253,26 @@ export default function Calculator() {
     if (parsed > 15) parsed = 15;
     setGrtRate(parsed);
     setGrtInput(parsed.toFixed(4));
+  };
+
+  const handleTitleEscrowChange = (value: string) => {
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+    setTitleEscrowInput(sanitized);
+    const parsed = parseFloat(sanitized);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+      setTitleEscrowRate(parsed);
+    }
+  };
+
+  const handleTitleEscrowBlur = () => {
+    let parsed = parseFloat(titleEscrowInput);
+    if (isNaN(parsed)) parsed = 1;
+    if (parsed < 0) parsed = 0;
+    if (parsed > 10) parsed = 10;
+    setTitleEscrowRate(parsed);
+    setTitleEscrowInput(parsed.toFixed(2));
   };
 
   return (
@@ -428,6 +452,23 @@ export default function Calculator() {
               </div>
 
               <div className="mt-3 flex items-center justify-between">
+                <Label className="text-xs font-medium text-slate-400">
+                  Title/Escrow Fee
+                </Label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={titleEscrowInput}
+                    onChange={(e) => handleTitleEscrowChange(e.target.value)}
+                    onBlur={handleTitleEscrowBlur}
+                    className="w-[56px] text-right text-sm font-semibold text-slate-500 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                  />
+                  <span className="text-xs text-slate-400">%</span>
+                </div>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Label className="text-xs font-medium text-slate-400">
                     NM GRT on Commission
@@ -553,6 +594,10 @@ export default function Calculator() {
                         <span className="text-slate-500">NM GRT ({grtRate.toFixed(4)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(results.grtAmount)}</span>
                       </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Title/Escrow ({titleEscrowRate.toFixed(2)}%)</span>
+                        <span className="font-medium text-slate-600">-{formatCurrency(results.titleEscrowAmount)}</span>
+                      </div>
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
                         <span className="font-bold text-slate-800">Estimated Net</span>
                         <span className={`font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
@@ -563,7 +608,7 @@ export default function Calculator() {
 
                     <div className="mt-3 relative" ref={closingCostsRef}>
                       <p className="text-xs text-slate-400 text-center leading-relaxed">
-                        Does not include title/escrow, attorney fees, prorated taxes, or negotiated concessions.
+                        Does not include attorney fees, prorated taxes, or negotiated concessions.
                         <button
                           onClick={() => setShowClosingCostsInfo(!showClosingCostsInfo)}
                           aria-label="Closing costs info"
