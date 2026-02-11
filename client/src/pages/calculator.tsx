@@ -12,6 +12,7 @@ export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
+  const [grtRate, setGrtRate] = useState<number>(7.625);
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -40,6 +41,11 @@ export default function Calculator() {
       const parsed = parseFloat(bc);
       if (!isNaN(parsed) && parsed >= 0 && parsed <= 8) setBrokerCompensation(parsed);
     }
+    const grt = params.get('grt');
+    if (grt) {
+      const parsed = parseFloat(grt);
+      if (!isNaN(parsed) && parsed >= 5 && parsed <= 9) setGrtRate(parsed);
+    }
   }, []);
 
   const generateShareUrl = () => {
@@ -47,6 +53,7 @@ export default function Calculator() {
     if (salePrice) params.set('sp', salePrice);
     if (mortgageBalance) params.set('mb', mortgageBalance);
     if (brokerCompensation !== 6) params.set('bc', brokerCompensation.toString());
+    if (grtRate !== 7.625) params.set('grt', grtRate.toString());
     
     const baseUrl = window.location.origin + window.location.pathname;
     return `${baseUrl}?${params.toString()}`;
@@ -120,17 +127,19 @@ export default function Calculator() {
     if (price === 0) return null;
 
     const commissionAmount = price * (brokerCompensation / 100);
+    const grtAmount = commissionAmount * (grtRate / 100);
     const grossEquity = price - totalMortgages;
-    const netProceeds = grossEquity - commissionAmount;
+    const netProceeds = grossEquity - commissionAmount - grtAmount;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
       grossEquity,
       commissionAmount,
+      grtAmount,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -207,6 +216,7 @@ export default function Calculator() {
   }, [showClosingCostsInfo]);
 
   const sliderPercentage = (brokerCompensation / 8) * 100;
+  const grtSliderPercentage = ((grtRate - 5) / (9 - 5)) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 flex items-center justify-center p-4">
@@ -307,6 +317,58 @@ export default function Calculator() {
                 <span>8%</span>
               </div>
 
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-slate-500">
+                    NM Gross Receipts Tax (GRT)
+                  </Label>
+                  <span className="text-sm font-semibold text-slate-500">{grtRate.toFixed(4)}%</span>
+                </div>
+                
+                <div className="relative pt-1">
+                  <div className="relative h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div 
+                      className="absolute h-full bg-gradient-to-r from-amber-200 to-amber-300 rounded-full transition-all duration-150"
+                      style={{ width: `${grtSliderPercentage}%` }}
+                    />
+                  </div>
+                  
+                  <div 
+                    className="absolute top-[-2px] -translate-x-1/2 transition-all duration-150"
+                    style={{ left: `${grtSliderPercentage}%` }}
+                  >
+                    <div className="w-6 h-6 bg-white border-2 border-amber-300 rounded-full shadow-md flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
+                      <span className="text-[8px] font-bold text-amber-500">%</span>
+                    </div>
+                  </div>
+                  
+                  <input
+                    type="range"
+                    min="5"
+                    max="9"
+                    step="0.0625"
+                    value={grtRate}
+                    onChange={(e) => setGrtRate(parseFloat(e.target.value))}
+                    className="absolute inset-0 w-full h-6 opacity-0 cursor-grab active:cursor-grabbing"
+                    style={{ top: '-2px' }}
+                  />
+                </div>
+                
+                <div className="flex justify-between text-xs text-slate-400">
+                  <span>5%</span>
+                  <span>9%</span>
+                </div>
+
+                <a
+                  href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-xs text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+                >
+                  NM GRT Location Codes &amp; Rates →
+                </a>
+              </div>
+
             </div>
 
             <div className="pt-4 space-y-4">
@@ -383,6 +445,10 @@ export default function Calculator() {
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">Commission ({brokerCompensation.toFixed(1)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(results.commissionAmount)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">NM GRT ({grtRate.toFixed(4)}%)</span>
+                        <span className="font-medium text-slate-600">-{formatCurrency(results.grtAmount)}</span>
                       </div>
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
                         <span className="font-bold text-slate-800">Estimated Net</span>
