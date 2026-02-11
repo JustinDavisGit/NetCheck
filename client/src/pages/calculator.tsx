@@ -343,7 +343,7 @@ export default function Calculator() {
               <div className="mt-3 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Label className="text-xs font-medium text-slate-400">
-                    NM Gross Receipts Tax
+                    NM GRT on Commission
                   </Label>
                   <a
                     href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
