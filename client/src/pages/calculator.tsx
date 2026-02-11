@@ -13,6 +13,7 @@ export default function Calculator() {
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
   const [grtRate, setGrtRate] = useState<number>(7.625);
+  const [grtInput, setGrtInput] = useState<string>("7.6250");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -44,7 +45,10 @@ export default function Calculator() {
     const grt = params.get('grt');
     if (grt) {
       const parsed = parseFloat(grt);
-      if (!isNaN(parsed) && parsed >= 5 && parsed <= 9) setGrtRate(parsed);
+      if (!isNaN(parsed) && parsed >= 5 && parsed <= 9) {
+        setGrtRate(parsed);
+        setGrtInput(parsed.toFixed(4));
+      }
     }
   }, []);
 
@@ -216,7 +220,26 @@ export default function Calculator() {
   }, [showClosingCostsInfo]);
 
   const sliderPercentage = (brokerCompensation / 8) * 100;
-  const grtSliderPercentage = ((grtRate - 5) / (9 - 5)) * 100;
+
+  const handleGrtInputChange = (value: string) => {
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+    setGrtInput(sanitized);
+    const parsed = parseFloat(sanitized);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= 15) {
+      setGrtRate(parsed);
+    }
+  };
+
+  const handleGrtBlur = () => {
+    let parsed = parseFloat(grtInput);
+    if (isNaN(parsed)) parsed = 7.625;
+    if (parsed < 0) parsed = 0;
+    if (parsed > 15) parsed = 15;
+    setGrtRate(parsed);
+    setGrtInput(parsed.toFixed(4));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 flex items-center justify-center p-4">
@@ -317,56 +340,31 @@ export default function Calculator() {
                 <span>8%</span>
               </div>
 
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium text-slate-500">
-                    NM Gross Receipts Tax (GRT)
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Label className="text-xs font-medium text-slate-400">
+                    NM Gross Receipts Tax
                   </Label>
-                  <span className="text-sm font-semibold text-slate-500">{grtRate.toFixed(4)}%</span>
-                </div>
-                
-                <div className="relative pt-1">
-                  <div className="relative h-2 bg-slate-200 rounded-full overflow-hidden">
-                    <div 
-                      className="absolute h-full bg-gradient-to-r from-amber-200 to-amber-300 rounded-full transition-all duration-150"
-                      style={{ width: `${grtSliderPercentage}%` }}
-                    />
-                  </div>
-                  
-                  <div 
-                    className="absolute top-[-2px] -translate-x-1/2 transition-all duration-150"
-                    style={{ left: `${grtSliderPercentage}%` }}
+                  <a
+                    href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-blue-400 hover:text-blue-500 hover:underline transition-colors"
                   >
-                    <div className="w-6 h-6 bg-white border-2 border-amber-300 rounded-full shadow-md flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
-                      <span className="text-[8px] font-bold text-amber-500">%</span>
-                    </div>
-                  </div>
-                  
+                    (Location Codes)
+                  </a>
+                </div>
+                <div className="flex items-center gap-1">
                   <input
-                    type="range"
-                    min="5"
-                    max="9"
-                    step="0.0625"
-                    value={grtRate}
-                    onChange={(e) => setGrtRate(parseFloat(e.target.value))}
-                    className="absolute inset-0 w-full h-6 opacity-0 cursor-grab active:cursor-grabbing"
-                    style={{ top: '-2px' }}
+                    type="text"
+                    inputMode="decimal"
+                    value={grtInput}
+                    onChange={(e) => handleGrtInputChange(e.target.value)}
+                    onBlur={handleGrtBlur}
+                    className="w-[72px] text-right text-sm font-semibold text-slate-500 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                   />
+                  <span className="text-xs text-slate-400">%</span>
                 </div>
-                
-                <div className="flex justify-between text-xs text-slate-400">
-                  <span>5%</span>
-                  <span>9%</span>
-                </div>
-
-                <a
-                  href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block text-xs text-blue-400 hover:text-blue-500 hover:underline transition-colors"
-                >
-                  NM GRT Location Codes &amp; Rates →
-                </a>
               </div>
 
             </div>
