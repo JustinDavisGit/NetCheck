@@ -20,6 +20,8 @@ export default function Calculator() {
   const [solarLoan, setSolarLoan] = useState<string>("");
   const [titleEscrowRate, setTitleEscrowRate] = useState<number>(1);
   const [titleEscrowInput, setTitleEscrowInput] = useState<string>("1.00");
+  const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
+  const [closingMonth, setClosingMonth] = useState<number>(new Date().getMonth() + 1);
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -142,8 +144,10 @@ export default function Calculator() {
     const commissionAmount = price * (brokerCompensation / 100);
     const grtAmount = commissionAmount * (grtRate / 100);
     const titleEscrowAmount = price * (titleEscrowRate / 100);
+    const annualTax = parseFloat(annualPropertyTax) || 0;
+    const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
     const grossEquity = price - totalLiens;
-    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount;
+    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount - taxProration;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
@@ -151,13 +155,14 @@ export default function Calculator() {
       commissionAmount,
       grtAmount,
       titleEscrowAmount,
+      taxProration,
       secondMtg,
       helocAmt,
       solarAmt,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -500,6 +505,53 @@ export default function Calculator() {
                   <span className="text-xs text-slate-400">%</span>
                 </div>
               </div>
+              <div className="flex items-center justify-between pt-1">
+                <Label className="text-xs font-medium text-slate-500">
+                  Property Tax Proration
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Annual taxes"
+                    value={annualPropertyTax ? parseInt(annualPropertyTax).toLocaleString('en-US') : ''}
+                    onChange={(e) => {
+                      const num = e.target.value.replace(/[^0-9]/g, '');
+                      setAnnualPropertyTax(num);
+                    }}
+                    className="w-full pl-7 pr-2 py-1 text-sm font-medium text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                  />
+                </div>
+                <span className="text-xs text-slate-400 shrink-0">closing</span>
+                <select
+                  value={closingMonth}
+                  onChange={(e) => setClosingMonth(parseInt(e.target.value))}
+                  className="text-sm font-medium text-slate-500 bg-white border border-slate-200 rounded px-2 py-1 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                >
+                  <option value={1}>Jan</option>
+                  <option value={2}>Feb</option>
+                  <option value={3}>Mar</option>
+                  <option value={4}>Apr</option>
+                  <option value={5}>May</option>
+                  <option value={6}>Jun</option>
+                  <option value={7}>Jul</option>
+                  <option value={8}>Aug</option>
+                  <option value={9}>Sep</option>
+                  <option value={10}>Oct</option>
+                  <option value={11}>Nov</option>
+                  <option value={12}>Dec</option>
+                </select>
+              </div>
+
+              {(parseFloat(annualPropertyTax) || 0) > 0 && (
+                <p className="text-[11px] text-slate-400">
+                  Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * (parseFloat(annualPropertyTax) || 0))}
+                </p>
+              )}
             </div>
 
             <div className="pt-4 space-y-4">
@@ -603,6 +655,12 @@ export default function Calculator() {
                         <span className="text-slate-500">Title/Escrow ({titleEscrowRate.toFixed(2)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(results.titleEscrowAmount)}</span>
                       </div>
+                      {results.taxProration > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Tax Proration ({closingMonth}/12 mo)</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.taxProration)}</span>
+                        </div>
+                      )}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
                         <span className="font-bold text-slate-800">Estimated Net</span>
                         <span className={`font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
@@ -613,7 +671,7 @@ export default function Calculator() {
 
                     <div className="mt-3 relative" ref={closingCostsRef}>
                       <p className="text-xs text-slate-400 text-center leading-relaxed">
-                        Does not include attorney fees, prorated taxes, or negotiated concessions.
+                        Does not include attorney fees or negotiated concessions.
                         <button
                           onClick={() => setShowClosingCostsInfo(!showClosingCostsInfo)}
                           aria-label="Closing costs info"
