@@ -2,9 +2,8 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil, Info, Handshake } from "lucide-react";
+import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil, Handshake } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -31,9 +30,7 @@ export default function Calculator() {
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [calcPhase, setCalcPhase] = useState<'idle' | 'calculating' | 'applying' | 'done'>('idle');
-  const [showClosingCostsInfo, setShowClosingCostsInfo] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const closingCostsRef = useRef<HTMLDivElement>(null);
   const calcTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const { toast } = useToast();
 
@@ -58,7 +55,7 @@ export default function Calculator() {
     const grt = params.get('grt');
     if (grt) {
       const parsed = parseFloat(grt);
-      if (!isNaN(parsed) && parsed >= 5 && parsed <= 9) {
+      if (!isNaN(parsed) && parsed >= 0 && parsed <= 15) {
         setGrtRate(parsed);
         setGrtInput(parsed.toFixed(4));
       }
@@ -154,12 +151,12 @@ export default function Calculator() {
     const hoaAmount = hasHoa ? (parseFloat(hoaFee) || 0) : 0;
     const surveyAmount = parseFloat(surveyFee) || 0;
     const concessionsAmt = parseFloat(sellerConcessions) || 0;
-    const grossEquity = price - totalLiens;
-    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount - taxProration - hoaAmount - surveyAmount - concessionsAmt;
-    const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
+    const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + surveyAmount + concessionsAmt;
+    const netProceeds = price - totalLiens - totalDeductions;
 
     return {
-      grossEquity,
+      price,
+      mortgage,
       commissionAmount,
       grtAmount,
       titleEscrowAmount,
@@ -171,7 +168,6 @@ export default function Calculator() {
       helocAmt,
       solarAmt,
       netProceeds,
-      netPercentage,
     };
   }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions]);
 
@@ -237,17 +233,6 @@ export default function Calculator() {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [showResults, results, animateNumber]);
-
-  useEffect(() => {
-    if (!showClosingCostsInfo) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (closingCostsRef.current && !closingCostsRef.current.contains(e.target as Node)) {
-        setShowClosingCostsInfo(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showClosingCostsInfo]);
 
   const sliderPercentage = (brokerCompensation / 8) * 100;
 
@@ -721,12 +706,12 @@ export default function Calculator() {
                     <div className="mt-4 bg-slate-50 rounded-lg p-4 text-left space-y-2.5">
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">Sale Price</span>
-                        <span className="font-medium text-slate-700">{formatCurrency(parseFloat(salePrice) || 0)}</span>
+                        <span className="font-medium text-slate-700">{formatCurrency(results.price)}</span>
                       </div>
-                      {parseFloat(mortgageBalance) > 0 && (
+                      {results.mortgage > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Mortgage Balance</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(parseFloat(mortgageBalance) || 0)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.mortgage)}</span>
                         </div>
                       )}
                       {results.secondMtg > 0 && (
@@ -792,11 +777,9 @@ export default function Calculator() {
                     </div>
 
                     {(() => {
-                      const price = parseFloat(salePrice) || 0;
-                      if (price === 0) return null;
                       const chartData = [
                         { name: 'Net Proceeds', value: Math.max(results.netProceeds, 0), color: '#34d399' },
-                        ...(parseFloat(mortgageBalance) > 0 ? [{ name: 'Mortgage', value: parseFloat(mortgageBalance) || 0, color: '#94a3b8' }] : []),
+                        ...(results.mortgage > 0 ? [{ name: 'Mortgage', value: results.mortgage, color: '#94a3b8' }] : []),
                         ...(results.secondMtg > 0 ? [{ name: '2nd Mortgage', value: results.secondMtg, color: '#a1a1aa' }] : []),
                         ...(results.helocAmt > 0 ? [{ name: 'HELOC', value: results.helocAmt, color: '#b4b4bb' }] : []),
                         ...(results.solarAmt > 0 ? [{ name: 'Solar Loan', value: results.solarAmt, color: '#c4c4cc' }] : []),
@@ -855,7 +838,6 @@ export default function Calculator() {
                       onClick={() => {
                         setShowResults(false);
                         setCalcPhase('idle');
-                        setShowClosingCostsInfo(false);
                         salePriceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         setTimeout(() => salePriceRef.current?.focus(), 400);
                       }}
