@@ -546,7 +546,7 @@ export default function Calculator() {
 
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-medium text-slate-500">
-                  Survey
+                  Survey / ILR (Improvement Location Report)
                 </Label>
                 <div className="relative">
                   <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
@@ -833,7 +833,7 @@ export default function Calculator() {
                       )}
                       {results.surveyAmount > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">Survey</span>
+                          <span className="text-slate-500">Survey / ILR</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(results.surveyAmount)}</span>
                         </div>
                       )}
@@ -880,7 +880,7 @@ export default function Calculator() {
                         { name: 'NM GRT', value: results.grtAmount, color: '#fbbf24' },
                         { name: 'Title/Escrow', value: results.titleEscrowAmount, color: '#f97316' },
                         ...(results.taxProration > 0 ? [{ name: 'Tax Proration', value: results.taxProration, color: '#a78bfa' }] : []),
-                        ...(results.surveyAmount > 0 ? [{ name: 'Survey', value: results.surveyAmount, color: '#f472b6' }] : []),
+                        ...(results.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: results.surveyAmount, color: '#f472b6' }] : []),
                         ...(results.hoaAmount > 0 ? [{ name: 'HOA Fee', value: results.hoaAmount, color: '#2dd4bf' }] : []),
                         ...(results.concessionsAmt > 0 ? [{ name: 'Concessions', value: results.concessionsAmt, color: '#fb923c' }] : []),
                         ...(results.repairAmt > 0 ? [{ name: 'Repairs', value: results.repairAmt, color: '#e879f9' }] : []),
