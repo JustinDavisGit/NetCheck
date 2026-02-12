@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil, Info, Handshake } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Calculator() {
@@ -789,6 +790,66 @@ export default function Calculator() {
                         </span>
                       </div>
                     </div>
+
+                    {(() => {
+                      const price = parseFloat(salePrice) || 0;
+                      if (price === 0) return null;
+                      const chartData = [
+                        { name: 'Net Proceeds', value: Math.max(results.netProceeds, 0), color: '#34d399' },
+                        ...(parseFloat(mortgageBalance) > 0 ? [{ name: 'Mortgage', value: parseFloat(mortgageBalance) || 0, color: '#94a3b8' }] : []),
+                        ...(results.secondMtg > 0 ? [{ name: '2nd Mortgage', value: results.secondMtg, color: '#a1a1aa' }] : []),
+                        ...(results.helocAmt > 0 ? [{ name: 'HELOC', value: results.helocAmt, color: '#b4b4bb' }] : []),
+                        ...(results.solarAmt > 0 ? [{ name: 'Solar Loan', value: results.solarAmt, color: '#c4c4cc' }] : []),
+                        { name: 'Commission', value: results.commissionAmount, color: '#60a5fa' },
+                        { name: 'NM GRT', value: results.grtAmount, color: '#fbbf24' },
+                        { name: 'Title/Escrow', value: results.titleEscrowAmount, color: '#f97316' },
+                        ...(results.taxProration > 0 ? [{ name: 'Tax Proration', value: results.taxProration, color: '#a78bfa' }] : []),
+                        ...(results.surveyAmount > 0 ? [{ name: 'Survey', value: results.surveyAmount, color: '#f472b6' }] : []),
+                        ...(results.hoaAmount > 0 ? [{ name: 'HOA Fee', value: results.hoaAmount, color: '#2dd4bf' }] : []),
+                        ...(results.concessionsAmt > 0 ? [{ name: 'Concessions', value: results.concessionsAmt, color: '#fb923c' }] : []),
+                      ].filter(d => d.value > 0);
+
+                      return (
+                        <div className="mt-5">
+                          <ResponsiveContainer width="100%" height={200}>
+                            <PieChart>
+                              <Pie
+                                data={chartData}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={55}
+                                outerRadius={85}
+                                paddingAngle={2}
+                                dataKey="value"
+                                stroke="none"
+                              >
+                                {chartData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                              </Pie>
+                              <Tooltip
+                                formatter={(value: number) => formatCurrency(value)}
+                                contentStyle={{
+                                  borderRadius: '8px',
+                                  border: '1px solid #e2e8f0',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                  fontSize: '12px',
+                                  padding: '6px 10px',
+                                }}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+                            {chartData.map((entry, index) => (
+                              <div key={index} className="flex items-center gap-1">
+                                <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                                <span className="text-[10px] text-slate-500">{entry.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     <div className="mt-3 relative" ref={closingCostsRef}>
                       <p className="text-xs text-slate-400 text-center leading-relaxed">
