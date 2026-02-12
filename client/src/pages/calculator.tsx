@@ -150,7 +150,7 @@ export default function Calculator() {
     const commissionAmount = price * (brokerCompensation / 100);
     const grtAmount = commissionAmount * (grtRate / 100);
     const titleEscrowAmount = price * (titleEscrowRate / 100);
-    const annualTax = parseFloat(annualPropertyTax) || 0;
+    const annualTax = parseFloat(annualPropertyTax.replace(/,/g, '')) || 0;
     const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
     const hoaAmount = hasHoa ? (parseFloat(hoaFee) || 0) : 0;
     const surveyAmount = parseFloat(surveyFee) || 0;
@@ -507,12 +507,26 @@ export default function Calculator() {
                   <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                   <input
                     type="text"
-                    inputMode="numeric"
+                    inputMode="decimal"
                     placeholder="Annual taxes"
-                    value={annualPropertyTax ? parseInt(annualPropertyTax).toLocaleString('en-US') : ''}
+                    value={annualPropertyTax}
                     onChange={(e) => {
-                      const num = e.target.value.replace(/[^0-9]/g, '');
-                      setAnnualPropertyTax(num);
+                      const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                      const parts = cleaned.split('.');
+                      const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+                      setAnnualPropertyTax(sanitized);
+                    }}
+                    onBlur={() => {
+                      const parsed = parseFloat(annualPropertyTax);
+                      if (!isNaN(parsed) && parsed > 0) {
+                        setAnnualPropertyTax(parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 }));
+                      } else {
+                        setAnnualPropertyTax('');
+                      }
+                    }}
+                    onFocus={() => {
+                      const raw = annualPropertyTax.replace(/[^0-9.]/g, '');
+                      setAnnualPropertyTax(raw);
                     }}
                     className="w-full pl-7 pr-2 py-1 text-sm font-medium text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                   />
@@ -538,9 +552,9 @@ export default function Calculator() {
                 </select>
               </div>
 
-              {(parseFloat(annualPropertyTax) || 0) > 0 && (
+              {(parseFloat(annualPropertyTax.replace(/,/g, '')) || 0) > 0 && (
                 <p className="text-[11px] text-slate-400">
-                  Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * (parseFloat(annualPropertyTax) || 0))}
+                  Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * (parseFloat(annualPropertyTax.replace(/,/g, '')) || 0))}
                 </p>
               )}
 
