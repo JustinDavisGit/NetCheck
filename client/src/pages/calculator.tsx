@@ -22,6 +22,8 @@ export default function Calculator() {
   const [titleEscrowInput, setTitleEscrowInput] = useState<string>("1.00");
   const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
   const [closingMonth, setClosingMonth] = useState<number>(new Date().getMonth() + 1);
+  const [hasHoa, setHasHoa] = useState(false);
+  const [hoaFee, setHoaFee] = useState<string>("350");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -146,8 +148,9 @@ export default function Calculator() {
     const titleEscrowAmount = price * (titleEscrowRate / 100);
     const annualTax = parseFloat(annualPropertyTax) || 0;
     const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
+    const hoaAmount = hasHoa ? (parseFloat(hoaFee) || 0) : 0;
     const grossEquity = price - totalLiens;
-    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount - taxProration;
+    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount - taxProration - hoaAmount;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
@@ -156,13 +159,14 @@ export default function Calculator() {
       grtAmount,
       titleEscrowAmount,
       taxProration,
+      hoaAmount,
       secondMtg,
       helocAmt,
       solarAmt,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -553,6 +557,61 @@ export default function Calculator() {
                   Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * (parseFloat(annualPropertyTax) || 0))}
                 </p>
               )}
+
+              <div className="pt-1 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-slate-500">
+                    Is this home in an HOA?
+                  </Label>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setHasHoa(true)}
+                      className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${hasHoa ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHasHoa(false)}
+                      className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${!hasHoa ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                    >
+                      No
+                    </button>
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {hasHoa && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between pt-1">
+                        <Label className="text-xs text-slate-400">
+                          HOA Transfer/Disclosure Fee
+                        </Label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={hoaFee ? parseInt(hoaFee).toLocaleString('en-US') : ''}
+                            onChange={(e) => {
+                              const num = e.target.value.replace(/[^0-9]/g, '');
+                              setHoaFee(num);
+                            }}
+                            className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             <div className="pt-4 space-y-4">
@@ -660,6 +719,12 @@ export default function Calculator() {
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Tax Proration ({closingMonth}/12 mo)</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(results.taxProration)}</span>
+                        </div>
+                      )}
+                      {results.hoaAmount > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">HOA Fee</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.hoaAmount)}</span>
                         </div>
                       )}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
