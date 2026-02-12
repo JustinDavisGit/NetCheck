@@ -632,7 +632,7 @@ export default function Calculator() {
 
             <div className="space-y-2">
               <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-orange-400" />
+                <Wrench className="w-4 h-4 text-blue-400" />
                 Repairs
               </Label>
               <div className="relative">
