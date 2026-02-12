@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Share2, Check, Loader2, Pencil, Handshake, Info, Wrench } from "lucide-react";
+import { DollarSign, Home, FileText, Share2, Check, Loader2, Pencil, Handshake, Info, Wrench, Plus, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +38,7 @@ export default function Calculator() {
   const [hoaFee, setHoaFee] = useState<string>("350");
   const [sellerConcessions, setSellerConcessions] = useState<string>("");
   const [repairCosts, setRepairCosts] = useState<string>("");
+  const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
   const [surveyFee, setSurveyFee] = useState<string>("275");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -177,7 +178,8 @@ export default function Calculator() {
     const surveyAmount = parseCurrency(surveyFee);
     const concessionsAmt = parseCurrency(sellerConcessions);
     const repairAmt = parseCurrency(repairCosts);
-    const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + surveyAmount + concessionsAmt + repairAmt;
+    const customFieldsTotal = customFields.reduce((sum, f) => sum + parseCurrency(f.amount), 0);
+    const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal;
     const netProceeds = price - totalLiens - totalDeductions;
 
     return {
@@ -191,12 +193,14 @@ export default function Calculator() {
       surveyAmount,
       concessionsAmt,
       repairAmt,
+      customFields: customFields.map(f => ({ name: f.name || 'Custom Fee', amount: parseCurrency(f.amount) })),
+      customFieldsTotal,
       secondMtg,
       helocAmt,
       solarAmt,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts, customFields]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -649,6 +653,68 @@ export default function Calculator() {
               </div>
             </div>
 
+            {customFields.map((field, index) => (
+              <div key={index} className="space-y-2 bg-slate-50 rounded-lg p-3">
+                <div className="flex items-center justify-between">
+                  <input
+                    type="text"
+                    placeholder="Field name"
+                    value={field.name}
+                    onChange={(e) => {
+                      const updated = [...customFields];
+                      updated[index].name = e.target.value;
+                      setCustomFields(updated);
+                    }}
+                    className="text-sm font-medium text-slate-700 bg-transparent border-b border-slate-300 focus:border-blue-400 focus:outline-none pb-0.5 w-[60%]"
+                  />
+                  <button
+                    onClick={() => setCustomFields(customFields.filter((_, i) => i !== index))}
+                    className="text-slate-400 hover:text-red-400 transition-colors p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={field.amount}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9.]/g, '');
+                      const parts = raw.split('.');
+                      const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : raw;
+                      const intPart = sanitized.split('.')[0];
+                      const decPart = sanitized.includes('.') ? '.' + sanitized.split('.')[1] : '';
+                      const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
+                      const updated = [...customFields];
+                      updated[index].amount = formattedInt + decPart;
+                      setCustomFields(updated);
+                      if (validationError) setValidationError(null);
+                    }}
+                    onBlur={() => {
+                      const parsed = parseFloat(field.amount.replace(/,/g, ''));
+                      if (!isNaN(parsed) && parsed > 0) {
+                        const updated = [...customFields];
+                        updated[index].amount = parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
+                        setCustomFields(updated);
+                      }
+                    }}
+                    className="pl-8 text-lg h-12 font-medium"
+                  />
+                </div>
+              </div>
+            ))}
+
+            <button
+              onClick={() => setCustomFields([...customFields, { name: '', amount: '' }])}
+              className="flex items-center gap-2 text-sm text-blue-500 hover:text-blue-600 font-medium transition-colors pt-1"
+            >
+              <Plus className="w-4 h-4" />
+              Add Custom Field
+            </button>
+
             <div className="pt-4 space-y-4">
               <Button
                 onClick={handleRunNetCheck}
@@ -789,6 +855,12 @@ export default function Calculator() {
                           <span className="font-medium text-slate-600">-{formatCurrency(results.repairAmt)}</span>
                         </div>
                       )}
+                      {results.customFields.map((f, i) => f.amount > 0 && (
+                        <div key={i} className="flex justify-between text-sm">
+                          <span className="text-slate-500">{f.name}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(f.amount)}</span>
+                        </div>
+                      ))}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
                         <span className="font-bold text-slate-800">Estimated Net</span>
                         <span className={`font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
@@ -812,6 +884,7 @@ export default function Calculator() {
                         ...(results.hoaAmount > 0 ? [{ name: 'HOA Fee', value: results.hoaAmount, color: '#2dd4bf' }] : []),
                         ...(results.concessionsAmt > 0 ? [{ name: 'Concessions', value: results.concessionsAmt, color: '#fb923c' }] : []),
                         ...(results.repairAmt > 0 ? [{ name: 'Repairs', value: results.repairAmt, color: '#e879f9' }] : []),
+                        ...results.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
                       ].filter(d => d.value > 0);
 
                       return (
