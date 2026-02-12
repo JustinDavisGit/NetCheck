@@ -851,31 +851,6 @@ export default function Calculator() {
                       );
                     })()}
 
-                    <div className="mt-3 relative" ref={closingCostsRef}>
-                      <p className="text-xs text-slate-400 text-center leading-relaxed">
-                        Does not include attorney fees or negotiated concessions.
-                        <button
-                          onClick={() => setShowClosingCostsInfo(!showClosingCostsInfo)}
-                          aria-label="Closing costs info"
-                          className="inline-flex items-center ml-1 align-middle text-slate-400 hover:text-slate-500 transition-colors"
-                        >
-                          <Info className="w-3.5 h-3.5" />
-                        </button>
-                      </p>
-                      {showClosingCostsInfo && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-md p-3 z-10"
-                        >
-                          <p className="text-xs text-slate-500 leading-relaxed">
-                            In many areas, sellers often budget around 0.75%–1.0% of the sale price for title, escrow, or attorney-related closing costs. Actual amounts vary by location and transaction.
-                          </p>
-                        </motion.div>
-                      )}
-                    </div>
-
                     <Button
                       onClick={() => {
                         setShowResults(false);
