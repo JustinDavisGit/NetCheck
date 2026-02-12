@@ -811,14 +811,14 @@ export default function Calculator() {
 
                       return (
                         <div className="mt-5">
-                          <ResponsiveContainer width="100%" height={200}>
+                          <ResponsiveContainer width="100%" height={260}>
                             <PieChart>
                               <Pie
                                 data={chartData}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={55}
-                                outerRadius={85}
+                                innerRadius={70}
+                                outerRadius={110}
                                 paddingAngle={2}
                                 dataKey="value"
                                 stroke="none"
