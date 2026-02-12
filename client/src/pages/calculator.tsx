@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Share2, Check, Loader2, Pencil, Handshake, Info } from "lucide-react";
+import { DollarSign, Home, FileText, Share2, Check, Loader2, Pencil, Handshake, Info, Wrench } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,7 @@ export default function Calculator() {
   const [hasHoa, setHasHoa] = useState(false);
   const [hoaFee, setHoaFee] = useState<string>("350");
   const [sellerConcessions, setSellerConcessions] = useState<string>("");
+  const [repairCosts, setRepairCosts] = useState<string>("");
   const [surveyFee, setSurveyFee] = useState<string>("275");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -175,7 +176,8 @@ export default function Calculator() {
     const hoaAmount = hasHoa ? parseCurrency(hoaFee) : 0;
     const surveyAmount = parseCurrency(surveyFee);
     const concessionsAmt = parseCurrency(sellerConcessions);
-    const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + surveyAmount + concessionsAmt;
+    const repairAmt = parseCurrency(repairCosts);
+    const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + surveyAmount + concessionsAmt + repairAmt;
     const netProceeds = price - totalLiens - totalDeductions;
 
     return {
@@ -188,12 +190,13 @@ export default function Calculator() {
       hoaAmount,
       surveyAmount,
       concessionsAmt,
+      repairAmt,
       secondMtg,
       helocAmt,
       solarAmt,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -627,6 +630,25 @@ export default function Calculator() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-orange-400" />
+                Repairs
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={repairCosts}
+                  onChange={(e) => handleCurrencyInput(e.target.value, setRepairCosts)}
+                  onBlur={() => formatCurrencyOnBlur(repairCosts, setRepairCosts)}
+                  className="pl-8 text-lg h-12 font-medium"
+                />
+              </div>
+            </div>
+
             <div className="pt-4 space-y-4">
               <Button
                 onClick={handleRunNetCheck}
@@ -761,6 +783,12 @@ export default function Calculator() {
                           <span className="font-medium text-slate-600">-{formatCurrency(results.concessionsAmt)}</span>
                         </div>
                       )}
+                      {results.repairAmt > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Repairs</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.repairAmt)}</span>
+                        </div>
+                      )}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
                         <span className="font-bold text-slate-800">Estimated Net</span>
                         <span className={`font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
@@ -783,6 +811,7 @@ export default function Calculator() {
                         ...(results.surveyAmount > 0 ? [{ name: 'Survey', value: results.surveyAmount, color: '#f472b6' }] : []),
                         ...(results.hoaAmount > 0 ? [{ name: 'HOA Fee', value: results.hoaAmount, color: '#2dd4bf' }] : []),
                         ...(results.concessionsAmt > 0 ? [{ name: 'Concessions', value: results.concessionsAmt, color: '#fb923c' }] : []),
+                        ...(results.repairAmt > 0 ? [{ name: 'Repairs', value: results.repairAmt, color: '#e879f9' }] : []),
                       ].filter(d => d.value > 0);
 
                       return (
