@@ -125,24 +125,34 @@ export default function Calculator() {
   };
 
   const handleCurrencyInput = (value: string, setter: (val: string) => void) => {
-    const numericValue = value.replace(/[^0-9]/g, '');
-    setter(numericValue);
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+    setter(sanitized);
     if (validationError) setValidationError(null);
   };
 
-  const formatInputDisplay = (value: string) => {
-    if (!value) return '';
-    const num = parseInt(value, 10);
-    if (isNaN(num)) return '';
-    return num.toLocaleString('en-US');
+  const formatCurrencyOnBlur = (value: string, setter: (val: string) => void) => {
+    const parsed = parseFloat(value);
+    if (!isNaN(parsed) && parsed > 0) {
+      setter(parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 }));
+    } else {
+      setter('');
+    }
   };
 
+  const handleCurrencyFocus = (value: string, setter: (val: string) => void) => {
+    setter(value.replace(/,/g, ''));
+  };
+
+  const parseCurrency = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
+
   const results = useMemo(() => {
-    const price = parseFloat(salePrice) || 0;
-    const mortgage = parseFloat(mortgageBalance) || 0;
-    const secondMtg = hasAdditionalLiens ? (parseFloat(secondMortgage) || 0) : 0;
-    const helocAmt = hasAdditionalLiens ? (parseFloat(heloc) || 0) : 0;
-    const solarAmt = hasAdditionalLiens ? (parseFloat(solarLoan) || 0) : 0;
+    const price = parseCurrency(salePrice);
+    const mortgage = parseCurrency(mortgageBalance);
+    const secondMtg = hasAdditionalLiens ? parseCurrency(secondMortgage) : 0;
+    const helocAmt = hasAdditionalLiens ? parseCurrency(heloc) : 0;
+    const solarAmt = hasAdditionalLiens ? parseCurrency(solarLoan) : 0;
     const totalLiens = mortgage + secondMtg + helocAmt + solarAmt;
 
     if (price === 0) return null;
@@ -150,11 +160,11 @@ export default function Calculator() {
     const commissionAmount = price * (brokerCompensation / 100);
     const grtAmount = commissionAmount * (grtRate / 100);
     const titleEscrowAmount = price * (titleEscrowRate / 100);
-    const annualTax = parseFloat(annualPropertyTax.replace(/,/g, '')) || 0;
+    const annualTax = parseCurrency(annualPropertyTax);
     const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
-    const hoaAmount = hasHoa ? (parseFloat(hoaFee) || 0) : 0;
-    const surveyAmount = parseFloat(surveyFee) || 0;
-    const concessionsAmt = parseFloat(sellerConcessions) || 0;
+    const hoaAmount = hasHoa ? parseCurrency(hoaFee) : 0;
+    const surveyAmount = parseCurrency(surveyFee);
+    const concessionsAmt = parseCurrency(sellerConcessions);
     const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + surveyAmount + concessionsAmt;
     const netProceeds = price - totalLiens - totalDeductions;
 
@@ -328,9 +338,12 @@ export default function Calculator() {
                   id="salePrice"
                   ref={salePriceRef}
                   type="text"
+                  inputMode="decimal"
                   placeholder="0"
-                  value={formatInputDisplay(salePrice)}
+                  value={salePrice}
                   onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
+                  onBlur={() => formatCurrencyOnBlur(salePrice, setSalePrice)}
+                  onFocus={() => handleCurrencyFocus(salePrice, setSalePrice)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
@@ -346,9 +359,12 @@ export default function Calculator() {
                 <Input
                   id="mortgageBalance"
                   type="text"
+                  inputMode="decimal"
                   placeholder="0"
-                  value={formatInputDisplay(mortgageBalance)}
+                  value={mortgageBalance}
                   onChange={(e) => handleCurrencyInput(e.target.value, setMortgageBalance)}
+                  onBlur={() => formatCurrencyOnBlur(mortgageBalance, setMortgageBalance)}
+                  onFocus={() => handleCurrencyFocus(mortgageBalance, setMortgageBalance)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
@@ -392,8 +408,10 @@ export default function Calculator() {
                           id="secondMortgage"
                           type="text"
                           placeholder="0"
-                          value={formatInputDisplay(secondMortgage)}
+                          value={secondMortgage}
                           onChange={(e) => handleCurrencyInput(e.target.value, setSecondMortgage)}
+                          onBlur={() => formatCurrencyOnBlur(secondMortgage, setSecondMortgage)}
+                          onFocus={() => handleCurrencyFocus(secondMortgage, setSecondMortgage)}
                           className="pl-7 text-sm h-10"
                         />
                       </div>
@@ -406,8 +424,10 @@ export default function Calculator() {
                           id="heloc"
                           type="text"
                           placeholder="0"
-                          value={formatInputDisplay(heloc)}
+                          value={heloc}
                           onChange={(e) => handleCurrencyInput(e.target.value, setHeloc)}
+                          onBlur={() => formatCurrencyOnBlur(heloc, setHeloc)}
+                          onFocus={() => handleCurrencyFocus(heloc, setHeloc)}
                           className="pl-7 text-sm h-10"
                         />
                       </div>
@@ -420,8 +440,10 @@ export default function Calculator() {
                           id="solarLoan"
                           type="text"
                           placeholder="0"
-                          value={formatInputDisplay(solarLoan)}
+                          value={solarLoan}
                           onChange={(e) => handleCurrencyInput(e.target.value, setSolarLoan)}
+                          onBlur={() => formatCurrencyOnBlur(solarLoan, setSolarLoan)}
+                          onFocus={() => handleCurrencyFocus(solarLoan, setSolarLoan)}
                           className="pl-7 text-sm h-10"
                         />
                       </div>
@@ -552,9 +574,9 @@ export default function Calculator() {
                 </select>
               </div>
 
-              {(parseFloat(annualPropertyTax.replace(/,/g, '')) || 0) > 0 && (
+              {parseCurrency(annualPropertyTax) > 0 && (
                 <p className="text-[11px] text-slate-400">
-                  Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * (parseFloat(annualPropertyTax.replace(/,/g, '')) || 0))}
+                  Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}
                 </p>
               )}
 
@@ -566,12 +588,11 @@ export default function Calculator() {
                   <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
                   <input
                     type="text"
-                    inputMode="numeric"
-                    value={surveyFee ? parseInt(surveyFee).toLocaleString('en-US') : ''}
-                    onChange={(e) => {
-                      const num = e.target.value.replace(/[^0-9]/g, '');
-                      setSurveyFee(num);
-                    }}
+                    inputMode="decimal"
+                    value={surveyFee}
+                    onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
+                    onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
+                    onFocus={() => handleCurrencyFocus(surveyFee, setSurveyFee)}
                     className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                   />
                 </div>
@@ -617,12 +638,11 @@ export default function Calculator() {
                           <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
                           <input
                             type="text"
-                            inputMode="numeric"
-                            value={hoaFee ? parseInt(hoaFee).toLocaleString('en-US') : ''}
-                            onChange={(e) => {
-                              const num = e.target.value.replace(/[^0-9]/g, '');
-                              setHoaFee(num);
-                            }}
+                            inputMode="decimal"
+                            value={hoaFee}
+                            onChange={(e) => handleCurrencyInput(e.target.value, setHoaFee)}
+                            onBlur={() => formatCurrencyOnBlur(hoaFee, setHoaFee)}
+                            onFocus={() => handleCurrencyFocus(hoaFee, setHoaFee)}
                             className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                           />
                         </div>
@@ -642,10 +662,12 @@ export default function Calculator() {
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   type="text"
-                  inputMode="numeric"
+                  inputMode="decimal"
                   placeholder="0"
-                  value={sellerConcessions ? parseInt(sellerConcessions).toLocaleString('en-US') : ''}
+                  value={sellerConcessions}
                   onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcessions)}
+                  onBlur={() => formatCurrencyOnBlur(sellerConcessions, setSellerConcessions)}
+                  onFocus={() => handleCurrencyFocus(sellerConcessions, setSellerConcessions)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
