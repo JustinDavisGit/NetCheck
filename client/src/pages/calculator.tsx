@@ -25,6 +25,7 @@ export default function Calculator() {
   const [hasHoa, setHasHoa] = useState(false);
   const [hoaFee, setHoaFee] = useState<string>("350");
   const [sellerConcessions, setSellerConcessions] = useState<string>("");
+  const [surveyFee, setSurveyFee] = useState<string>("275");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -150,9 +151,10 @@ export default function Calculator() {
     const annualTax = parseFloat(annualPropertyTax) || 0;
     const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
     const hoaAmount = hasHoa ? (parseFloat(hoaFee) || 0) : 0;
+    const surveyAmount = parseFloat(surveyFee) || 0;
     const concessionsAmt = parseFloat(sellerConcessions) || 0;
     const grossEquity = price - totalLiens;
-    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount - taxProration - hoaAmount - concessionsAmt;
+    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount - taxProration - hoaAmount - surveyAmount - concessionsAmt;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
@@ -162,6 +164,7 @@ export default function Calculator() {
       titleEscrowAmount,
       taxProration,
       hoaAmount,
+      surveyAmount,
       concessionsAmt,
       secondMtg,
       helocAmt,
@@ -169,7 +172,7 @@ export default function Calculator() {
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, sellerConcessions]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -561,6 +564,25 @@ export default function Calculator() {
                 </p>
               )}
 
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-slate-500">
+                  Survey
+                </Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={surveyFee ? parseInt(surveyFee).toLocaleString('en-US') : ''}
+                    onChange={(e) => {
+                      const num = e.target.value.replace(/[^0-9]/g, '');
+                      setSurveyFee(num);
+                    }}
+                    className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                  />
+                </div>
+              </div>
+
               <div className="pt-1 space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium text-slate-500">
@@ -740,6 +762,12 @@ export default function Calculator() {
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Tax Proration ({closingMonth}/12 mo)</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(results.taxProration)}</span>
+                        </div>
+                      )}
+                      {results.surveyAmount > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Survey</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.surveyAmount)}</span>
                         </div>
                       )}
                       {results.hoaAmount > 0 && (
