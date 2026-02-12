@@ -455,7 +455,7 @@ export default function Calculator() {
             </div>
 
             <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Taxes &amp; Fees</p>
+              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Taxes &amp; Miscellaneous</p>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
