@@ -125,24 +125,23 @@ export default function Calculator() {
   };
 
   const handleCurrencyInput = (value: string, setter: (val: string) => void) => {
-    const cleaned = value.replace(/[^0-9.]/g, '');
-    const parts = cleaned.split('.');
-    const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
-    setter(sanitized);
+    const raw = value.replace(/[^0-9.]/g, '');
+    const parts = raw.split('.');
+    const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : raw;
+    const intPart = sanitized.split('.')[0];
+    const decPart = sanitized.includes('.') ? '.' + sanitized.split('.')[1] : '';
+    const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
+    setter(formattedInt + decPart);
     if (validationError) setValidationError(null);
   };
 
   const formatCurrencyOnBlur = (value: string, setter: (val: string) => void) => {
-    const parsed = parseFloat(value);
+    const parsed = parseFloat(value.replace(/,/g, ''));
     if (!isNaN(parsed) && parsed > 0) {
       setter(parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 }));
     } else {
       setter('');
     }
-  };
-
-  const handleCurrencyFocus = (value: string, setter: (val: string) => void) => {
-    setter(value.replace(/,/g, ''));
   };
 
   const parseCurrency = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
@@ -343,7 +342,6 @@ export default function Calculator() {
                   value={salePrice}
                   onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
                   onBlur={() => formatCurrencyOnBlur(salePrice, setSalePrice)}
-                  onFocus={() => handleCurrencyFocus(salePrice, setSalePrice)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
@@ -364,7 +362,6 @@ export default function Calculator() {
                   value={mortgageBalance}
                   onChange={(e) => handleCurrencyInput(e.target.value, setMortgageBalance)}
                   onBlur={() => formatCurrencyOnBlur(mortgageBalance, setMortgageBalance)}
-                  onFocus={() => handleCurrencyFocus(mortgageBalance, setMortgageBalance)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
@@ -411,7 +408,6 @@ export default function Calculator() {
                           value={secondMortgage}
                           onChange={(e) => handleCurrencyInput(e.target.value, setSecondMortgage)}
                           onBlur={() => formatCurrencyOnBlur(secondMortgage, setSecondMortgage)}
-                          onFocus={() => handleCurrencyFocus(secondMortgage, setSecondMortgage)}
                           className="pl-7 text-sm h-10"
                         />
                       </div>
@@ -427,7 +423,6 @@ export default function Calculator() {
                           value={heloc}
                           onChange={(e) => handleCurrencyInput(e.target.value, setHeloc)}
                           onBlur={() => formatCurrencyOnBlur(heloc, setHeloc)}
-                          onFocus={() => handleCurrencyFocus(heloc, setHeloc)}
                           className="pl-7 text-sm h-10"
                         />
                       </div>
@@ -443,7 +438,6 @@ export default function Calculator() {
                           value={solarLoan}
                           onChange={(e) => handleCurrencyInput(e.target.value, setSolarLoan)}
                           onBlur={() => formatCurrencyOnBlur(solarLoan, setSolarLoan)}
-                          onFocus={() => handleCurrencyFocus(solarLoan, setSolarLoan)}
                           className="pl-7 text-sm h-10"
                         />
                       </div>
@@ -532,24 +526,8 @@ export default function Calculator() {
                     inputMode="decimal"
                     placeholder="Annual taxes"
                     value={annualPropertyTax}
-                    onChange={(e) => {
-                      const cleaned = e.target.value.replace(/[^0-9.]/g, '');
-                      const parts = cleaned.split('.');
-                      const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
-                      setAnnualPropertyTax(sanitized);
-                    }}
-                    onBlur={() => {
-                      const parsed = parseFloat(annualPropertyTax);
-                      if (!isNaN(parsed) && parsed > 0) {
-                        setAnnualPropertyTax(parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 }));
-                      } else {
-                        setAnnualPropertyTax('');
-                      }
-                    }}
-                    onFocus={() => {
-                      const raw = annualPropertyTax.replace(/[^0-9.]/g, '');
-                      setAnnualPropertyTax(raw);
-                    }}
+                    onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
+                    onBlur={() => formatCurrencyOnBlur(annualPropertyTax, setAnnualPropertyTax)}
                     className="w-full pl-7 pr-2 py-1 text-sm font-medium text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                   />
                 </div>
@@ -592,7 +570,6 @@ export default function Calculator() {
                     value={surveyFee}
                     onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
                     onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
-                    onFocus={() => handleCurrencyFocus(surveyFee, setSurveyFee)}
                     className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                   />
                 </div>
@@ -642,7 +619,6 @@ export default function Calculator() {
                             value={hoaFee}
                             onChange={(e) => handleCurrencyInput(e.target.value, setHoaFee)}
                             onBlur={() => formatCurrencyOnBlur(hoaFee, setHoaFee)}
-                            onFocus={() => handleCurrencyFocus(hoaFee, setHoaFee)}
                             className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                           />
                         </div>
@@ -667,7 +643,6 @@ export default function Calculator() {
                   value={sellerConcessions}
                   onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcessions)}
                   onBlur={() => formatCurrencyOnBlur(sellerConcessions, setSellerConcessions)}
-                  onFocus={() => handleCurrencyFocus(sellerConcessions, setSellerConcessions)}
                   className="pl-8 text-lg h-12 font-medium"
                 />
               </div>
