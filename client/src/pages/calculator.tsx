@@ -3,10 +3,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Share2, Check, Loader2, Pencil, Handshake } from "lucide-react";
+import { DollarSign, Home, FileText, Share2, Check, Loader2, Pencil, Handshake, Info } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+
+function getEstimatedTitleEscrowFee(salePrice: number): number {
+  let rate: number;
+  if (salePrice < 150000) rate = 0.0130;
+  else if (salePrice < 250000) rate = 0.0105;
+  else if (salePrice < 350000) rate = 0.00925;
+  else if (salePrice < 500000) rate = 0.0080;
+  else if (salePrice < 650000) rate = 0.00725;
+  else if (salePrice < 900000) rate = 0.00675;
+  else if (salePrice < 1200000) rate = 0.00575;
+  else rate = 0.0045;
+  return Math.round((salePrice * rate) / 5) * 5;
+}
 
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
@@ -19,8 +32,6 @@ export default function Calculator() {
   const [secondMortgage, setSecondMortgage] = useState<string>("");
   const [heloc, setHeloc] = useState<string>("");
   const [solarLoan, setSolarLoan] = useState<string>("");
-  const [titleEscrowRate, setTitleEscrowRate] = useState<number>(1);
-  const [titleEscrowInput, setTitleEscrowInput] = useState<string>("1.00");
   const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
   const [closingMonth, setClosingMonth] = useState<number>(new Date().getMonth() + 1);
   const [hasHoa, setHasHoa] = useState(false);
@@ -158,7 +169,7 @@ export default function Calculator() {
 
     const commissionAmount = price * (brokerCompensation / 100);
     const grtAmount = commissionAmount * (grtRate / 100);
-    const titleEscrowAmount = price * (titleEscrowRate / 100);
+    const titleEscrowAmount = getEstimatedTitleEscrowFee(price);
     const annualTax = parseCurrency(annualPropertyTax);
     const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
     const hoaAmount = hasHoa ? parseCurrency(hoaFee) : 0;
@@ -182,7 +193,7 @@ export default function Calculator() {
       solarAmt,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -291,25 +302,6 @@ export default function Calculator() {
     setGrtInput(parsed.toFixed(4));
   };
 
-  const handleTitleEscrowChange = (value: string) => {
-    const cleaned = value.replace(/[^0-9.]/g, '');
-    const parts = cleaned.split('.');
-    const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
-    setTitleEscrowInput(sanitized);
-    const parsed = parseFloat(sanitized);
-    if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
-      setTitleEscrowRate(parsed);
-    }
-  };
-
-  const handleTitleEscrowBlur = () => {
-    let parsed = parseFloat(titleEscrowInput);
-    if (isNaN(parsed)) parsed = 1;
-    if (parsed < 0) parsed = 0;
-    if (parsed > 10) parsed = 10;
-    setTitleEscrowRate(parsed);
-    setTitleEscrowInput(parsed.toFixed(2));
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 flex items-center justify-center p-4">
@@ -498,23 +490,6 @@ export default function Calculator() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-slate-500">
-                  Title/Escrow Fees
-                  <span className="font-normal text-slate-400 ml-1">(~1% of sale price)</span>
-                </Label>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={titleEscrowInput}
-                    onChange={(e) => handleTitleEscrowChange(e.target.value)}
-                    onBlur={handleTitleEscrowBlur}
-                    className="w-[56px] text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
-                  />
-                  <span className="text-xs text-slate-400">%</span>
-                </div>
-              </div>
 
               <div className="flex items-center justify-between pt-1">
                 <Label className="text-xs font-medium text-slate-500">
@@ -751,7 +726,15 @@ export default function Calculator() {
                         <span className="font-medium text-slate-600">-{formatCurrency(results.grtAmount)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Title/Escrow ({titleEscrowRate.toFixed(2)}%)</span>
+                        <span className="text-slate-500 flex items-center gap-1">
+                          Est. Title/Escrow Fees
+                          <span className="relative group">
+                            <Info className="w-3 h-3 text-slate-400 cursor-help" />
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-48 p-2 text-[10px] leading-tight text-white bg-slate-800 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-10">
+                              Estimated based on NM price bands. Actual title/escrow fees vary by title company and transaction.
+                            </span>
+                          </span>
+                        </span>
                         <span className="font-medium text-slate-600">-{formatCurrency(results.titleEscrowAmount)}</span>
                       </div>
                       {results.taxProration > 0 && (
