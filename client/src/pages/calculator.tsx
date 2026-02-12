@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil, Handshake } from "lucide-react";
+import { DollarSign, Home, FileText, Share2, Check, Loader2, Pencil, Handshake } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -431,26 +431,25 @@ export default function Calculator() {
               </AnimatePresence>
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-blue-400" />
-                Real Estate Brokerage Compensation
-              </Label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={brokerInput}
-                  onChange={(e) => handleBrokerInputChange(e.target.value)}
-                  onBlur={handleBrokerBlur}
-                  className="w-[56px] text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
-                />
-                <span className="text-xs text-slate-400">%</span>
-              </div>
-            </div>
-
             <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Taxes &amp; Fees</p>
+              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Commissions, Taxes, and Fees</p>
+
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-slate-500">
+                  Real Estate Brokerage Compensation
+                </Label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={brokerInput}
+                    onChange={(e) => handleBrokerInputChange(e.target.value)}
+                    onBlur={handleBrokerBlur}
+                    className="w-[56px] text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                  />
+                  <span className="text-xs text-slate-400">%</span>
+                </div>
+              </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
