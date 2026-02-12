@@ -12,6 +12,7 @@ export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
+  const [brokerInput, setBrokerInput] = useState<string>("6.0");
   const [grtRate, setGrtRate] = useState<number>(7.625);
   const [grtInput, setGrtInput] = useState<string>("7.6250");
   const [hasAdditionalLiens, setHasAdditionalLiens] = useState(false);
@@ -50,7 +51,10 @@ export default function Calculator() {
     }
     if (bc) {
       const parsed = parseFloat(bc);
-      if (!isNaN(parsed) && parsed >= 0 && parsed <= 8) setBrokerCompensation(parsed);
+      if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+        setBrokerCompensation(parsed);
+        setBrokerInput(parsed.toFixed(1));
+      }
     }
     const grt = params.get('grt');
     if (grt) {
@@ -234,7 +238,25 @@ export default function Calculator() {
     };
   }, [showResults, results, animateNumber]);
 
-  const sliderPercentage = (brokerCompensation / 8) * 100;
+  const handleBrokerInputChange = (value: string) => {
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+    setBrokerInput(sanitized);
+    const parsed = parseFloat(sanitized);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+      setBrokerCompensation(parsed);
+    }
+  };
+
+  const handleBrokerBlur = () => {
+    let parsed = parseFloat(brokerInput);
+    if (isNaN(parsed)) parsed = 6;
+    if (parsed < 0) parsed = 0;
+    if (parsed > 10) parsed = 10;
+    setBrokerCompensation(parsed);
+    setBrokerInput(parsed.toFixed(1));
+  };
 
   const handleGrtInputChange = (value: string) => {
     const cleaned = value.replace(/[^0-9.]/g, '');
@@ -409,49 +431,22 @@ export default function Calculator() {
               </AnimatePresence>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-blue-400" />
-                  Real Estate Brokerage Compensation
-                </Label>
-                <span className="text-lg font-semibold text-blue-500">{brokerCompensation.toFixed(1)}%</span>
-              </div>
-              
-              <div className="relative pt-2">
-                <div className="relative h-3 bg-slate-200 rounded-full overflow-hidden">
-                  <div 
-                    className="absolute h-full bg-gradient-to-r from-emerald-300 to-emerald-400 rounded-full transition-all duration-150"
-                    style={{ width: `${sliderPercentage}%` }}
-                  />
-                </div>
-                
-                <div 
-                  className="absolute top-0 -translate-x-1/2 transition-all duration-150"
-                  style={{ left: `${sliderPercentage}%` }}
-                >
-                  <div className="w-8 h-8 bg-white border-2 border-emerald-400 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
-                    <Briefcase className="w-4 h-4 text-emerald-500" />
-                  </div>
-                </div>
-                
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-blue-400" />
+                Real Estate Brokerage Compensation
+              </Label>
+              <div className="flex items-center gap-1">
                 <input
-                  type="range"
-                  min="0"
-                  max="8"
-                  step="0.5"
-                  value={brokerCompensation}
-                  onChange={(e) => setBrokerCompensation(parseFloat(e.target.value))}
-                  className="absolute inset-0 w-full h-8 opacity-0 cursor-grab active:cursor-grabbing"
-                  style={{ top: '-2px' }}
+                  type="text"
+                  inputMode="decimal"
+                  value={brokerInput}
+                  onChange={(e) => handleBrokerInputChange(e.target.value)}
+                  onBlur={handleBrokerBlur}
+                  className="w-[56px] text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
                 />
+                <span className="text-xs text-slate-400">%</span>
               </div>
-              
-              <div className="flex justify-between text-xs text-slate-400">
-                <span>0%</span>
-                <span>8%</span>
-              </div>
-
             </div>
 
             <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
