@@ -206,6 +206,9 @@ export default function Calculator() {
       setCalcPhase('done');
       setShowResults(true);
       setIsCalculating(false);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }, 1200));
   };
 
@@ -216,6 +219,7 @@ export default function Calculator() {
   }, []);
 
   const salePriceRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
 
   const animateNumber = useCallback((target: number, duration: number = 800) => {
@@ -698,6 +702,7 @@ export default function Calculator() {
 
               {showResults && results && (
                 <motion.div
+                  ref={resultsRef}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
