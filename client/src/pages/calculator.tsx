@@ -731,7 +731,7 @@ export default function Calculator() {
                           <span className="relative group">
                             <Info className="w-3 h-3 text-slate-400 cursor-help" />
                             <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-48 p-2 text-[10px] leading-tight text-white bg-slate-800 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-10">
-                              Estimated based on NM price bands. Actual title/escrow fees vary by title company and transaction.
+                              Actual title/escrow fees may vary by title company and transaction.
                             </span>
                           </span>
                         </span>
