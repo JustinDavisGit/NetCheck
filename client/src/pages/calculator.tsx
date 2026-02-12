@@ -564,7 +564,7 @@ export default function Calculator() {
               <div className="pt-1 space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium text-slate-500">
-                    Is this home in an HOA?
+                    HOA?
                   </Label>
                   <div className="flex gap-1.5">
                     <button
