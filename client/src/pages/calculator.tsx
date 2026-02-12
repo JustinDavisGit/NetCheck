@@ -24,6 +24,7 @@ export default function Calculator() {
   const [closingMonth, setClosingMonth] = useState<number>(new Date().getMonth() + 1);
   const [hasHoa, setHasHoa] = useState(false);
   const [hoaFee, setHoaFee] = useState<string>("350");
+  const [sellerConcessions, setSellerConcessions] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -149,8 +150,9 @@ export default function Calculator() {
     const annualTax = parseFloat(annualPropertyTax) || 0;
     const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
     const hoaAmount = hasHoa ? (parseFloat(hoaFee) || 0) : 0;
+    const concessionsAmt = parseFloat(sellerConcessions) || 0;
     const grossEquity = price - totalLiens;
-    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount - taxProration - hoaAmount;
+    const netProceeds = grossEquity - commissionAmount - grtAmount - titleEscrowAmount - taxProration - hoaAmount - concessionsAmt;
     const netPercentage = price > 0 ? (netProceeds / price) * 100 : 0;
 
     return {
@@ -160,13 +162,14 @@ export default function Calculator() {
       titleEscrowAmount,
       taxProration,
       hoaAmount,
+      concessionsAmt,
       secondMtg,
       helocAmt,
       solarAmt,
       netProceeds,
       netPercentage,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee]);
+  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, titleEscrowRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, sellerConcessions]);
 
   const handleRunNetCheck = () => {
     if (!results) {
@@ -614,6 +617,24 @@ export default function Calculator() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-400" />
+                Seller Concessions
+              </Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={sellerConcessions ? parseInt(sellerConcessions).toLocaleString('en-US') : ''}
+                  onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcessions)}
+                  className="pl-8 text-lg h-12 font-medium"
+                />
+              </div>
+            </div>
+
             <div className="pt-4 space-y-4">
               <Button
                 onClick={handleRunNetCheck}
@@ -725,6 +746,12 @@ export default function Calculator() {
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">HOA Fee</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(results.hoaAmount)}</span>
+                        </div>
+                      )}
+                      {results.concessionsAmt > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Seller Concessions</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(results.concessionsAmt)}</span>
                         </div>
                       )}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
