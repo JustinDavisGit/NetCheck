@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil, Info } from "lucide-react";
+import { DollarSign, Home, FileText, Briefcase, Share2, Check, Loader2, Pencil, Info, Handshake } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
@@ -619,7 +619,7 @@ export default function Calculator() {
 
             <div className="space-y-2">
               <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-400" />
+                <Handshake className="w-4 h-4 text-blue-400" />
                 Seller Concessions
               </Label>
               <div className="relative">
