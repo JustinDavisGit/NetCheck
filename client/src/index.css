@@ -265,3 +265,13 @@
 .animate-pulse-glow {
   animation: pulseGlow 4s ease-in-out forwards;
 }
+
+@keyframes blinkCaretGreen {
+  0%, 100% { caret-color: #22c55e; }
+  50% { caret-color: transparent; }
+}
+
+.green-blink-caret {
+  caret-color: #22c55e;
+  animation: blinkCaretGreen 1s step-end infinite;
+}

@@ -21,9 +21,46 @@ function getEstimatedTitleEscrowFee(salePrice: number): number {
   return Math.round((salePrice * rate) / 5) * 5;
 }
 
+const SAMPLE_PRICE = 400000;
+const SAMPLE_MORTGAGE = 250000;
+const SAMPLE_ANNUAL_TAX = 3000;
+const SAMPLE_BROKER = 6;
+const SAMPLE_GRT = 7.625;
+const SAMPLE_SURVEY = 275;
+const SAMPLE_MONTH = new Date().getMonth() + 1;
+
+function buildSampleResults() {
+  const commissionAmount = SAMPLE_PRICE * (SAMPLE_BROKER / 100);
+  const grtAmount = commissionAmount * (SAMPLE_GRT / 100);
+  const titleEscrowAmount = getEstimatedTitleEscrowFee(SAMPLE_PRICE);
+  const taxProration = (SAMPLE_MONTH / 12) * SAMPLE_ANNUAL_TAX;
+  const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + SAMPLE_SURVEY;
+  const netProceeds = SAMPLE_PRICE - SAMPLE_MORTGAGE - totalDeductions;
+  return {
+    price: SAMPLE_PRICE,
+    mortgage: SAMPLE_MORTGAGE,
+    commissionAmount,
+    grtAmount,
+    titleEscrowAmount,
+    taxProration,
+    hoaAmount: 0,
+    surveyAmount: SAMPLE_SURVEY,
+    concessionsAmt: 0,
+    repairAmt: 0,
+    customFields: [] as { name: string; amount: number }[],
+    customFieldsTotal: 0,
+    secondMtg: 0,
+    helocAmt: 0,
+    solarAmt: 0,
+    netProceeds,
+  };
+}
+
+const SAMPLE_RESULTS = buildSampleResults();
+
 export default function Calculator() {
-  const [salePrice, setSalePrice] = useState<string>("400,000");
-  const [mortgageBalance, setMortgageBalance] = useState<string>("250,000");
+  const [salePrice, setSalePrice] = useState<string>("");
+  const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
   const [brokerInput, setBrokerInput] = useState<string>("6.0");
   const [grtRate, setGrtRate] = useState<number>(7.625);
@@ -32,7 +69,7 @@ export default function Calculator() {
   const [secondMortgage, setSecondMortgage] = useState<string>("");
   const [heloc, setHeloc] = useState<string>("");
   const [solarLoan, setSolarLoan] = useState<string>("");
-  const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("3,000");
+  const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
   const [closingMonth, setClosingMonth] = useState<number>(new Date().getMonth() + 1);
   const [hasHoa, setHasHoa] = useState(false);
   const [hoaFee, setHoaFee] = useState<string>("350");
@@ -84,7 +121,6 @@ export default function Calculator() {
     const timer = setTimeout(() => {
       if (salePriceRef.current) {
         salePriceRef.current.focus();
-        salePriceRef.current.select();
       }
     }, 300);
     const calloutTimer = setTimeout(() => setShowCallout(false), 8000);
@@ -226,6 +262,8 @@ export default function Calculator() {
   const [displayedNet, setDisplayedNet] = useState(0);
   const displayedNetRef = useRef(0);
 
+  const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
+
   const animateNumber = useCallback((target: number, duration: number = 400) => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
     const start = performance.now();
@@ -247,12 +285,12 @@ export default function Calculator() {
   }, []);
 
   useEffect(() => {
-    const target = results ? results.netProceeds : 0;
+    const target = displayResults ? displayResults.netProceeds : 0;
     animateNumber(target);
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [results, animateNumber]);
+  }, [displayResults, animateNumber]);
 
   const handleBrokerInputChange = (value: string) => {
     const cleaned = value.replace(/[^0-9.]/g, '');
@@ -298,26 +336,25 @@ export default function Calculator() {
     setGrtInput(parsed.toFixed(4));
   };
 
-
   const chartData = useMemo(() => {
-    if (!results) return [];
+    if (!displayResults) return [];
     return [
-      { name: 'Net Proceeds', value: Math.max(results.netProceeds, 0), color: '#22c55e' },
-      ...(results.mortgage > 0 ? [{ name: 'Mortgage', value: results.mortgage, color: '#94a3b8' }] : []),
-      ...(results.secondMtg > 0 ? [{ name: '2nd Mortgage', value: results.secondMtg, color: '#a1a1aa' }] : []),
-      ...(results.helocAmt > 0 ? [{ name: 'HELOC', value: results.helocAmt, color: '#b4b4bb' }] : []),
-      ...(results.solarAmt > 0 ? [{ name: 'Solar Loan', value: results.solarAmt, color: '#c4c4cc' }] : []),
-      { name: 'Commission', value: results.commissionAmount, color: '#60a5fa' },
-      { name: 'NM GRT', value: results.grtAmount, color: '#fbbf24' },
-      { name: 'Title/Escrow', value: results.titleEscrowAmount, color: '#f97316' },
-      ...(results.taxProration > 0 ? [{ name: 'Tax Proration', value: results.taxProration, color: '#a78bfa' }] : []),
-      ...(results.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: results.surveyAmount, color: '#f472b6' }] : []),
-      ...(results.hoaAmount > 0 ? [{ name: 'HOA Fee', value: results.hoaAmount, color: '#2dd4bf' }] : []),
-      ...(results.concessionsAmt > 0 ? [{ name: 'Concessions', value: results.concessionsAmt, color: '#fb923c' }] : []),
-      ...(results.repairAmt > 0 ? [{ name: 'Repairs', value: results.repairAmt, color: '#e879f9' }] : []),
-      ...results.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
+      { name: 'Net Proceeds', value: Math.max(displayResults.netProceeds, 0), color: '#22c55e' },
+      ...(displayResults.mortgage > 0 ? [{ name: 'Mortgage', value: displayResults.mortgage, color: '#94a3b8' }] : []),
+      ...(displayResults.secondMtg > 0 ? [{ name: '2nd Mortgage', value: displayResults.secondMtg, color: '#a1a1aa' }] : []),
+      ...(displayResults.helocAmt > 0 ? [{ name: 'HELOC', value: displayResults.helocAmt, color: '#b4b4bb' }] : []),
+      ...(displayResults.solarAmt > 0 ? [{ name: 'Solar Loan', value: displayResults.solarAmt, color: '#c4c4cc' }] : []),
+      { name: 'Commission', value: displayResults.commissionAmount, color: '#60a5fa' },
+      { name: 'NM GRT', value: displayResults.grtAmount, color: '#fbbf24' },
+      { name: 'Title/Escrow', value: displayResults.titleEscrowAmount, color: '#f97316' },
+      ...(displayResults.taxProration > 0 ? [{ name: 'Tax Proration', value: displayResults.taxProration, color: '#a78bfa' }] : []),
+      ...(displayResults.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: displayResults.surveyAmount, color: '#f472b6' }] : []),
+      ...(displayResults.hoaAmount > 0 ? [{ name: 'HOA Fee', value: displayResults.hoaAmount, color: '#2dd4bf' }] : []),
+      ...(displayResults.concessionsAmt > 0 ? [{ name: 'Concessions', value: displayResults.concessionsAmt, color: '#fb923c' }] : []),
+      ...(displayResults.repairAmt > 0 ? [{ name: 'Repairs', value: displayResults.repairAmt, color: '#e879f9' }] : []),
+      ...displayResults.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
     ].filter(d => d.value > 0);
-  }, [results]);
+  }, [displayResults]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
@@ -356,7 +393,7 @@ export default function Calculator() {
                       value={salePrice}
                       onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
                       onBlur={() => formatCurrencyOnBlur(salePrice, setSalePrice)}
-                      className={`pl-8 text-lg h-12 font-medium ${isSample ? 'animate-pulse-glow' : ''}`}
+                      className={`pl-8 text-lg h-12 font-medium ${isSample ? 'animate-pulse-glow green-blink-caret' : ''}`}
                     />
                     <AnimatePresence>
                       {showCallout && (
@@ -750,14 +787,14 @@ export default function Calculator() {
             <div ref={resultsRef} className="p-5 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Estimated Net Proceeds</h3>
-                <p className={`text-4xl font-bold transition-all duration-300 ease-out ${!results ? 'text-gray-300' : results.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <p className={`text-4xl font-bold transition-all duration-300 ease-out ${!displayResults ? 'text-gray-300' : displayResults.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                   {formatCurrency(displayedNet)}
                 </p>
-                {!results && (
+                {!displayResults && (
                   <p className="text-sm text-slate-400 mt-3">Enter a sale price to get started</p>
                 )}
                 <AnimatePresence>
-                  {isSample && results && (
+                  {isSample && displayResults && (
                     <motion.div
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -765,7 +802,7 @@ export default function Calculator() {
                       className="mt-3 bg-green-50 border-l-4 border-green-400 px-3 py-2 rounded text-left"
                     >
                       <p className="text-xs text-green-800">
-                        <span className="font-semibold">Sample scenario:</span> $400k Albuquerque home — edit any field to see your own estimate
+                        <span className="font-semibold">Sample scenario:</span> $400k Albuquerque home — enter your sale price above to see your own estimate
                       </p>
                     </motion.div>
                   )}
@@ -773,7 +810,7 @@ export default function Calculator() {
               </div>
 
               <AnimatePresence>
-                {results && (
+                {displayResults && (
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -783,39 +820,39 @@ export default function Calculator() {
                     <div className="mt-4 bg-white rounded-lg p-4 border border-gray-200 text-left space-y-2.5">
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">Sale Price</span>
-                        <span className="font-medium text-slate-700">{formatCurrency(results.price)}</span>
+                        <span className="font-medium text-slate-700">{formatCurrency(displayResults.price)}</span>
                       </div>
-                      {results.mortgage > 0 && (
+                      {displayResults.mortgage > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Mortgage Balance</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.mortgage)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.mortgage)}</span>
                         </div>
                       )}
-                      {results.secondMtg > 0 && (
+                      {displayResults.secondMtg > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Second Mortgage</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.secondMtg)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.secondMtg)}</span>
                         </div>
                       )}
-                      {results.helocAmt > 0 && (
+                      {displayResults.helocAmt > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">HELOC</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.helocAmt)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.helocAmt)}</span>
                         </div>
                       )}
-                      {results.solarAmt > 0 && (
+                      {displayResults.solarAmt > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Solar Loan Balance</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.solarAmt)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.solarAmt)}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Commission ({brokerCompensation.toFixed(1)}%)</span>
-                        <span className="font-medium text-slate-600">-{formatCurrency(results.commissionAmount)}</span>
+                        <span className="text-slate-500">Commission ({(isSample ? SAMPLE_BROKER : brokerCompensation).toFixed(1)}%)</span>
+                        <span className="font-medium text-slate-600">-{formatCurrency(displayResults.commissionAmount)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">NM GRT ({grtRate.toFixed(4)}%)</span>
-                        <span className="font-medium text-slate-600">-{formatCurrency(results.grtAmount)}</span>
+                        <span className="text-slate-500">NM GRT ({(isSample ? SAMPLE_GRT : grtRate).toFixed(4)}%)</span>
+                        <span className="font-medium text-slate-600">-{formatCurrency(displayResults.grtAmount)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500 flex items-center gap-1">
@@ -827,39 +864,39 @@ export default function Calculator() {
                             </span>
                           </span>
                         </span>
-                        <span className="font-medium text-slate-600">-{formatCurrency(results.titleEscrowAmount)}</span>
+                        <span className="font-medium text-slate-600">-{formatCurrency(displayResults.titleEscrowAmount)}</span>
                       </div>
-                      {results.taxProration > 0 && (
+                      {displayResults.taxProration > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Tax Proration ({closingMonth}/12 mo)</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.taxProration)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.taxProration)}</span>
                         </div>
                       )}
-                      {results.surveyAmount > 0 && (
+                      {displayResults.surveyAmount > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Survey / ILR</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.surveyAmount)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.surveyAmount)}</span>
                         </div>
                       )}
-                      {results.hoaAmount > 0 && (
+                      {displayResults.hoaAmount > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">HOA Fee</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.hoaAmount)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.hoaAmount)}</span>
                         </div>
                       )}
-                      {results.concessionsAmt > 0 && (
+                      {displayResults.concessionsAmt > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Seller Concessions</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.concessionsAmt)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.concessionsAmt)}</span>
                         </div>
                       )}
-                      {results.repairAmt > 0 && (
+                      {displayResults.repairAmt > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Repairs</span>
-                          <span className="font-medium text-slate-600">-{formatCurrency(results.repairAmt)}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.repairAmt)}</span>
                         </div>
                       )}
-                      {results.customFields.map((f, i) => f.amount > 0 && (
+                      {displayResults.customFields.map((f, i) => f.amount > 0 && (
                         <div key={i} className="flex justify-between text-sm">
                           <span className="text-slate-500">{f.name}</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(f.amount)}</span>
@@ -867,8 +904,8 @@ export default function Calculator() {
                       ))}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
                         <span className="font-bold text-slate-800">Estimated Net</span>
-                        <span className={`font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                          {formatCurrency(results.netProceeds)}
+                        <span className={`font-bold ${displayResults.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {formatCurrency(displayResults.netProceeds)}
                         </span>
                       </div>
                     </div>
@@ -941,7 +978,7 @@ export default function Calculator() {
       </div>
 
       <AnimatePresence>
-        {results && (
+        {displayResults && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -951,8 +988,8 @@ export default function Calculator() {
           >
             <div className="bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-5 py-3">
               <div className="flex items-center justify-between max-w-md mx-auto">
-                <span className="text-sm font-medium text-slate-600">Estimated Net</span>
-                <span className={`text-2xl font-bold ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <span className="text-sm font-medium text-slate-600">{isSample ? 'Sample Net' : 'Estimated Net'}</span>
+                <span className={`text-2xl font-bold ${displayResults.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                   {formatCurrency(displayedNet)}
                 </span>
               </div>
