@@ -393,7 +393,7 @@ export default function Calculator() {
                       value={salePrice}
                       onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
                       onBlur={() => formatCurrencyOnBlur(salePrice, setSalePrice)}
-                      className={`pl-8 text-lg h-12 font-medium ${isSample ? 'animate-pulse-glow green-blink-caret' : ''}`}
+                      className={`pl-8 text-lg h-12 font-medium ${isSample ? 'animate-pulse-glow' : ''}`}
                     />
                     <AnimatePresence>
                       {showCallout && (
@@ -402,10 +402,10 @@ export default function Calculator() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95, y: -4 }}
                           transition={{ duration: 0.3, delay: 0.6 }}
-                          className="absolute left-0 top-full mt-2.5 bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-10"
+                          className="absolute left-1/2 -translate-x-1/2 top-full mt-2.5 bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-10"
                         >
                           Start here — enter your projected sale price
-                          <div className="absolute -top-1.5 left-6 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-green-600" />
+                          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-green-600" />
                         </motion.div>
                       )}
                     </AnimatePresence>

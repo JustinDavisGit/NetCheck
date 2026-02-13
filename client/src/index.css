@@ -268,12 +268,3 @@
   border-color: rgba(34, 197, 94, 0.5) !important;
 }
 
-@keyframes blinkCaretGreen {
-  0%, 100% { caret-color: #22c55e; }
-  50% { caret-color: transparent; }
-}
-
-.green-blink-caret {
-  caret-color: #22c55e;
-  animation: blinkCaretGreen 1s step-end infinite;
-}
