@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Share2, Check, Loader2, Pencil, Handshake, Info, Wrench, Plus, X } from "lucide-react";
+import { DollarSign, Home, FileText, Share2, Check, Handshake, Info, Wrench, Plus, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -41,11 +41,6 @@ export default function Calculator() {
   const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
   const [surveyFee, setSurveyFee] = useState<string>("275");
   const [copied, setCopied] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [calcPhase, setCalcPhase] = useState<'idle' | 'calculating' | 'applying' | 'done'>('idle');
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const calcTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
   const { toast } = useToast();
 
   // Load state from URL parameters on mount
@@ -145,7 +140,6 @@ export default function Calculator() {
     const decPart = sanitized.includes('.') ? '.' + sanitized.split('.')[1] : '';
     const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
     setter(formattedInt + decPart);
-    if (validationError) setValidationError(null);
   };
 
   const formatCurrencyOnBlur = (value: string, setter: (val: string) => void) => {
@@ -202,54 +196,26 @@ export default function Calculator() {
     };
   }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts, customFields]);
 
-  const handleRunNetCheck = () => {
-    if (!results) {
-      setValidationError("Enter a sale price to run your estimate.");
-      return;
-    }
-    setValidationError(null);
-    setShowResults(false);
-    setIsCalculating(true);
-    setCalcPhase('calculating');
-    setDisplayedNet(0);
-
-    calcTimeoutsRef.current.forEach(clearTimeout);
-    calcTimeoutsRef.current = [];
-
-    calcTimeoutsRef.current.push(setTimeout(() => {
-      setCalcPhase('applying');
-    }, 550));
-
-    calcTimeoutsRef.current.push(setTimeout(() => {
-      setCalcPhase('done');
-      setShowResults(true);
-      setIsCalculating(false);
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }, 1200));
-  };
-
-  useEffect(() => {
-    return () => {
-      calcTimeoutsRef.current.forEach(clearTimeout);
-    };
-  }, []);
 
   const salePriceRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
 
-  const animateNumber = useCallback((target: number, duration: number = 800) => {
+  const [displayedNet, setDisplayedNet] = useState(0);
+  const displayedNetRef = useRef(0);
+
+  const animateNumber = useCallback((target: number, duration: number = 400) => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
     const start = performance.now();
-    const startVal = 0;
+    const startVal = displayedNetRef.current;
 
     const tick = (now: number) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayedNet(startVal + (target - startVal) * eased);
+      const current = startVal + (target - startVal) * eased;
+      displayedNetRef.current = current;
+      setDisplayedNet(current);
       if (progress < 1) {
         animationRef.current = requestAnimationFrame(tick);
       }
@@ -258,16 +224,13 @@ export default function Calculator() {
     animationRef.current = requestAnimationFrame(tick);
   }, []);
 
-  const [displayedNet, setDisplayedNet] = useState(0);
-
   useEffect(() => {
-    if (showResults && results) {
-      animateNumber(results.netProceeds);
-    }
+    const target = results ? results.netProceeds : 0;
+    animateNumber(target);
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [showResults, results, animateNumber]);
+  }, [results, animateNumber]);
 
   const handleBrokerInputChange = (value: string) => {
     const cleaned = value.replace(/[^0-9.]/g, '');
@@ -691,7 +654,6 @@ export default function Calculator() {
                       const updated = [...customFields];
                       updated[index].amount = formattedInt + decPart;
                       setCustomFields(updated);
-                      if (validationError) setValidationError(null);
                     }}
                     onBlur={() => {
                       const parsed = parseFloat(field.amount.replace(/,/g, ''));
@@ -715,59 +677,13 @@ export default function Calculator() {
               Add Custom Field
             </button>
 
-            <div className="pt-4 space-y-4">
-              <Button
-                onClick={handleRunNetCheck}
-                disabled={isCalculating || showResults}
-                className="w-full h-12 text-lg font-semibold bg-emerald-400 hover:bg-emerald-500 text-white disabled:opacity-50"
-              >
-                {isCalculating ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <span style={{letterSpacing: '-0.02em'}}>{"Run "}<span className="font-extrabold">Net</span><span className="font-light">Check</span></span>
-                )}
-              </Button>
-
-              {validationError && (
-                <motion.p
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-red-400 text-center"
-                >
-                  {validationError}
-                </motion.p>
-              )}
-
-              <AnimatePresence mode="wait">
-                {isCalculating && calcPhase === 'calculating' && (
-                  <motion.p
-                    key="calculating"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    className="text-sm text-slate-500 text-center"
-                  >
-                    Calculating your estimated net...
-                  </motion.p>
-                )}
-                {isCalculating && calcPhase === 'applying' && (
-                  <motion.p
-                    key="applying"
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
-                    className="text-sm text-slate-500 text-center"
-                  >
-                    Applying typical closing costs...
-                  </motion.p>
-                )}
-              </AnimatePresence>
-
-              {showResults && results && (
+            <AnimatePresence>
+              {results && (
                 <motion.div
                   ref={resultsRef}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
                   className="mt-8 p-4 bg-gray-50 rounded-lg shadow-sm"
                 >
@@ -930,19 +846,6 @@ export default function Calculator() {
                     })()}
 
                     <Button
-                      onClick={() => {
-                        setShowResults(false);
-                        setCalcPhase('idle');
-                        salePriceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        setTimeout(() => salePriceRef.current?.focus(), 400);
-                      }}
-                      variant="outline"
-                      className="mt-4 w-full"
-                    >
-                      <Pencil className="w-4 h-4 -mr-0.5" />
-                      Adjust your numbers
-                    </Button>
-                    <Button
                       onClick={handleShare}
                       variant="outline"
                       className="mt-2 w-full flex items-center justify-center gap-2"
@@ -965,7 +868,7 @@ export default function Calculator() {
                   </div>
                 </motion.div>
               )}
-            </div>
+            </AnimatePresence>
           </CardContent>
         </Card>
       </motion.div>
