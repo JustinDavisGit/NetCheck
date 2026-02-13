@@ -382,7 +382,7 @@ export default function Calculator() {
                     <Home className="w-4 h-4 text-blue-400" />
                     Sale Price
                   </Label>
-                  <div className="relative">
+                  <div className="relative" style={{ overflow: 'visible' }}>
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <Input
                       id="salePrice"
@@ -402,10 +402,12 @@ export default function Calculator() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95, y: -4 }}
                           transition={{ duration: 0.3, delay: 0.6 }}
-                          className="absolute left-1/2 -translate-x-1/2 top-full mt-2.5 bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-10"
+                          className="flex justify-center w-full absolute top-full mt-2.5 z-10"
                         >
-                          Start here — enter your projected sale price
-                          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-green-600" />
+                          <div className="relative bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                            Start here — enter your projected sale price
+                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-green-600" />
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
