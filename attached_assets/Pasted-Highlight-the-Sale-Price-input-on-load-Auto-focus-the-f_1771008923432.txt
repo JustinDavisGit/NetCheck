@@ -1,0 +1,108 @@
+Highlight the Sale Price input on load:
+
+Auto-focus the field (cursor blinking inside).
+Add a soft pulsing glow or border animation (using your existing focus ring) for 3–5 seconds.
+Place a friendly callout arrow or tooltip pointing to it:  "Start here → Your projected sale price"  (Tailwind: use animate-pulse briefly or a positioned absolute element).
+Here's the code you can paste into your Replit project to implement the three parts for highlighting the Sale Price input on page load:
+
+Auto-focus the field (cursor starts blinking inside it)
+Soft pulsing glow / border animation for ~4 seconds
+Friendly callout arrow + text "Start here → Your projected sale price"
+
+All of it uses Tailwind CSS classes where possible (since you already have Tailwind), plus a tiny bit of vanilla JS.
+Step 1: Update your Sale Price input HTML
+Find your existing <input> for sale price and replace it with this (or add the new classes/attributes):
+HTML<div class="relative">  <!-- wrapper needed for absolute positioning of the callout -->
+
+  <label for="sale-price" class="block text-sm font-medium text-gray-700 mb-1">
+    🏠 Sale Price
+  </label>
+
+  <input
+    type="text"
+    id="sale-price"
+    name="sale-price"
+    value="400000"                     <!-- your sample value -->
+    placeholder="$400,000"
+    class="
+      w-full px-4 py-3 
+      border border-gray-300 rounded-lg 
+      shadow-sm 
+      text-gray-900 placeholder-gray-400 
+      focus:outline-none 
+      focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 
+      focus:border-green-500 
+      transition-all duration-200
+      animate-pulse-once               <!-- we'll define this -->
+    "
+    autocomplete="off"
+  />
+
+  <!-- Callout arrow + text (appears only on load) -->
+  <div id="sale-price-callout" 
+       class="absolute left-1/2 -translate-x-1/2 top-full mt-3 
+              bg-green-600 text-white text-sm font-medium 
+              px-4 py-2 rounded-lg shadow-lg 
+              whitespace-nowrap z-10
+              opacity-0 scale-95 transition-all duration-300">
+    Start here → Your projected sale price
+    <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 
+                border-l-8 border-l-transparent 
+                border-r-8 border-r-transparent 
+                border-b-8 border-b-green-600"></div>
+  </div>
+
+</div>
+Step 2: Add this CSS to your <style> tag (or Tailwind config / custom CSS file)
+CSS/* Pulse once for 4 seconds on load – gentle breathing effect */
+.animate-pulse-once {
+  animation: pulseOnce 4s ease-in-out forwards;
+}
+
+@keyframes pulseOnce {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  20%  { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0.25); }
+  40%  { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.15);  }
+  60%  { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0.25); }
+  80%  { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.1);  }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);       }
+}
+(Uses your green theme – #22c55e / green-500. Adjust colors/duration if desired.)
+Step 3: Add this small JavaScript snippet
+Paste this inside your existing <script> tag (preferably near the bottom, after your updateAll() logic):
+JavaScript// Highlight Sale Price on load
+document.addEventListener('DOMContentLoaded', () => {
+  const saleInput = document.getElementById('sale-price');
+  const callout   = document.getElementById('sale-price-callout');
+
+  if (saleInput) {
+    // 1. Auto-focus
+    saleInput.focus();
+
+    // 2. Select text so user can type over it immediately
+    saleInput.select();
+
+    // 3. Show callout after tiny delay (feels more natural)
+    setTimeout(() => {
+      if (callout) {
+        callout.classList.remove('opacity-0', 'scale-95');
+        callout.classList.add('opacity-100', 'scale-100');
+      }
+    }, 600);
+
+    // Optional: Hide callout after user starts typing or after 8 seconds
+    const hideCallout = () => {
+      if (callout) callout.classList.add('opacity-0', 'scale-95');
+    };
+
+    saleInput.addEventListener('input', hideCallout, { once: true });
+    setTimeout(hideCallout, 8000);
+  }
+});
+Summary – what this gives you
+
+Page loads → cursor is already blinking in the Sale Price field
+Text is selected so user can immediately start typing
+Soft green pulsing ring appears around the input for ~4 seconds (one gentle breathe cycle)
+Friendly green callout bubble with arrow appears ~0.6s after load, points to the field
+Callout fades away automatically after user types the first character or after 8 seconds

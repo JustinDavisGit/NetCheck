@@ -1,0 +1,153 @@
+adding a realistic, teasing placeholder example that loads with sample data on page load. This will make the empty state feel alive and magnetic right away, showing a believable Albuquerque-area scenario (e.g., ~$400k sale price) with an instant net proceeds number and populated pie chart. Users can overwrite any field instantly, and everything updates live as before.
+Goals for this upgrade
+
+Pre-fill sensible defaults on load (sale price, mortgage, commission, etc.)
+Calculate and display real-looking net + pie chart immediately
+Add a small, non-intrusive note explaining it's a sample
+Keep the real-time updates intact
+Make it clear users should edit to see their own numbers
+
+Code to Add / Replace
+
+Update your inputs with value attributes for the sample data
+Find your existing input fields (in the left column) and add or modify the value like this:HTML<!-- Sale Price -->
+<input 
+  type="text" 
+  id="sale-price" 
+  class="... your existing classes ..." 
+  value="400000" 
+  placeholder="$400,000 (sample)"
+/>
+
+<!-- Mortgage Balance -->
+<input 
+  type="text" 
+  id="mortgage-balance" 
+  class="... your existing classes ..." 
+  value="250000" 
+/>
+
+<!-- Commission % -->
+<input 
+  type="number" 
+  id="commission-rate" 
+  class="... your existing classes ..." 
+  value="6.0" 
+  step="0.1" 
+/>
+
+<!-- NM GRT % (if you have this field) -->
+<input 
+  type="number" 
+  id="nm-grt-rate" 
+  value="7.625" 
+  step="0.001" 
+/>
+
+<!-- Survey / ILR -->
+<input 
+  type="number" 
+  id="survey-ilr" 
+  value="275" 
+/>
+
+<!-- Annual Taxes (for proration) -->
+<input 
+  type="number" 
+  id="annual-taxes" 
+  value="3000" 
+/>
+
+<!-- Seller Concessions & Repairs (start at 0) -->
+<input type="number" id="seller-concessions" value="0" />
+<input type="number" id="repairs" value="0" />→ Adjust IDs and add any missing ones (e.g., title/escrow if fixed, HOA toggle default to "No").
+Add a small sample notice above or below the net proceeds area
+Right above your <div id="net-value"> or in the right column header:HTML<p class="text-sm text-gray-500 italic mb-3">
+  Sample scenario: Albuquerque home selling for $400,000 → see your own numbers by editing any field
+</p>Or make it more prominent but still subtle:HTML<div class="bg-green-50 border-l-4 border-green-400 p-3 mb-4 rounded text-sm text-green-800">
+  <strong>Example starting point:</strong> $400k sale in NM → edit to see your personalized estimate
+</div>
+Update your JavaScript to handle the sample data properly
+Make sure calcNet() includes all the fields you're using now. Here's an expanded version that matches your screenshot (replace your existing calcNet() function):JavaScriptfunction calcNet() {
+  // Get values – use ?. to avoid errors if element missing
+  const price          = parseFloat(document.getElementById('sale-price')?.value) || 0;
+  const mortgage       = parseFloat(document.getElementById('mortgage-balance')?.value) || 0;
+  const commissionPct  = (parseFloat(document.getElementById('commission-rate')?.value) || 6.0) / 100;
+  const grtPct         = (parseFloat(document.getElementById('nm-grt-rate')?.value) || 7.625) / 100;
+  const survey         = parseFloat(document.getElementById('survey-ilr')?.value) || 275;
+  const annualTaxes    = parseFloat(document.getElementById('annual-taxes')?.value) || 3000;
+  const concessions    = parseFloat(document.getElementById('seller-concessions')?.value) || 0;
+  const repairs        = parseFloat(document.getElementById('repairs')?.value) || 0;
+
+  // Simple proration example: assume half year for sample (adjust logic later if needed)
+  const taxProration   = annualTaxes / 2;   // seller share – you'll refine this with month picker
+
+  const commissionCost = price * commissionPct;
+  const grtCost        = commissionCost * grtPct;
+  const titleEscrow    = price * 0.008;     // rough 0.8% estimate – replace with your real formula
+
+  const totalDeductions = 
+    mortgage + 
+    commissionCost + 
+    grtCost + 
+    titleEscrow + 
+    taxProration + 
+    survey + 
+    concessions + 
+    repairs;
+
+  const net = price - totalDeductions;
+
+  return {
+    net,
+    sale: price,
+    mortgage,
+    commission: commissionCost,
+    nmGrt: grtCost,
+    titleEscrow,
+    taxProration,
+    survey,
+    concessions,
+    repairs
+  };
+}
+Update the pie chart data in updateAll()
+Expand the labels/values/colors to match all categories:JavaScriptfunction updateAll() {
+  const data = calcNet();
+
+  // Format net with commas, no decimals
+  netDisplay.textContent = data.net.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  });
+
+  const labels = [
+    'Net Proceeds', 'Mortgage', 'Commission', 'NM GRT', 
+    'Title/Escrow', 'Tax Proration', 'Survey/ILR', 
+    'Concessions', 'Repairs'
+  ];
+
+  const values = [
+    data.net, data.mortgage, data.commission, data.nmGrt,
+    data.titleEscrow, data.taxProration, data.survey,
+    data.concessions, data.repairs
+  ];
+
+  const colors = [
+    '#22c55e', '#ef4444', '#3b82f6', '#f59e0b',
+    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6b7280'
+  ];
+
+  // ... rest of your Chart.js creation code stays the same ...
+}
+Ensure the chart initializes on load
+Your existing window.addEventListener('load', updateAll); or initial updateAll() call will now show the sample immediately.
+
+Result
+
+Page loads → right side shows ~$118,000–$130,000 net (depending on your exact deductions math) with a colorful pie.
+Left side has realistic-looking defaults.
+User types anything → everything updates live.
+Small note clarifies it's a sample → encourages editing.
