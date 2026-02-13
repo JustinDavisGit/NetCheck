@@ -498,6 +498,23 @@ export default function Calculator() {
               </div>
 
 
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-medium text-slate-500">
+                  Survey / ILR (Improvement Location Report)
+                </Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={surveyFee}
+                    onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
+                    onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
+                    className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center justify-between pt-1">
                 <Label className="text-xs font-medium text-slate-500">
                   Property Tax Proration
@@ -543,23 +560,6 @@ export default function Calculator() {
                   Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}
                 </p>
               )}
-
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-slate-500">
-                  Survey / ILR (Improvement Location Report)
-                </Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={surveyFee}
-                    onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
-                    onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
-                    className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
-                  />
-                </div>
-              </div>
 
               <div className="pt-1 space-y-2">
                 <div className="flex items-center justify-between">
