@@ -1,0 +1,84 @@
+<!-- Net Display -->
+<div class="mt-8 p-4 bg-gray-50 rounded-lg shadow-sm">
+  <h3 class="text-lg font-semibold text-gray-800 mb-3">Estimated Net Proceeds</h3>
+  <div id="net-value" class="text-4xl font-bold text-green-600 transition-all duration-300 ease-out">$0</div>
+  <canvas id="net-pie" height="220" class="mt-4 rounded-lg bg-white p-2 border border-gray-200"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  let pieChart;
+
+  const inputs = {
+    salePrice: document.getElementById('sale-price'),
+    mortgage: document.getElementById('mortgage-balance'),
+    commission: document.getElementById('commission-rate')
+    // drop more like: concessions, taxes, etc.
+  };
+
+  const netDisplay = document.getElementById('net-value');
+  const ctx = document.getElementById('net-pie').getContext('2d');
+
+  function calcNet() {
+    const price = parseFloat(inputs.salePrice?.value) || 0;
+    const mortgage = parseFloat(inputs.mortgage?.value) || 0;
+    const commissionPct = (parseFloat(inputs.commission?.value) || 0) / 100;
+
+    const commissionCost = price * commissionPct;
+    const totalDeductions = mortgage + commissionCost;
+    const net = price - totalDeductions;
+
+    return {
+      net: net,
+      sale: price,
+      mortgage,
+      commission: commissionCost,
+      other: 0
+    };
+  }
+
+  function updateAll() {
+    const data = calcNet();
+    netDisplay.textContent = '$' + data.net.toLocaleString('en-US');
+
+    const labels = ;
+    const values = ;
+    const colors = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b'];
+
+    if (pieChart) pieChart.destroy();
+
+    pieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors,
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom', labels: { font: { size: 12 } } },
+          tooltip: { 
+            callbacks: {
+              label: ctx => `${ctx.label}: $${ctx.parsed.toLocaleString('en-US')}`
+            }
+          }
+        },
+        animation: {
+          duration: 500,
+          easing: 'easeInOutQuart'
+        }
+      }
+    });
+  }
+
+  Object.keys(inputs).forEach(key => {
+    inputs .addEventListener('input', updateAll);
+  });
+
+  window.addEventListener('load', updateAll);
+</script>

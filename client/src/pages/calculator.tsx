@@ -769,14 +769,14 @@ export default function Calculator() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="pt-6 mt-2"
+                  className="mt-8 p-4 bg-gray-50 rounded-lg shadow-sm"
                 >
                   <div className="text-center">
-                    <p className="text-sm text-slate-500 mb-1">Here's your estimated net</p>
-                    <p className={`text-3xl font-bold ${results.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Estimated Net Proceeds</h3>
+                    <p className={`text-4xl font-bold transition-all duration-300 ease-out ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                       {formatCurrency(displayedNet)}
                     </p>
-                    <div className="mt-4 bg-slate-50 rounded-lg p-4 text-left space-y-2.5">
+                    <div className="mt-4 bg-white rounded-lg p-4 border border-gray-200 text-left space-y-2.5">
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">Sale Price</span>
                         <span className="font-medium text-slate-700">{formatCurrency(results.price)}</span>
@@ -871,7 +871,7 @@ export default function Calculator() {
 
                     {(() => {
                       const chartData = [
-                        { name: 'Net Proceeds', value: Math.max(results.netProceeds, 0), color: '#34d399' },
+                        { name: 'Net Proceeds', value: Math.max(results.netProceeds, 0), color: '#22c55e' },
                         ...(results.mortgage > 0 ? [{ name: 'Mortgage', value: results.mortgage, color: '#94a3b8' }] : []),
                         ...(results.secondMtg > 0 ? [{ name: '2nd Mortgage', value: results.secondMtg, color: '#a1a1aa' }] : []),
                         ...(results.helocAmt > 0 ? [{ name: 'HELOC', value: results.helocAmt, color: '#b4b4bb' }] : []),
@@ -888,7 +888,7 @@ export default function Calculator() {
                       ].filter(d => d.value > 0);
 
                       return (
-                        <div className="mt-5">
+                        <div className="mt-4 rounded-lg bg-white p-2 border border-gray-200">
                           <ResponsiveContainer width="100%" height={260}>
                             <PieChart>
                               <Pie
