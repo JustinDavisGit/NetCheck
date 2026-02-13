@@ -273,425 +273,459 @@ export default function Calculator() {
   };
 
 
+  const chartData = useMemo(() => {
+    if (!results) return [];
+    return [
+      { name: 'Net Proceeds', value: Math.max(results.netProceeds, 0), color: '#22c55e' },
+      ...(results.mortgage > 0 ? [{ name: 'Mortgage', value: results.mortgage, color: '#94a3b8' }] : []),
+      ...(results.secondMtg > 0 ? [{ name: '2nd Mortgage', value: results.secondMtg, color: '#a1a1aa' }] : []),
+      ...(results.helocAmt > 0 ? [{ name: 'HELOC', value: results.helocAmt, color: '#b4b4bb' }] : []),
+      ...(results.solarAmt > 0 ? [{ name: 'Solar Loan', value: results.solarAmt, color: '#c4c4cc' }] : []),
+      { name: 'Commission', value: results.commissionAmount, color: '#60a5fa' },
+      { name: 'NM GRT', value: results.grtAmount, color: '#fbbf24' },
+      { name: 'Title/Escrow', value: results.titleEscrowAmount, color: '#f97316' },
+      ...(results.taxProration > 0 ? [{ name: 'Tax Proration', value: results.taxProration, color: '#a78bfa' }] : []),
+      ...(results.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: results.surveyAmount, color: '#f472b6' }] : []),
+      ...(results.hoaAmount > 0 ? [{ name: 'HOA Fee', value: results.hoaAmount, color: '#2dd4bf' }] : []),
+      ...(results.concessionsAmt > 0 ? [{ name: 'Concessions', value: results.concessionsAmt, color: '#fb923c' }] : []),
+      ...(results.repairAmt > 0 ? [{ name: 'Repairs', value: results.repairAmt, color: '#e879f9' }] : []),
+      ...results.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
+    ].filter(d => d.value > 0);
+  }, [results]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-emerald-400 mb-4 shadow-lg">
-            <span className="text-3xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif" }}>
-              Net<span className="font-light">Check</span>
-            </span>
-          </div>
-          <p className="text-slate-500 mt-1">Estimate what you'll take home at closing.</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
+      <div className="text-center pt-6 pb-4 px-4">
+        <div className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-emerald-400 mb-3 shadow-lg">
+          <span className="text-3xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif" }}>
+            Net<span className="font-light">Check</span>
+          </span>
         </div>
+        <p className="text-slate-500 text-sm">Estimate what you'll take home at closing.</p>
+      </div>
 
-        <Card className="shadow-lg border-0">
-          <CardContent className="p-6 space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="salePrice" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Home className="w-4 h-4 text-blue-400" />
-                Sale Price
-              </Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  id="salePrice"
-                  ref={salePriceRef}
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={salePrice}
-                  onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
-                  onBlur={() => formatCurrencyOnBlur(salePrice, setSalePrice)}
-                  className="pl-8 text-lg h-12 font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="mortgageBalance" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-400" />
-                Mortgage Balance
-              </Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  id="mortgageBalance"
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={mortgageBalance}
-                  onChange={(e) => handleCurrencyInput(e.target.value, setMortgageBalance)}
-                  onBlur={() => formatCurrencyOnBlur(mortgageBalance, setMortgageBalance)}
-                  className="pl-8 text-lg h-12 font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs text-slate-500">
-                Any second mortgage, HELOC, or solar loan balance to be paid at closing?
-              </p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setHasAdditionalLiens(true)}
-                  className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${hasAdditionalLiens ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
-                >
-                  Yes
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setHasAdditionalLiens(false)}
-                  className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${!hasAdditionalLiens ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
-                >
-                  No
-                </button>
-              </div>
-
-              <AnimatePresence>
-                {hasAdditionalLiens && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden space-y-3 pt-1"
-                  >
-                    <div>
-                      <Label htmlFor="secondMortgage" className="text-xs font-medium text-slate-500">Second Mortgage</Label>
-                      <div className="relative mt-1">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                          id="secondMortgage"
-                          type="text"
-                          placeholder="0"
-                          value={secondMortgage}
-                          onChange={(e) => handleCurrencyInput(e.target.value, setSecondMortgage)}
-                          onBlur={() => formatCurrencyOnBlur(secondMortgage, setSecondMortgage)}
-                          className="pl-7 text-sm h-10"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="heloc" className="text-xs font-medium text-slate-500">HELOC</Label>
-                      <div className="relative mt-1">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                          id="heloc"
-                          type="text"
-                          placeholder="0"
-                          value={heloc}
-                          onChange={(e) => handleCurrencyInput(e.target.value, setHeloc)}
-                          onBlur={() => formatCurrencyOnBlur(heloc, setHeloc)}
-                          className="pl-7 text-sm h-10"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="solarLoan" className="text-xs font-medium text-slate-500">Solar Loan Balance</Label>
-                      <div className="relative mt-1">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                        <Input
-                          id="solarLoan"
-                          type="text"
-                          placeholder="0"
-                          value={solarLoan}
-                          onChange={(e) => handleCurrencyInput(e.target.value, setSolarLoan)}
-                          onBlur={() => formatCurrencyOnBlur(solarLoan, setSolarLoan)}
-                          className="pl-7 text-sm h-10"
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Closing Costs & Fees</p>
-
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-slate-500">
-                  Real Estate Brokerage Compensation
-                </Label>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={brokerInput}
-                    onChange={(e) => handleBrokerInputChange(e.target.value)}
-                    onBlur={handleBrokerBlur}
-                    className="w-[56px] text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
-                  />
-                  <span className="text-xs text-slate-400">%</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Label className="text-xs font-medium text-slate-500">
-                    NM GRT on Commission
+      <div className="max-w-5xl mx-auto px-4 pb-24 lg:pb-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:items-start">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full lg:w-[420px] lg:shrink-0"
+          >
+            <Card className="shadow-lg border-0">
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="salePrice" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Home className="w-4 h-4 text-blue-400" />
+                    Sale Price
                   </Label>
-                  <a
-                    href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-400 hover:text-blue-500 hover:underline transition-colors"
-                  >
-                    (Location Codes)
-                  </a>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      id="salePrice"
+                      ref={salePriceRef}
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={salePrice}
+                      onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
+                      onBlur={() => formatCurrencyOnBlur(salePrice, setSalePrice)}
+                      className="pl-8 text-lg h-12 font-medium"
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={grtInput}
-                    onChange={(e) => handleGrtInputChange(e.target.value)}
-                    onBlur={handleGrtBlur}
-                    className="w-[72px] text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
-                  />
-                  <span className="text-xs text-slate-400">%</span>
-                </div>
-              </div>
 
-
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium text-slate-500">
-                  Survey / ILR (Improvement Location Report)
-                </Label>
-                <div className="relative">
-                  <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={surveyFee}
-                    onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
-                    onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
-                    className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <Label className="text-xs font-medium text-slate-500">
-                  Property Tax Proration
-                </Label>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="Annual taxes"
-                    value={annualPropertyTax}
-                    onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
-                    onBlur={() => formatCurrencyOnBlur(annualPropertyTax, setAnnualPropertyTax)}
-                    className="w-full pl-7 pr-2 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
-                  />
-                </div>
-                <span className="text-xs text-slate-400 shrink-0">closing</span>
-                <select
-                  value={closingMonth}
-                  onChange={(e) => setClosingMonth(parseInt(e.target.value))}
-                  className="text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
-                >
-                  <option value={1}>Jan</option>
-                  <option value={2}>Feb</option>
-                  <option value={3}>Mar</option>
-                  <option value={4}>Apr</option>
-                  <option value={5}>May</option>
-                  <option value={6}>Jun</option>
-                  <option value={7}>Jul</option>
-                  <option value={8}>Aug</option>
-                  <option value={9}>Sep</option>
-                  <option value={10}>Oct</option>
-                  <option value={11}>Nov</option>
-                  <option value={12}>Dec</option>
-                </select>
-              </div>
-
-              {parseCurrency(annualPropertyTax) > 0 && (
-                <p className="text-[11px] text-slate-400">
-                  Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}
-                </p>
-              )}
-
-              <div className="pt-1 space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs font-medium text-slate-500">
-                    HOA?
+                <div className="space-y-2">
+                  <Label htmlFor="mortgageBalance" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-400" />
+                    Mortgage Balance
                   </Label>
-                  <div className="flex gap-1.5">
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      id="mortgageBalance"
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={mortgageBalance}
+                      onChange={(e) => handleCurrencyInput(e.target.value, setMortgageBalance)}
+                      onBlur={() => formatCurrencyOnBlur(mortgageBalance, setMortgageBalance)}
+                      className="pl-8 text-lg h-12 font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-500">
+                    Any second mortgage, HELOC, or solar loan balance to be paid at closing?
+                  </p>
+                  <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setHasHoa(true)}
-                      className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${hasHoa ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                      onClick={() => setHasAdditionalLiens(true)}
+                      className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${hasAdditionalLiens ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
                     >
                       Yes
                     </button>
                     <button
                       type="button"
-                      onClick={() => setHasHoa(false)}
-                      className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${!hasHoa ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                      onClick={() => setHasAdditionalLiens(false)}
+                      className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${!hasAdditionalLiens ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
                     >
                       No
                     </button>
                   </div>
-                </div>
 
-                <AnimatePresence>
-                  {hasHoa && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="flex items-center justify-between pt-1">
-                        <Label className="text-xs text-slate-400">
-                          HOA Transfer/Disclosure Fee
-                        </Label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={hoaFee}
-                            onChange={(e) => handleCurrencyInput(e.target.value, setHoaFee)}
-                            onBlur={() => formatCurrencyOnBlur(hoaFee, setHoaFee)}
-                            className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
-                          />
+                  <AnimatePresence>
+                    {hasAdditionalLiens && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden space-y-3 pt-1"
+                      >
+                        <div>
+                          <Label htmlFor="secondMortgage" className="text-xs font-medium text-slate-500">Second Mortgage</Label>
+                          <div className="relative mt-1">
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                            <Input
+                              id="secondMortgage"
+                              type="text"
+                              placeholder="0"
+                              value={secondMortgage}
+                              onChange={(e) => handleCurrencyInput(e.target.value, setSecondMortgage)}
+                              onBlur={() => formatCurrencyOnBlur(secondMortgage, setSecondMortgage)}
+                              className="pl-7 text-sm h-10"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Handshake className="w-4 h-4 text-blue-400" />
-                Seller Concessions
-              </Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={sellerConcessions}
-                  onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcessions)}
-                  onBlur={() => formatCurrencyOnBlur(sellerConcessions, setSellerConcessions)}
-                  className="pl-8 text-lg h-12 font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                <Wrench className="w-4 h-4 text-blue-400" />
-                Repairs
-              </Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={repairCosts}
-                  onChange={(e) => handleCurrencyInput(e.target.value, setRepairCosts)}
-                  onBlur={() => formatCurrencyOnBlur(repairCosts, setRepairCosts)}
-                  className="pl-8 text-lg h-12 font-medium"
-                />
-              </div>
-            </div>
-
-            {customFields.map((field, index) => (
-              <div key={index} className="space-y-2 bg-slate-50 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <input
-                    type="text"
-                    placeholder="Field name"
-                    value={field.name}
-                    onChange={(e) => {
-                      const updated = [...customFields];
-                      updated[index].name = e.target.value;
-                      setCustomFields(updated);
-                    }}
-                    className="text-sm font-medium text-gray-900 bg-transparent border-b border-gray-300 focus:border-green-500 focus:outline-none pb-0.5 w-[60%] transition-all duration-200 ease-in-out"
-                  />
-                  <button
-                    onClick={() => setCustomFields(customFields.filter((_, i) => i !== index))}
-                    className="text-slate-400 hover:text-red-400 transition-colors p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                        <div>
+                          <Label htmlFor="heloc" className="text-xs font-medium text-slate-500">HELOC</Label>
+                          <div className="relative mt-1">
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                            <Input
+                              id="heloc"
+                              type="text"
+                              placeholder="0"
+                              value={heloc}
+                              onChange={(e) => handleCurrencyInput(e.target.value, setHeloc)}
+                              onBlur={() => formatCurrencyOnBlur(heloc, setHeloc)}
+                              className="pl-7 text-sm h-10"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="solarLoan" className="text-xs font-medium text-slate-500">Solar Loan Balance</Label>
+                          <div className="relative mt-1">
+                            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                            <Input
+                              id="solarLoan"
+                              type="text"
+                              placeholder="0"
+                              value={solarLoan}
+                              onChange={(e) => handleCurrencyInput(e.target.value, setSolarLoan)}
+                              onBlur={() => formatCurrencyOnBlur(solarLoan, setSolarLoan)}
+                              className="pl-7 text-sm h-10"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={field.amount}
-                    onChange={(e) => {
-                      const raw = e.target.value.replace(/[^0-9.]/g, '');
-                      const parts = raw.split('.');
-                      const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : raw;
-                      const intPart = sanitized.split('.')[0];
-                      const decPart = sanitized.includes('.') ? '.' + sanitized.split('.')[1] : '';
-                      const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
-                      const updated = [...customFields];
-                      updated[index].amount = formattedInt + decPart;
-                      setCustomFields(updated);
-                    }}
-                    onBlur={() => {
-                      const parsed = parseFloat(field.amount.replace(/,/g, ''));
-                      if (!isNaN(parsed) && parsed > 0) {
-                        const updated = [...customFields];
-                        updated[index].amount = parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
-                        setCustomFields(updated);
-                      }
-                    }}
-                    className="pl-8 text-lg h-12 font-medium"
-                  />
-                </div>
-              </div>
-            ))}
 
-            <button
-              onClick={() => setCustomFields([...customFields, { name: '', amount: '' }])}
-              className="flex items-center gap-2 text-sm text-blue-500 hover:text-blue-600 font-medium transition-colors pt-1"
-            >
-              <Plus className="w-4 h-4" />
-              Add Custom Field
-            </button>
+                <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
+                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Closing Costs & Fees</p>
 
-            <AnimatePresence>
-              {results && (
-                <motion.div
-                  ref={resultsRef}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 12 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="mt-8 p-4 bg-gray-50 rounded-lg shadow-sm"
-                >
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Estimated Net Proceeds</h3>
-                    <p className={`text-4xl font-bold transition-all duration-300 ease-out ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                      {formatCurrency(displayedNet)}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-slate-500">
+                      Real Estate Brokerage Compensation
+                    </Label>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={brokerInput}
+                        onChange={(e) => handleBrokerInputChange(e.target.value)}
+                        onBlur={handleBrokerBlur}
+                        className="w-[56px] text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                      />
+                      <span className="text-xs text-slate-400">%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-xs font-medium text-slate-500">
+                        NM GRT on Commission
+                      </Label>
+                      <a
+                        href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+                      >
+                        (Location Codes)
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={grtInput}
+                        onChange={(e) => handleGrtInputChange(e.target.value)}
+                        onBlur={handleGrtBlur}
+                        className="w-[72px] text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                      />
+                      <span className="text-xs text-slate-400">%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-slate-500">
+                      Survey / ILR (Improvement Location Report)
+                    </Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={surveyFee}
+                        onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
+                        onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
+                        className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <Label className="text-xs font-medium text-slate-500">
+                      Property Tax Proration
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="Annual taxes"
+                        value={annualPropertyTax}
+                        onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
+                        onBlur={() => formatCurrencyOnBlur(annualPropertyTax, setAnnualPropertyTax)}
+                        className="w-full pl-7 pr-2 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                      />
+                    </div>
+                    <span className="text-xs text-slate-400 shrink-0">closing</span>
+                    <select
+                      value={closingMonth}
+                      onChange={(e) => setClosingMonth(parseInt(e.target.value))}
+                      className="text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                    >
+                      <option value={1}>Jan</option>
+                      <option value={2}>Feb</option>
+                      <option value={3}>Mar</option>
+                      <option value={4}>Apr</option>
+                      <option value={5}>May</option>
+                      <option value={6}>Jun</option>
+                      <option value={7}>Jul</option>
+                      <option value={8}>Aug</option>
+                      <option value={9}>Sep</option>
+                      <option value={10}>Oct</option>
+                      <option value={11}>Nov</option>
+                      <option value={12}>Dec</option>
+                    </select>
+                  </div>
+
+                  {parseCurrency(annualPropertyTax) > 0 && (
+                    <p className="text-[11px] text-slate-400">
+                      Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}
                     </p>
+                  )}
+
+                  <div className="pt-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-slate-500">
+                        HOA?
+                      </Label>
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setHasHoa(true)}
+                          className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${hasHoa ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHasHoa(false)}
+                          className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${!hasHoa ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+
+                    <AnimatePresence>
+                      {hasHoa && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="flex items-center justify-between pt-1">
+                            <Label className="text-xs text-slate-400">
+                              HOA Transfer/Disclosure Fee
+                            </Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={hoaFee}
+                                onChange={(e) => handleCurrencyInput(e.target.value, setHoaFee)}
+                                onBlur={() => formatCurrencyOnBlur(hoaFee, setHoaFee)}
+                                className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Handshake className="w-4 h-4 text-blue-400" />
+                    Seller Concessions
+                  </Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={sellerConcessions}
+                      onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcessions)}
+                      onBlur={() => formatCurrencyOnBlur(sellerConcessions, setSellerConcessions)}
+                      className="pl-8 text-lg h-12 font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-blue-400" />
+                    Repairs
+                  </Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={repairCosts}
+                      onChange={(e) => handleCurrencyInput(e.target.value, setRepairCosts)}
+                      onBlur={() => formatCurrencyOnBlur(repairCosts, setRepairCosts)}
+                      className="pl-8 text-lg h-12 font-medium"
+                    />
+                  </div>
+                </div>
+
+                {customFields.map((field, index) => (
+                  <div key={index} className="space-y-2 bg-slate-50 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <input
+                        type="text"
+                        placeholder="Field name"
+                        value={field.name}
+                        onChange={(e) => {
+                          const updated = [...customFields];
+                          updated[index].name = e.target.value;
+                          setCustomFields(updated);
+                        }}
+                        className="text-sm font-medium text-gray-900 bg-transparent border-b border-gray-300 focus:border-green-500 focus:outline-none pb-0.5 w-[60%] transition-all duration-200 ease-in-out"
+                      />
+                      <button
+                        onClick={() => setCustomFields(customFields.filter((_, i) => i !== index))}
+                        className="text-slate-400 hover:text-red-400 transition-colors p-1"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0"
+                        value={field.amount}
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/[^0-9.]/g, '');
+                          const parts = raw.split('.');
+                          const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : raw;
+                          const intPart = sanitized.split('.')[0];
+                          const decPart = sanitized.includes('.') ? '.' + sanitized.split('.')[1] : '';
+                          const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
+                          const updated = [...customFields];
+                          updated[index].amount = formattedInt + decPart;
+                          setCustomFields(updated);
+                        }}
+                        onBlur={() => {
+                          const parsed = parseFloat(field.amount.replace(/,/g, ''));
+                          if (!isNaN(parsed) && parsed > 0) {
+                            const updated = [...customFields];
+                            updated[index].amount = parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
+                            setCustomFields(updated);
+                          }
+                        }}
+                        className="pl-8 text-lg h-12 font-medium"
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  onClick={() => setCustomFields([...customFields, { name: '', amount: '' }])}
+                  className="flex items-center gap-2 text-sm text-blue-500 hover:text-blue-600 font-medium transition-colors pt-1"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Custom Field
+                </button>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="w-full lg:flex-1 lg:sticky lg:top-6"
+          >
+            <div ref={resultsRef} className="p-5 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Estimated Net Proceeds</h3>
+                <p className={`text-4xl font-bold transition-all duration-300 ease-out ${!results ? 'text-gray-300' : results.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  {formatCurrency(displayedNet)}
+                </p>
+                {!results && (
+                  <p className="text-sm text-slate-400 mt-3">Enter a sale price to get started</p>
+                )}
+              </div>
+
+              <AnimatePresence>
+                {results && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
                     <div className="mt-4 bg-white rounded-lg p-4 border border-gray-200 text-left space-y-2.5">
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">Sale Price</span>
@@ -785,70 +819,49 @@ export default function Calculator() {
                       </div>
                     </div>
 
-                    {(() => {
-                      const chartData = [
-                        { name: 'Net Proceeds', value: Math.max(results.netProceeds, 0), color: '#22c55e' },
-                        ...(results.mortgage > 0 ? [{ name: 'Mortgage', value: results.mortgage, color: '#94a3b8' }] : []),
-                        ...(results.secondMtg > 0 ? [{ name: '2nd Mortgage', value: results.secondMtg, color: '#a1a1aa' }] : []),
-                        ...(results.helocAmt > 0 ? [{ name: 'HELOC', value: results.helocAmt, color: '#b4b4bb' }] : []),
-                        ...(results.solarAmt > 0 ? [{ name: 'Solar Loan', value: results.solarAmt, color: '#c4c4cc' }] : []),
-                        { name: 'Commission', value: results.commissionAmount, color: '#60a5fa' },
-                        { name: 'NM GRT', value: results.grtAmount, color: '#fbbf24' },
-                        { name: 'Title/Escrow', value: results.titleEscrowAmount, color: '#f97316' },
-                        ...(results.taxProration > 0 ? [{ name: 'Tax Proration', value: results.taxProration, color: '#a78bfa' }] : []),
-                        ...(results.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: results.surveyAmount, color: '#f472b6' }] : []),
-                        ...(results.hoaAmount > 0 ? [{ name: 'HOA Fee', value: results.hoaAmount, color: '#2dd4bf' }] : []),
-                        ...(results.concessionsAmt > 0 ? [{ name: 'Concessions', value: results.concessionsAmt, color: '#fb923c' }] : []),
-                        ...(results.repairAmt > 0 ? [{ name: 'Repairs', value: results.repairAmt, color: '#e879f9' }] : []),
-                        ...results.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
-                      ].filter(d => d.value > 0);
-
-                      return (
-                        <div className="mt-4 rounded-lg bg-white p-2 border border-gray-200">
-                          <ResponsiveContainer width="100%" height={260}>
-                            <PieChart>
-                              <Pie
-                                data={chartData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={70}
-                                outerRadius={110}
-                                paddingAngle={2}
-                                dataKey="value"
-                                stroke="none"
-                              >
-                                {chartData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                              </Pie>
-                              <Tooltip
-                                formatter={(value: number) => formatCurrency(value)}
-                                contentStyle={{
-                                  borderRadius: '8px',
-                                  border: '1px solid #e2e8f0',
-                                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                                  fontSize: '12px',
-                                  padding: '6px 10px',
-                                }}
-                              />
-                            </PieChart>
-                          </ResponsiveContainer>
-                          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+                    <div className="mt-4 rounded-lg bg-white p-2 border border-gray-200">
+                      <ResponsiveContainer width="100%" height={260}>
+                        <PieChart>
+                          <Pie
+                            data={chartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={110}
+                            paddingAngle={2}
+                            dataKey="value"
+                            stroke="none"
+                          >
                             {chartData.map((entry, index) => (
-                              <div key={index} className="flex items-center gap-1">
-                                <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-                                <span className="text-[10px] text-slate-500">{entry.name}</span>
-                              </div>
+                              <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(value: number) => formatCurrency(value)}
+                            contentStyle={{
+                              borderRadius: '8px',
+                              border: '1px solid #e2e8f0',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                              fontSize: '12px',
+                              padding: '6px 10px',
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2 pb-1">
+                        {chartData.map((entry, index) => (
+                          <div key={index} className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                            <span className="text-[10px] text-slate-500">{entry.name}</span>
                           </div>
-                        </div>
-                      );
-                    })()}
+                        ))}
+                      </div>
+                    </div>
 
                     <Button
                       onClick={handleShare}
                       variant="outline"
-                      className="mt-2 w-full flex items-center justify-center gap-2"
+                      className="mt-3 w-full flex items-center justify-center gap-2"
                     >
                       {copied ? (
                         <>
@@ -865,13 +878,34 @@ export default function Calculator() {
                     <p className="text-xs text-slate-400 text-center mt-2">
                       Recipients can view and adjust the numbers
                     </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-        </Card>
-      </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {results && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="fixed bottom-0 left-0 right-0 lg:hidden z-50"
+          >
+            <div className="bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-5 py-3">
+              <div className="flex items-center justify-between max-w-md mx-auto">
+                <span className="text-sm font-medium text-slate-600">Estimated Net</span>
+                <span className={`text-2xl font-bold ${results.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                  {formatCurrency(displayedNet)}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
