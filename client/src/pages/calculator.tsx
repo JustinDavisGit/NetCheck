@@ -464,7 +464,7 @@ export default function Calculator() {
                     value={brokerInput}
                     onChange={(e) => handleBrokerInputChange(e.target.value)}
                     onBlur={handleBrokerBlur}
-                    className="w-[56px] text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                    className="w-[56px] text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-xl px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:shadow-md"
                   />
                   <span className="text-xs text-slate-400">%</span>
                 </div>
@@ -491,7 +491,7 @@ export default function Calculator() {
                     value={grtInput}
                     onChange={(e) => handleGrtInputChange(e.target.value)}
                     onBlur={handleGrtBlur}
-                    className="w-[72px] text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded px-2 py-0.5 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                    className="w-[72px] text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-xl px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:shadow-md"
                   />
                   <span className="text-xs text-slate-400">%</span>
                 </div>
@@ -510,7 +510,7 @@ export default function Calculator() {
                     value={surveyFee}
                     onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
                     onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
-                    className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                    className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-xl shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:shadow-md"
                   />
                 </div>
               </div>
@@ -531,14 +531,14 @@ export default function Calculator() {
                     value={annualPropertyTax}
                     onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
                     onBlur={() => formatCurrencyOnBlur(annualPropertyTax, setAnnualPropertyTax)}
-                    className="w-full pl-7 pr-2 py-1 text-sm font-medium text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                    className="w-full pl-7 pr-2 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-xl shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:shadow-md"
                   />
                 </div>
                 <span className="text-xs text-slate-400 shrink-0">closing</span>
                 <select
                   value={closingMonth}
                   onChange={(e) => setClosingMonth(parseInt(e.target.value))}
-                  className="text-sm font-medium text-slate-500 bg-white border border-slate-200 rounded px-2 py-1 focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                  className="text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-xl px-2 py-1 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:shadow-md"
                 >
                   <option value={1}>Jan</option>
                   <option value={2}>Feb</option>
@@ -605,7 +605,7 @@ export default function Calculator() {
                             value={hoaFee}
                             onChange={(e) => handleCurrencyInput(e.target.value, setHoaFee)}
                             onBlur={() => formatCurrencyOnBlur(hoaFee, setHoaFee)}
-                            className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-slate-500 bg-white border border-slate-200 rounded focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-blue-200 transition-colors"
+                            className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-xl shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 focus:shadow-md"
                           />
                         </div>
                       </div>
@@ -665,7 +665,7 @@ export default function Calculator() {
                       updated[index].name = e.target.value;
                       setCustomFields(updated);
                     }}
-                    className="text-sm font-medium text-slate-700 bg-transparent border-b border-slate-300 focus:border-blue-400 focus:outline-none pb-0.5 w-[60%]"
+                    className="text-sm font-medium text-gray-900 bg-transparent border-b border-gray-300 focus:border-emerald-500 focus:outline-none pb-0.5 w-[60%] transition-all duration-200 ease-in-out"
                   />
                   <button
                     onClick={() => setCustomFields(customFields.filter((_, i) => i !== index))}
