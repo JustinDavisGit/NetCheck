@@ -22,8 +22,8 @@ function getEstimatedTitleEscrowFee(salePrice: number): number {
 }
 
 export default function Calculator() {
-  const [salePrice, setSalePrice] = useState<string>("");
-  const [mortgageBalance, setMortgageBalance] = useState<string>("");
+  const [salePrice, setSalePrice] = useState<string>("400,000");
+  const [mortgageBalance, setMortgageBalance] = useState<string>("250,000");
   const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
   const [brokerInput, setBrokerInput] = useState<string>("6.0");
   const [grtRate, setGrtRate] = useState<number>(7.625);
@@ -32,7 +32,7 @@ export default function Calculator() {
   const [secondMortgage, setSecondMortgage] = useState<string>("");
   const [heloc, setHeloc] = useState<string>("");
   const [solarLoan, setSolarLoan] = useState<string>("");
-  const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
+  const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("3,000");
   const [closingMonth, setClosingMonth] = useState<number>(new Date().getMonth() + 1);
   const [hasHoa, setHasHoa] = useState(false);
   const [hoaFee, setHoaFee] = useState<string>("350");
@@ -41,6 +41,8 @@ export default function Calculator() {
   const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
   const [surveyFee, setSurveyFee] = useState<string>("275");
   const [copied, setCopied] = useState(false);
+  const [isSample, setIsSample] = useState(true);
+  const [showCallout, setShowCallout] = useState(true);
   const { toast } = useToast();
 
   // Load state from URL parameters on mount
@@ -72,6 +74,24 @@ export default function Calculator() {
         setGrtInput(parsed.toFixed(4));
       }
     }
+    if (sp || mb || bc || grt) {
+      setIsSample(false);
+      setShowCallout(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (salePriceRef.current) {
+        salePriceRef.current.focus();
+        salePriceRef.current.select();
+      }
+    }, 300);
+    const calloutTimer = setTimeout(() => setShowCallout(false), 8000);
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(calloutTimer);
+    };
   }, []);
 
   const generateShareUrl = () => {
@@ -140,6 +160,8 @@ export default function Calculator() {
     const decPart = sanitized.includes('.') ? '.' + sanitized.split('.')[1] : '';
     const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
     setter(formattedInt + decPart);
+    if (isSample) setIsSample(false);
+    if (showCallout) setShowCallout(false);
   };
 
   const formatCurrencyOnBlur = (value: string, setter: (val: string) => void) => {
@@ -241,6 +263,8 @@ export default function Calculator() {
     if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
       setBrokerCompensation(parsed);
     }
+    if (isSample) setIsSample(false);
+    if (showCallout) setShowCallout(false);
   };
 
   const handleBrokerBlur = () => {
@@ -261,6 +285,8 @@ export default function Calculator() {
     if (!isNaN(parsed) && parsed >= 0 && parsed <= 15) {
       setGrtRate(parsed);
     }
+    if (isSample) setIsSample(false);
+    if (showCallout) setShowCallout(false);
   };
 
   const handleGrtBlur = () => {
@@ -330,8 +356,22 @@ export default function Calculator() {
                       value={salePrice}
                       onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
                       onBlur={() => formatCurrencyOnBlur(salePrice, setSalePrice)}
-                      className="pl-8 text-lg h-12 font-medium"
+                      className={`pl-8 text-lg h-12 font-medium ${isSample ? 'animate-pulse-glow' : ''}`}
                     />
+                    <AnimatePresence>
+                      {showCallout && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                          transition={{ duration: 0.3, delay: 0.6 }}
+                          className="absolute left-1/2 -translate-x-1/2 top-full mt-2.5 bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap z-10"
+                        >
+                          Start here — enter your projected sale price
+                          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-green-600" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
 
@@ -716,6 +756,20 @@ export default function Calculator() {
                 {!results && (
                   <p className="text-sm text-slate-400 mt-3">Enter a sale price to get started</p>
                 )}
+                <AnimatePresence>
+                  {isSample && results && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="mt-3 bg-green-50 border-l-4 border-green-400 px-3 py-2 rounded text-left"
+                    >
+                      <p className="text-xs text-green-800">
+                        <span className="font-semibold">Sample scenario:</span> $400k Albuquerque home — edit any field to see your own estimate
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <AnimatePresence>
