@@ -58,6 +58,9 @@ function buildSampleResults() {
 
 const SAMPLE_RESULTS = buildSampleResults();
 
+const INLINE_INPUT_CLASS = "text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md";
+const INLINE_CURRENCY_CLASS = "text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg pl-6 pr-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md";
+
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
@@ -80,7 +83,13 @@ export default function Calculator() {
   const [copied, setCopied] = useState(false);
   const [isSample, setIsSample] = useState(true);
   const [showCallout, setShowCallout] = useState(true);
+  const [displayedNet, setDisplayedNet] = useState(0);
   const { toast } = useToast();
+
+  const salePriceRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number | null>(null);
+  const displayedNetRef = useRef(0);
 
   // Load state from URL parameters on mount
   useEffect(() => {
@@ -254,14 +263,6 @@ export default function Calculator() {
     };
   }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts, customFields]);
 
-
-  const salePriceRef = useRef<HTMLInputElement>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number | null>(null);
-
-  const [displayedNet, setDisplayedNet] = useState(0);
-  const displayedNetRef = useRef(0);
-
   const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
 
   const animateNumber = useCallback((target: number, duration: number = 400) => {
@@ -292,48 +293,65 @@ export default function Calculator() {
     };
   }, [displayResults, animateNumber]);
 
-  const handleBrokerInputChange = (value: string) => {
+  const handlePercentInput = (
+    value: string,
+    setInput: (v: string) => void,
+    setValue: (v: number) => void,
+    max: number,
+  ) => {
     const cleaned = value.replace(/[^0-9.]/g, '');
     const parts = cleaned.split('.');
     const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
-    setBrokerInput(sanitized);
+    setInput(sanitized);
     const parsed = parseFloat(sanitized);
-    if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
-      setBrokerCompensation(parsed);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= max) {
+      setValue(parsed);
     }
     if (isSample) setIsSample(false);
     if (showCallout) setShowCallout(false);
   };
 
-  const handleBrokerBlur = () => {
-    let parsed = parseFloat(brokerInput);
-    if (isNaN(parsed)) parsed = 6;
+  const handlePercentBlur = (
+    rawInput: string,
+    setInput: (v: string) => void,
+    setValue: (v: number) => void,
+    fallback: number,
+    max: number,
+    decimals: number,
+  ) => {
+    let parsed = parseFloat(rawInput);
+    if (isNaN(parsed)) parsed = fallback;
     if (parsed < 0) parsed = 0;
-    if (parsed > 10) parsed = 10;
-    setBrokerCompensation(parsed);
-    setBrokerInput(parsed.toFixed(1));
+    if (parsed > max) parsed = max;
+    setValue(parsed);
+    setInput(parsed.toFixed(decimals));
   };
 
-  const handleGrtInputChange = (value: string) => {
-    const cleaned = value.replace(/[^0-9.]/g, '');
-    const parts = cleaned.split('.');
-    const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
-    setGrtInput(sanitized);
-    const parsed = parseFloat(sanitized);
-    if (!isNaN(parsed) && parsed >= 0 && parsed <= 15) {
-      setGrtRate(parsed);
+  const updateCustomField = (index: number, key: 'name' | 'amount', value: string) => {
+    const updated = [...customFields];
+    if (key === 'amount') {
+      const raw = value.replace(/[^0-9.]/g, '');
+      const parts = raw.split('.');
+      const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : raw;
+      const intPart = sanitized.split('.')[0];
+      const decPart = sanitized.includes('.') ? '.' + sanitized.split('.')[1] : '';
+      const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
+      updated[index].amount = formattedInt + decPart;
+    } else {
+      updated[index].name = value;
     }
+    setCustomFields(updated);
     if (isSample) setIsSample(false);
     if (showCallout) setShowCallout(false);
   };
 
-  const handleGrtBlur = () => {
-    let parsed = parseFloat(grtInput);
-    if (isNaN(parsed)) parsed = 7.625;
-    if (parsed < 0) parsed = 0;
-    if (parsed > 15) parsed = 15;
-    setGrtRate(parsed);
-    setGrtInput(parsed.toFixed(4));
+  const blurCustomField = (index: number) => {
+    const parsed = parseFloat(customFields[index].amount.replace(/,/g, ''));
+    if (!isNaN(parsed) && parsed > 0) {
+      const updated = [...customFields];
+      updated[index].amount = parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
+      setCustomFields(updated);
+    }
   };
 
   const chartData = useMemo(() => {
@@ -360,7 +378,7 @@ export default function Calculator() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
       <div className="text-center pt-6 pb-4 px-4">
         <div className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-emerald-400 mb-3 shadow-lg">
-          <span className="text-3xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Inter', 'SF Pro Display', system-ui, sans-serif" }}>
+          <span className="text-3xl font-extrabold text-white tracking-tight font-display">
             Net<span className="font-light">Check</span>
           </span>
         </div>
@@ -382,7 +400,7 @@ export default function Calculator() {
                     <Home className="w-4 h-4 text-blue-400" />
                     Sale Price
                   </Label>
-                  <div className="relative" style={{ overflow: 'visible' }}>
+                  <div className="relative overflow-visible">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <Input
                       id="salePrice"
@@ -526,9 +544,9 @@ export default function Calculator() {
                         type="text"
                         inputMode="decimal"
                         value={brokerInput}
-                        onChange={(e) => handleBrokerInputChange(e.target.value)}
-                        onBlur={handleBrokerBlur}
-                        className="w-[56px] text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                        onChange={(e) => handlePercentInput(e.target.value, setBrokerInput, setBrokerCompensation, 10)}
+                        onBlur={() => handlePercentBlur(brokerInput, setBrokerInput, setBrokerCompensation, 6, 10, 1)}
+                        className={`w-[56px] ${INLINE_INPUT_CLASS}`}
                       />
                       <span className="text-xs text-slate-400">%</span>
                     </div>
@@ -553,9 +571,9 @@ export default function Calculator() {
                         type="text"
                         inputMode="decimal"
                         value={grtInput}
-                        onChange={(e) => handleGrtInputChange(e.target.value)}
-                        onBlur={handleGrtBlur}
-                        className="w-[72px] text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                        onChange={(e) => handlePercentInput(e.target.value, setGrtInput, setGrtRate, 15)}
+                        onBlur={() => handlePercentBlur(grtInput, setGrtInput, setGrtRate, 7.625, 15, 4)}
+                        className={`w-[72px] ${INLINE_INPUT_CLASS}`}
                       />
                       <span className="text-xs text-slate-400">%</span>
                     </div>
@@ -573,7 +591,7 @@ export default function Calculator() {
                         value={surveyFee}
                         onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
                         onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
-                        className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                        className={`w-[80px] ${INLINE_CURRENCY_CLASS}`}
                       />
                     </div>
                   </div>
@@ -668,7 +686,7 @@ export default function Calculator() {
                                 value={hoaFee}
                                 onChange={(e) => handleCurrencyInput(e.target.value, setHoaFee)}
                                 onBlur={() => formatCurrencyOnBlur(hoaFee, setHoaFee)}
-                                className="w-[80px] pl-6 pr-2 py-0.5 text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                                className={`w-[80px] ${INLINE_CURRENCY_CLASS}`}
                               />
                             </div>
                           </div>
@@ -723,11 +741,7 @@ export default function Calculator() {
                         type="text"
                         placeholder="Field name"
                         value={field.name}
-                        onChange={(e) => {
-                          const updated = [...customFields];
-                          updated[index].name = e.target.value;
-                          setCustomFields(updated);
-                        }}
+                        onChange={(e) => updateCustomField(index, 'name', e.target.value)}
                         className="text-sm font-medium text-gray-900 bg-transparent border-b border-gray-300 focus:border-green-500 focus:outline-none pb-0.5 w-[60%] transition-all duration-200 ease-in-out"
                       />
                       <button
@@ -744,25 +758,8 @@ export default function Calculator() {
                         inputMode="decimal"
                         placeholder="0"
                         value={field.amount}
-                        onChange={(e) => {
-                          const raw = e.target.value.replace(/[^0-9.]/g, '');
-                          const parts = raw.split('.');
-                          const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : raw;
-                          const intPart = sanitized.split('.')[0];
-                          const decPart = sanitized.includes('.') ? '.' + sanitized.split('.')[1] : '';
-                          const formattedInt = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
-                          const updated = [...customFields];
-                          updated[index].amount = formattedInt + decPart;
-                          setCustomFields(updated);
-                        }}
-                        onBlur={() => {
-                          const parsed = parseFloat(field.amount.replace(/,/g, ''));
-                          if (!isNaN(parsed) && parsed > 0) {
-                            const updated = [...customFields];
-                            updated[index].amount = parsed.toLocaleString('en-US', { minimumFractionDigits: parsed % 1 !== 0 ? 2 : 0, maximumFractionDigits: 2 });
-                            setCustomFields(updated);
-                          }
-                        }}
+                        onChange={(e) => updateCustomField(index, 'amount', e.target.value)}
+                        onBlur={() => blurCustomField(index)}
                         className="pl-8 text-lg h-12 font-medium"
                       />
                     </div>
