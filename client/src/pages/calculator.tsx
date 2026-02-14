@@ -120,7 +120,44 @@ export default function Calculator() {
         setGrtInput(parsed.toFixed(4));
       }
     }
-    if (sp || mb || bc || grt) {
+    const liens = params.get('liens');
+    if (liens === '1') {
+      setHasAdditionalLiens(true);
+      const sm = params.get('sm');
+      if (sm) setSecondMortgage(sm.replace(/[^0-9]/g, ''));
+      const hel = params.get('hel');
+      if (hel) setHeloc(hel.replace(/[^0-9]/g, ''));
+      const sol = params.get('sol');
+      if (sol) setSolarLoan(sol.replace(/[^0-9]/g, ''));
+    }
+    const apt = params.get('apt');
+    if (apt) setAnnualPropertyTax(apt.replace(/[^0-9]/g, ''));
+    const cm = params.get('cm');
+    if (cm) {
+      const parsed = parseInt(cm, 10);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) setClosingMonth(parsed);
+    }
+    const sf = params.get('sf');
+    if (sf) setSurveyFee(sf);
+    const hoa = params.get('hoa');
+    if (hoa === '1') {
+      setHasHoa(true);
+      const hoaf = params.get('hoaf');
+      if (hoaf) setHoaFee(hoaf);
+    }
+    const sc = params.get('sc');
+    if (sc) setSellerConcessions(sc.replace(/[^0-9]/g, ''));
+    const rc = params.get('rc');
+    if (rc) setRepairCosts(rc.replace(/[^0-9]/g, ''));
+    const cf = params.get('cf');
+    if (cf) {
+      const fields = cf.split(';;').map(entry => {
+        const [name, amount] = entry.split('|');
+        return { name: name || '', amount: amount || '' };
+      });
+      if (fields.length > 0) setCustomFields(fields);
+    }
+    if (sp || mb || bc || grt || liens || apt || cm || sf || hoa || sc || rc || cf) {
       setIsSample(false);
       setShowCallout(false);
     }
@@ -145,7 +182,26 @@ export default function Calculator() {
     if (mortgageBalance) params.set('mb', mortgageBalance);
     if (brokerCompensation !== 6) params.set('bc', brokerCompensation.toString());
     if (grtRate !== 7.625) params.set('grt', grtRate.toString());
-    
+    if (hasAdditionalLiens) {
+      params.set('liens', '1');
+      if (secondMortgage) params.set('sm', secondMortgage);
+      if (heloc) params.set('hel', heloc);
+      if (solarLoan) params.set('sol', solarLoan);
+    }
+    if (annualPropertyTax) params.set('apt', annualPropertyTax);
+    if (closingMonth !== new Date().getMonth() + 1) params.set('cm', closingMonth.toString());
+    if (surveyFee !== '275') params.set('sf', surveyFee);
+    if (hasHoa) {
+      params.set('hoa', '1');
+      if (hoaFee !== '350') params.set('hoaf', hoaFee);
+    }
+    if (sellerConcessions) params.set('sc', sellerConcessions);
+    if (repairCosts) params.set('rc', repairCosts);
+    if (customFields.length > 0) {
+      const cf = customFields.map(f => `${f.name}|${f.amount}`).join(';;');
+      params.set('cf', cf);
+    }
+
     const baseUrl = window.location.origin + window.location.pathname;
     return `${baseUrl}?${params.toString()}`;
   };
