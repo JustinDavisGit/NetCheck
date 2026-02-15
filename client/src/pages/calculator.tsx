@@ -86,6 +86,8 @@ export default function Calculator() {
   const [displayedNet, setDisplayedNet] = useState(0);
   const { toast } = useToast();
 
+  const [resultsInView, setResultsInView] = useState(false);
+
   const salePriceRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -175,6 +177,17 @@ export default function Calculator() {
       clearTimeout(calloutTimer);
     };
   }, []);
+
+  useEffect(() => {
+    const el = resultsRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setResultsInView(entry.isIntersecting),
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [displayResults]);
 
   const generateShareUrl = () => {
     const params = new URLSearchParams();
@@ -1033,7 +1046,7 @@ export default function Calculator() {
       </div>
 
       <AnimatePresence>
-        {displayResults && (
+        {displayResults && !resultsInView && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -1041,10 +1054,31 @@ export default function Calculator() {
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="fixed bottom-0 left-0 right-0 lg:hidden z-50"
           >
-            <div className="bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-5 py-3">
+            <div className="bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-4 py-2.5">
               <div className="flex items-center justify-between max-w-md mx-auto">
-                <span className="text-sm font-medium text-slate-600">{isSample ? 'Sample Net' : 'Estimated Net'}</span>
-                <span className={`text-2xl font-bold ${displayResults.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <span className="text-xs font-medium text-slate-500">{isSample ? 'Sample Net' : 'Est. Net'}</span>
+                <div className="w-10 h-10 shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={12}
+                        outerRadius={19}
+                        paddingAngle={1}
+                        dataKey="value"
+                        stroke="none"
+                        isAnimationActive={false}
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`mini-cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <span className={`text-xl font-bold ${displayResults.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                   {formatCurrency(displayedNet)}
                 </span>
               </div>
