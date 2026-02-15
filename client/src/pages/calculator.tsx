@@ -178,17 +178,6 @@ export default function Calculator() {
     };
   }, []);
 
-  useEffect(() => {
-    const el = resultsRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setResultsInView(entry.isIntersecting),
-      { threshold: 0.15 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [displayResults]);
-
   const generateShareUrl = () => {
     const params = new URLSearchParams();
     if (salePrice) params.set('sp', salePrice);
@@ -333,6 +322,17 @@ export default function Calculator() {
   }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts, customFields]);
 
   const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
+
+  useEffect(() => {
+    const el = resultsRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setResultsInView(entry.isIntersecting),
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [displayResults]);
 
   const animateNumber = useCallback((target: number, duration: number = 400) => {
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
