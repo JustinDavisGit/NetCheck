@@ -3,7 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Share2, Check, Handshake, Info, Wrench, Plus, X } from "lucide-react";
+import { DollarSign, Home, FileText, Share2, Check, Handshake, Info, Wrench, Plus, X, FileDown } from "lucide-react";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -92,6 +94,7 @@ export default function Calculator() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
   const displayedNetRef = useRef(0);
+  const pieChartRef = useRef<HTMLDivElement>(null);
 
   // Load state from URL parameters on mount
   useEffect(() => {
@@ -243,6 +246,131 @@ export default function Calculator() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!displayResults) return;
+
+    const fmt = (value: number) =>
+      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 40;
+    let y = 0;
+
+    doc.setFillColor(52, 211, 153);
+    doc.rect(0, 0, pageW, 60, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.setTextColor(255, 255, 255);
+    doc.text('NetCheck', pageW / 2, 38, { align: 'center' });
+
+    y = 85;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(14);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Net Proceeds Estimate', pageW / 2, y, { align: 'center' });
+
+    y += 35;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(32);
+    if (displayResults.netProceeds >= 0) {
+      doc.setTextColor(34, 197, 94);
+    } else {
+      doc.setTextColor(239, 68, 68);
+    }
+    doc.text(fmt(displayResults.netProceeds), pageW / 2, y, { align: 'center' });
+
+    y += 22;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Sale Price: ${fmt(displayResults.price)}`, pageW / 2, y, { align: 'center' });
+
+    y += 30;
+
+    const brokerPct = isSample ? SAMPLE_BROKER : brokerCompensation;
+    const grtPct = isSample ? SAMPLE_GRT : grtRate;
+
+    const items: { label: string; amount: number }[] = [];
+    items.push({ label: 'Sale Price', amount: displayResults.price });
+    if (displayResults.mortgage > 0) items.push({ label: 'Mortgage Payoff', amount: -displayResults.mortgage });
+    if (displayResults.secondMtg > 0) items.push({ label: 'Second Mortgage', amount: -displayResults.secondMtg });
+    if (displayResults.helocAmt > 0) items.push({ label: 'HELOC', amount: -displayResults.helocAmt });
+    if (displayResults.solarAmt > 0) items.push({ label: 'Solar Loan', amount: -displayResults.solarAmt });
+    if (displayResults.commissionAmount > 0) items.push({ label: `Commission (${brokerPct}%)`, amount: -displayResults.commissionAmount });
+    if (displayResults.grtAmount > 0) items.push({ label: `NM GRT (${grtPct}%)`, amount: -displayResults.grtAmount });
+    if (displayResults.titleEscrowAmount > 0) items.push({ label: 'Est. Title/Escrow Fees', amount: -displayResults.titleEscrowAmount });
+    if (displayResults.taxProration > 0) items.push({ label: 'Tax Proration', amount: -displayResults.taxProration });
+    if (displayResults.surveyAmount > 0) items.push({ label: 'Survey / ILR', amount: -displayResults.surveyAmount });
+    if (displayResults.hoaAmount > 0) items.push({ label: 'HOA Fee', amount: -displayResults.hoaAmount });
+    if (displayResults.concessionsAmt > 0) items.push({ label: 'Seller Concessions', amount: -displayResults.concessionsAmt });
+    if (displayResults.repairAmt > 0) items.push({ label: 'Repairs', amount: -displayResults.repairAmt });
+    displayResults.customFields.forEach((f) => {
+      if (f.amount > 0) items.push({ label: f.name, amount: -f.amount });
+    });
+
+    const rowH = 24;
+    const tableH = items.length * rowH + 40;
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(margin, y, pageW - margin * 2, tableH, 6, 6, 'F');
+
+    let ty = y + 20;
+    items.forEach((item, i) => {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(100, 116, 139);
+      doc.text(item.label, margin + 16, ty);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 65, 85);
+      const amtStr = item.amount >= 0 ? fmt(item.amount) : `-${fmt(Math.abs(item.amount))}`;
+      doc.text(amtStr, pageW - margin - 16, ty, { align: 'right' });
+
+      ty += rowH;
+    });
+
+    ty += 4;
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineWidth(0.5);
+    doc.line(margin + 16, ty - 14, pageW - margin - 16, ty - 14);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(30, 41, 59);
+    doc.text('Estimated Net', margin + 16, ty);
+    if (displayResults.netProceeds >= 0) {
+      doc.setTextColor(34, 197, 94);
+    } else {
+      doc.setTextColor(239, 68, 68);
+    }
+    doc.text(fmt(displayResults.netProceeds), pageW - margin - 16, ty, { align: 'right' });
+
+    y = ty + 20;
+
+    if (pieChartRef.current) {
+      try {
+        const canvas = await html2canvas(pieChartRef.current, { backgroundColor: '#ffffff', scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const imgW = pageW - margin * 2 - 40;
+        const imgH = (canvas.height / canvas.width) * imgW;
+        const imgX = (pageW - imgW) / 2;
+        doc.addImage(imgData, 'PNG', imgX, y, imgW, imgH);
+        y += imgH + 15;
+      } catch (e) {
+        y += 10;
+      }
+    }
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text('This is an estimate only. Actual figures may vary.', pageW / 2, y, { align: 'center' });
+    y += 14;
+    doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageW / 2, y, { align: 'center' });
+
+    window.open(doc.output('bloburl') as unknown as string, '_blank');
   };
 
   const formatCurrency = (value: number) => {
@@ -978,7 +1106,7 @@ export default function Calculator() {
                       </div>
                     </div>
 
-                    <div className="mt-4 rounded-lg bg-white p-2 border border-gray-200">
+                    <div ref={pieChartRef} className="mt-4 rounded-lg bg-white p-2 border border-gray-200">
                       <ResponsiveContainer width="100%" height={260}>
                         <PieChart>
                           <Pie
@@ -1037,6 +1165,14 @@ export default function Calculator() {
                     <p className="text-xs text-slate-400 text-center mt-2">
                       Recipients can view and adjust the numbers
                     </p>
+                    <Button
+                      onClick={handleGeneratePDF}
+                      variant="outline"
+                      className="mt-2 w-full flex items-center justify-center gap-2"
+                    >
+                      <FileDown className="w-4 h-4" />
+                      Generate PDF
+                    </Button>
                   </motion.div>
                 )}
               </AnimatePresence>
