@@ -1153,7 +1153,7 @@ export default function Calculator() {
                         <Button
                           onClick={handleShare}
                           variant="outline"
-                          className="w-full flex items-center justify-center gap-2"
+                          className="w-full flex items-center justify-center gap-2 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
                         >
                           {copied ? (
                             <>
@@ -1175,7 +1175,7 @@ export default function Calculator() {
                         <Button
                           onClick={handleGeneratePDF}
                           variant="outline"
-                          className="w-full flex items-center justify-center gap-2"
+                          className="w-full flex items-center justify-center gap-2 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
                         >
                           <FileDown className="w-4 h-4" />
                           PDF
