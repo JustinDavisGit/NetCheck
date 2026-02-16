@@ -7,7 +7,7 @@ import { DollarSign, Home, FileText, Copy, Check, Handshake, Info, Wrench, Plus,
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from "framer-motion";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 
 function getEstimatedTitleEscrowFee(salePrice: number): number {
@@ -1171,20 +1171,7 @@ export default function Calculator() {
                                 />
                               ))}
                             </Pie>
-                            <Tooltip
-                              formatter={(value: number, name: string) => [formatCurrency(value), name]}
-                              isAnimationActive={false}
-                              contentStyle={{
-                                borderRadius: '10px',
-                                border: '1px solid #e2e8f0',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                fontSize: '13px',
-                                fontWeight: 500,
-                                padding: '8px 14px',
-                                pointerEvents: 'none',
-                              }}
-                              wrapperStyle={{ pointerEvents: 'none' }}
-                            />
+                            
                             <text
                               x="50%"
                               y="47%"
@@ -1209,6 +1196,20 @@ export default function Calculator() {
                             </text>
                           </PieChart>
                         </ResponsiveContainer>
+                        {activeSlice !== null && chartData[activeSlice] && (
+                          <div
+                            className="absolute top-3 left-1/2 -translate-x-1/2 bg-white border border-slate-200 rounded-xl shadow-lg px-4 py-2 pointer-events-none z-10"
+                            style={{ minWidth: '140px' }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: chartData[activeSlice].color }} />
+                              <span className="text-xs font-medium text-slate-500">{chartData[activeSlice].name}</span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-800 mt-0.5 ml-[18px]">
+                              {formatCurrency(chartData[activeSlice].value)}
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-1 pb-1">
                         {chartData.map((entry, index) => (
