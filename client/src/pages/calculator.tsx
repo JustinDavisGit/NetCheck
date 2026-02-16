@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1198,44 +1197,6 @@ export default function Calculator() {
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
-                      {activeSlice !== null && chartData[activeSlice] && pieChartRef.current && (() => {
-                        const rect = pieChartRef.current!.getBoundingClientRect();
-                        const chartCenterX = rect.left + rect.width / 2;
-                        const chartCenterY = rect.top + 180 + 12;
-                        const total = chartData.reduce((s, d) => s + d.value, 0);
-                        let cumAngle = 90;
-                        for (let i = 0; i < activeSlice; i++) {
-                          cumAngle -= (chartData[i].value / total) * 360;
-                        }
-                        const sliceAngle = (chartData[activeSlice].value / total) * 360;
-                        const midAngle = cumAngle - sliceAngle / 2;
-                        const RADIAN = Math.PI / 180;
-                        const tipRadius = 170;
-                        const tx = tipRadius * Math.cos(midAngle * RADIAN);
-                        const ty = -tipRadius * Math.sin(midAngle * RADIAN);
-                        return createPortal(
-                          <div
-                            className="bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-1.5 pointer-events-none"
-                            style={{
-                              position: 'fixed',
-                              left: `${chartCenterX + tx}px`,
-                              top: `${chartCenterY + ty}px`,
-                              transform: 'translate(-50%, -50%)',
-                              minWidth: '120px',
-                              zIndex: 9999,
-                            }}
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: chartData[activeSlice].color }} />
-                              <span className="text-xs font-medium text-slate-500">{chartData[activeSlice].name}</span>
-                            </div>
-                            <p className="text-sm font-bold text-slate-800 mt-0.5 ml-[18px]">
-                              {formatCurrency(chartData[activeSlice].value)}
-                            </p>
-                          </div>,
-                          document.body
-                        );
-                      })()}
                       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-1 pb-1">
                         {chartData.map((entry, index) => (
                           <div
