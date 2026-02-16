@@ -7,7 +7,7 @@ import { DollarSign, Home, FileText, Copy, Check, Handshake, Info, Wrench, Plus,
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from "framer-motion";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from "recharts";
 import { useToast } from "@/hooks/use-toast";
 
 function getEstimatedTitleEscrowFee(salePrice: number): number {
@@ -86,6 +86,7 @@ export default function Calculator() {
   const [isSample, setIsSample] = useState(true);
   const [showCallout, setShowCallout] = useState(true);
   const [displayedNet, setDisplayedNet] = useState(0);
+  const [activeSlice, setActiveSlice] = useState<number | null>(null);
   const { toast } = useToast();
 
   const [resultsInView, setResultsInView] = useState(false);
@@ -585,6 +586,67 @@ export default function Calculator() {
       ...displayResults.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
     ].filter(d => d.value > 0);
   }, [displayResults]);
+
+  const totalChartValue = useMemo(() => chartData.reduce((sum, d) => sum + d.value, 0), [chartData]);
+
+  const renderActiveShape = useCallback((props: any) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, percent, name, midAngle } = props;
+    const RADIAN = Math.PI / 180;
+    return (
+      <g>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius - 2}
+          outerRadius={outerRadius + 8}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
+        />
+        {percent >= 0.12 && (() => {
+          const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+          const x = cx + radius * Math.cos(-midAngle * RADIAN);
+          const y = cy + radius * Math.sin(-midAngle * RADIAN);
+          const shortName = name.length > 10 ? name.slice(0, 8) + '..' : name;
+          return (
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              style={{ fontSize: '10px', fontWeight: 600, fill: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.4)', pointerEvents: 'none' }}
+            >
+              <tspan x={x} dy="-0.4em">{shortName}</tspan>
+              <tspan x={x} dy="1.2em">{(percent * 100).toFixed(0)}%</tspan>
+            </text>
+          );
+        })()}
+      </g>
+    );
+  }, []);
+
+  const renderSliceLabel = useCallback((props: any) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent, name } = props;
+    if (percent < 0.12) return null;
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    const shortName = name.length > 10 ? name.slice(0, 8) + '..' : name;
+    return (
+      <text
+        x={x}
+        y={y}
+        textAnchor="middle"
+        dominantBaseline="central"
+        style={{ fontSize: '10px', fontWeight: 600, fill: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.4)', pointerEvents: 'none' }}
+      >
+        <tspan x={x} dy="-0.4em">{shortName}</tspan>
+        <tspan x={x} dy="1.2em">{(percent * 100).toFixed(0)}%</tspan>
+      </text>
+    );
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
@@ -1121,40 +1183,88 @@ export default function Calculator() {
                       </div>
                     </div>
 
-                    <div ref={pieChartRef} className="mt-4 rounded-lg bg-white p-2 border border-gray-200">
-                      <ResponsiveContainer width="100%" height={260}>
-                        <PieChart>
-                          <Pie
-                            data={chartData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={70}
-                            outerRadius={110}
-                            paddingAngle={2}
-                            dataKey="value"
-                            stroke="none"
-                          >
-                            {chartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            formatter={(value: number) => formatCurrency(value)}
-                            contentStyle={{
-                              borderRadius: '8px',
-                              border: '1px solid #e2e8f0',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                              fontSize: '12px',
-                              padding: '6px 10px',
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2 pb-1">
+                    <div ref={pieChartRef} className="mt-4 rounded-lg bg-white p-3 border border-gray-200">
+                      <div className="relative" style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.06))' }}>
+                        <ResponsiveContainer width="100%" height={360}>
+                          <PieChart>
+                            <Pie
+                              data={chartData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={90}
+                              outerRadius={145}
+                              paddingAngle={2}
+                              dataKey="value"
+                              stroke="none"
+                              activeIndex={activeSlice !== null ? activeSlice : undefined}
+                              activeShape={renderActiveShape}
+                              onMouseEnter={(_, index) => setActiveSlice(index)}
+                              onMouseLeave={() => setActiveSlice(null)}
+                              label={renderSliceLabel}
+                              labelLine={false}
+                            >
+                              {chartData.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={entry.color}
+                                  style={{
+                                    opacity: activeSlice !== null && activeSlice !== index ? 0.45 : 1,
+                                    transition: 'opacity 0.15s ease-out',
+                                    cursor: 'pointer',
+                                  }}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              formatter={(value: number, name: string) => {
+                                const pct = totalChartValue > 0 ? ((value / totalChartValue) * 100).toFixed(1) : '0';
+                                return [`${formatCurrency(value)} (${pct}%)`, name];
+                              }}
+                              contentStyle={{
+                                borderRadius: '10px',
+                                border: '1px solid #e2e8f0',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                fontSize: '13px',
+                                fontWeight: 500,
+                                padding: '8px 14px',
+                              }}
+                            />
+                            <text
+                              x="50%"
+                              y="47%"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              style={{
+                                fontSize: '24px',
+                                fontWeight: 700,
+                                fill: displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
+                              }}
+                            >
+                              {formatCurrency(displayResults.netProceeds)}
+                            </text>
+                            <text
+                              x="50%"
+                              y="55%"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              style={{ fontSize: '11px', fontWeight: 500, fill: '#94a3b8' }}
+                            >
+                              Net Proceeds
+                            </text>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-1 pb-1">
                         {chartData.map((entry, index) => (
-                          <div key={index} className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-                            <span className="text-[10px] text-slate-500">{entry.name}</span>
+                          <div
+                            key={index}
+                            className="flex items-center gap-1.5 cursor-pointer transition-opacity duration-150"
+                            style={{ opacity: activeSlice !== null && activeSlice !== index ? 0.4 : 1 }}
+                            onMouseEnter={() => setActiveSlice(index)}
+                            onMouseLeave={() => setActiveSlice(null)}
+                          >
+                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                            <span className="text-[11px] text-slate-500 font-medium">{entry.name}</span>
                           </div>
                         ))}
                       </div>
