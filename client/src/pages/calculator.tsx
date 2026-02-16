@@ -587,11 +587,8 @@ export default function Calculator() {
     ].filter(d => d.value > 0);
   }, [displayResults]);
 
-  const totalChartValue = useMemo(() => chartData.reduce((sum, d) => sum + d.value, 0), [chartData]);
-
   const renderActiveShape = useCallback((props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, percent, name, midAngle } = props;
-    const RADIAN = Math.PI / 180;
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
     return (
       <g>
         <Sector
@@ -604,47 +601,7 @@ export default function Calculator() {
           fill={fill}
           style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
         />
-        {percent >= 0.12 && (() => {
-          const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-          const x = cx + radius * Math.cos(-midAngle * RADIAN);
-          const y = cy + radius * Math.sin(-midAngle * RADIAN);
-          const shortName = name.length > 10 ? name.slice(0, 8) + '..' : name;
-          return (
-            <text
-              x={x}
-              y={y}
-              textAnchor="middle"
-              dominantBaseline="central"
-              style={{ fontSize: '10px', fontWeight: 600, fill: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.4)', pointerEvents: 'none' }}
-            >
-              <tspan x={x} dy="-0.4em">{shortName}</tspan>
-              <tspan x={x} dy="1.2em">{(percent * 100).toFixed(0)}%</tspan>
-            </text>
-          );
-        })()}
       </g>
-    );
-  }, []);
-
-  const renderSliceLabel = useCallback((props: any) => {
-    const { cx, cy, midAngle, innerRadius, outerRadius, percent, name } = props;
-    if (percent < 0.12) return null;
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    const shortName = name.length > 10 ? name.slice(0, 8) + '..' : name;
-    return (
-      <text
-        x={x}
-        y={y}
-        textAnchor="middle"
-        dominantBaseline="central"
-        style={{ fontSize: '10px', fontWeight: 600, fill: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.4)', pointerEvents: 'none' }}
-      >
-        <tspan x={x} dy="-0.4em">{shortName}</tspan>
-        <tspan x={x} dy="1.2em">{(percent * 100).toFixed(0)}%</tspan>
-      </text>
     );
   }, []);
 
@@ -1200,7 +1157,6 @@ export default function Calculator() {
                               activeShape={renderActiveShape}
                               onMouseEnter={(_, index) => setActiveSlice(index)}
                               onMouseLeave={() => setActiveSlice(null)}
-                              label={renderSliceLabel}
                               labelLine={false}
                             >
                               {chartData.map((entry, index) => (
@@ -1216,10 +1172,8 @@ export default function Calculator() {
                               ))}
                             </Pie>
                             <Tooltip
-                              formatter={(value: number, name: string) => {
-                                const pct = totalChartValue > 0 ? ((value / totalChartValue) * 100).toFixed(1) : '0';
-                                return [`${formatCurrency(value)} (${pct}%)`, name];
-                              }}
+                              formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                              isAnimationActive={false}
                               contentStyle={{
                                 borderRadius: '10px',
                                 border: '1px solid #e2e8f0',
@@ -1227,7 +1181,9 @@ export default function Calculator() {
                                 fontSize: '13px',
                                 fontWeight: 500,
                                 padding: '8px 14px',
+                                pointerEvents: 'none',
                               }}
+                              wrapperStyle={{ pointerEvents: 'none' }}
                             />
                             <text
                               x="50%"
