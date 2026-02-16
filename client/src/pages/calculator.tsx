@@ -259,12 +259,29 @@ export default function Calculator() {
     const margin = 40;
     let y = 0;
 
+    const pillW = 180;
+    const pillH = 44;
+    const pillX = (pageW - pillW) / 2;
+    const pillY = 14;
+    const pillR = 14;
     doc.setFillColor(52, 211, 153);
-    doc.rect(0, 0, pageW, 60, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24);
+    doc.roundedRect(pillX, pillY, pillW, pillH, pillR, pillR, 'F');
+
+    doc.setFontSize(26);
     doc.setTextColor(255, 255, 255);
-    doc.text('NetCheck', pageW / 2, 38, { align: 'center' });
+    const netText = 'Net';
+    const checkText = 'Check';
+    doc.setFont('helvetica', 'bold');
+    const netW = doc.getTextWidth(netText);
+    doc.setFont('helvetica', 'normal');
+    const checkW = doc.getTextWidth(checkText);
+    const totalW = netW + checkW;
+    const startX = (pageW - totalW) / 2;
+    const textY = pillY + pillH / 2 + 9;
+    doc.setFont('helvetica', 'bold');
+    doc.text(netText, startX, textY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(checkText, startX + netW, textY);
 
     y = 85;
     doc.setFont('helvetica', 'normal');
