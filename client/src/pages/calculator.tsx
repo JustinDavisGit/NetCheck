@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Share2, Check, Handshake, Info, Wrench, Plus, X, FileDown } from "lucide-react";
+import { DollarSign, Home, FileText, Copy, Check, Handshake, Info, Wrench, Plus, X, FileDown } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from "framer-motion";
@@ -213,21 +213,7 @@ export default function Calculator() {
 
   const handleShare = async () => {
     const shareUrl = generateShareUrl();
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Net-Out Calculator Estimate',
-          text: 'Check out this estimated net proceeds calculation',
-          url: shareUrl,
-        });
-      } catch (err) {
-        // User cancelled or error - fall back to copy
-        await copyToClipboard(shareUrl);
-      }
-    } else {
-      await copyToClipboard(shareUrl);
-    }
+    await copyToClipboard(shareUrl);
   };
 
   const copyToClipboard = async (url: string) => {
@@ -1176,8 +1162,8 @@ export default function Calculator() {
                             </>
                           ) : (
                             <>
-                              <Share2 className="w-4 h-4" />
-                              Share
+                              <Copy className="w-4 h-4" />
+                              Copy Link
                             </>
                           )}
                         </Button>
