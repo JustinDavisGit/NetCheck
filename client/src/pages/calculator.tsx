@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1140,97 +1141,101 @@ export default function Calculator() {
                       </div>
                     </div>
 
-                    <div ref={pieChartRef} className="mt-4 rounded-lg bg-white p-3 border border-gray-200 overflow-visible">
-                      <div className="relative overflow-visible">
-                        <div style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.06))' }}>
-                          <ResponsiveContainer width="100%" height={360}>
-                            <PieChart>
-                              <Pie
-                                data={chartData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={90}
-                                outerRadius={145}
-                                paddingAngle={2}
-                                dataKey="value"
-                                stroke="none"
-                                activeIndex={activeSlice !== null ? activeSlice : undefined}
-                                activeShape={renderActiveShape}
-                                onMouseEnter={(_, index) => setActiveSlice(index)}
-                                onMouseLeave={() => setActiveSlice(null)}
-                                labelLine={false}
-                              >
-                                {chartData.map((entry, index) => (
-                                  <Cell
-                                    key={`cell-${index}`}
-                                    fill={entry.color}
-                                    style={{
-                                      opacity: activeSlice !== null && activeSlice !== index ? 0.45 : 1,
-                                      transition: 'opacity 0.15s ease-out',
-                                      cursor: 'pointer',
-                                    }}
-                                  />
-                                ))}
-                              </Pie>
-                              
-                              <text
-                                x="50%"
-                                y="47%"
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                style={{
-                                  fontSize: '24px',
-                                  fontWeight: 700,
-                                  fill: displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
-                                }}
-                              >
-                                {formatCurrency(displayResults.netProceeds)}
-                              </text>
-                              <text
-                                x="50%"
-                                y="55%"
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                style={{ fontSize: '11px', fontWeight: 500, fill: '#94a3b8' }}
-                              >
-                                Net Proceeds
-                              </text>
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </div>
-                        {activeSlice !== null && chartData[activeSlice] && (() => {
-                          const total = chartData.reduce((s, d) => s + d.value, 0);
-                          let cumAngle = 90;
-                          for (let i = 0; i < activeSlice; i++) {
-                            cumAngle -= (chartData[i].value / total) * 360;
-                          }
-                          const sliceAngle = (chartData[activeSlice].value / total) * 360;
-                          const midAngle = cumAngle - sliceAngle / 2;
-                          const RADIAN = Math.PI / 180;
-                          const tipRadius = 170;
-                          const tx = tipRadius * Math.cos(midAngle * RADIAN);
-                          const ty = -tipRadius * Math.sin(midAngle * RADIAN);
-                          return (
-                            <div
-                              className="absolute bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-1.5 pointer-events-none z-20"
+                    <div ref={pieChartRef} className="mt-4 rounded-lg bg-white p-3 border border-gray-200">
+                      <div style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.06))' }}>
+                        <ResponsiveContainer width="100%" height={360}>
+                          <PieChart>
+                            <Pie
+                              data={chartData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={90}
+                              outerRadius={145}
+                              paddingAngle={2}
+                              dataKey="value"
+                              stroke="none"
+                              activeIndex={activeSlice !== null ? activeSlice : undefined}
+                              activeShape={renderActiveShape}
+                              onMouseEnter={(_, index) => setActiveSlice(index)}
+                              onMouseLeave={() => setActiveSlice(null)}
+                              labelLine={false}
+                            >
+                              {chartData.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={entry.color}
+                                  style={{
+                                    opacity: activeSlice !== null && activeSlice !== index ? 0.45 : 1,
+                                    transition: 'opacity 0.15s ease-out',
+                                    cursor: 'pointer',
+                                  }}
+                                />
+                              ))}
+                            </Pie>
+                            
+                            <text
+                              x="50%"
+                              y="47%"
+                              textAnchor="middle"
+                              dominantBaseline="central"
                               style={{
-                                left: `calc(50% + ${tx}px)`,
-                                top: `calc(180px + ${ty}px)`,
-                                transform: 'translate(-50%, -50%)',
-                                minWidth: '120px',
+                                fontSize: '24px',
+                                fontWeight: 700,
+                                fill: displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
                               }}
                             >
-                              <div className="flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: chartData[activeSlice].color }} />
-                                <span className="text-xs font-medium text-slate-500">{chartData[activeSlice].name}</span>
-                              </div>
-                              <p className="text-sm font-bold text-slate-800 mt-0.5 ml-[18px]">
-                                {formatCurrency(chartData[activeSlice].value)}
-                              </p>
-                            </div>
-                          );
-                        })()}
+                              {formatCurrency(displayResults.netProceeds)}
+                            </text>
+                            <text
+                              x="50%"
+                              y="55%"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              style={{ fontSize: '11px', fontWeight: 500, fill: '#94a3b8' }}
+                            >
+                              Net Proceeds
+                            </text>
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
+                      {activeSlice !== null && chartData[activeSlice] && pieChartRef.current && (() => {
+                        const rect = pieChartRef.current!.getBoundingClientRect();
+                        const chartCenterX = rect.left + rect.width / 2;
+                        const chartCenterY = rect.top + 180 + 12;
+                        const total = chartData.reduce((s, d) => s + d.value, 0);
+                        let cumAngle = 90;
+                        for (let i = 0; i < activeSlice; i++) {
+                          cumAngle -= (chartData[i].value / total) * 360;
+                        }
+                        const sliceAngle = (chartData[activeSlice].value / total) * 360;
+                        const midAngle = cumAngle - sliceAngle / 2;
+                        const RADIAN = Math.PI / 180;
+                        const tipRadius = 170;
+                        const tx = tipRadius * Math.cos(midAngle * RADIAN);
+                        const ty = -tipRadius * Math.sin(midAngle * RADIAN);
+                        return createPortal(
+                          <div
+                            className="bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-1.5 pointer-events-none"
+                            style={{
+                              position: 'fixed',
+                              left: `${chartCenterX + tx}px`,
+                              top: `${chartCenterY + ty}px`,
+                              transform: 'translate(-50%, -50%)',
+                              minWidth: '120px',
+                              zIndex: 9999,
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: chartData[activeSlice].color }} />
+                              <span className="text-xs font-medium text-slate-500">{chartData[activeSlice].name}</span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-800 mt-0.5 ml-[18px]">
+                              {formatCurrency(chartData[activeSlice].value)}
+                            </p>
+                          </div>,
+                          document.body
+                        );
+                      })()}
                       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-1 pb-1">
                         {chartData.map((entry, index) => (
                           <div
