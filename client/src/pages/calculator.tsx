@@ -1162,34 +1162,40 @@ export default function Calculator() {
                       </div>
                     </div>
 
-                    <Button
-                      onClick={handleShare}
-                      variant="outline"
-                      className="mt-3 w-full flex items-center justify-center gap-2"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-4 h-4 text-emerald-500" />
-                          Link Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Share2 className="w-4 h-4" />
-                          Share this estimated net
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-xs text-slate-400 text-center mt-2">
-                      Recipients can view and adjust the numbers
-                    </p>
-                    <Button
-                      onClick={handleGeneratePDF}
-                      variant="outline"
-                      className="mt-2 w-full flex items-center justify-center gap-2"
-                    >
-                      <FileDown className="w-4 h-4" />
-                      Generate PDF
-                    </Button>
+                    <div className="mt-3 flex gap-2">
+                      <div className="flex-1 min-w-0">
+                        <Button
+                          onClick={handleShare}
+                          variant="outline"
+                          className="w-full flex items-center justify-center gap-2"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-4 h-4 text-emerald-500" />
+                              Copied!
+                            </>
+                          ) : (
+                            <>
+                              <Share2 className="w-4 h-4" />
+                              Share
+                            </>
+                          )}
+                        </Button>
+                        <p className="text-[11px] text-slate-400 text-center mt-1.5">
+                          Recipients can view &amp; adjust
+                        </p>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <Button
+                          onClick={handleGeneratePDF}
+                          variant="outline"
+                          className="w-full flex items-center justify-center gap-2"
+                        >
+                          <FileDown className="w-4 h-4" />
+                          PDF
+                        </Button>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
