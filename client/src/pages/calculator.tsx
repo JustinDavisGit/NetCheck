@@ -1196,20 +1196,40 @@ export default function Calculator() {
                             </text>
                           </PieChart>
                         </ResponsiveContainer>
-                        {activeSlice !== null && chartData[activeSlice] && (
-                          <div
-                            className="absolute top-3 left-1/2 -translate-x-1/2 bg-white border border-slate-200 rounded-xl shadow-lg px-4 py-2 pointer-events-none z-10"
-                            style={{ minWidth: '140px' }}
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: chartData[activeSlice].color }} />
-                              <span className="text-xs font-medium text-slate-500">{chartData[activeSlice].name}</span>
+                        {activeSlice !== null && chartData[activeSlice] && (() => {
+                          const total = chartData.reduce((s, d) => s + d.value, 0);
+                          let cumAngle = 90;
+                          for (let i = 0; i < activeSlice; i++) {
+                            cumAngle -= (chartData[i].value / total) * 360;
+                          }
+                          const sliceAngle = (chartData[activeSlice].value / total) * 360;
+                          const midAngle = cumAngle - sliceAngle / 2;
+                          const RADIAN = Math.PI / 180;
+                          const tipRadius = 170;
+                          const cx = 0;
+                          const cy = 0;
+                          const tx = cx + tipRadius * Math.cos(midAngle * RADIAN);
+                          const ty = cy - tipRadius * Math.sin(midAngle * RADIAN);
+                          return (
+                            <div
+                              className="absolute bg-white border border-slate-200 rounded-xl shadow-lg px-3 py-1.5 pointer-events-none z-10"
+                              style={{
+                                left: `calc(50% + ${tx}px)`,
+                                top: `calc(50% + ${ty}px)`,
+                                transform: 'translate(-50%, -50%)',
+                                minWidth: '120px',
+                              }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: chartData[activeSlice].color }} />
+                                <span className="text-xs font-medium text-slate-500">{chartData[activeSlice].name}</span>
+                              </div>
+                              <p className="text-sm font-bold text-slate-800 mt-0.5 ml-[18px]">
+                                {formatCurrency(chartData[activeSlice].value)}
+                              </p>
                             </div>
-                            <p className="text-sm font-bold text-slate-800 mt-0.5 ml-[18px]">
-                              {formatCurrency(chartData[activeSlice].value)}
-                            </p>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </div>
                       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1.5 mt-1 pb-1">
                         {chartData.map((entry, index) => (
