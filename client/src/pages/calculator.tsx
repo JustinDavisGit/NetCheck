@@ -60,8 +60,8 @@ function buildSampleResults() {
 
 const SAMPLE_RESULTS = buildSampleResults();
 
-const INLINE_INPUT_CLASS = "text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md";
-const INLINE_CURRENCY_CLASS = "text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg pl-6 pr-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md";
+const INLINE_INPUT_CLASS = "text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md";
+const INLINE_CURRENCY_CLASS = "text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg pl-6 pr-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md";
 
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
@@ -279,7 +279,7 @@ export default function Calculator() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(32);
     if (displayResults.netProceeds >= 0) {
-      doc.setTextColor(34, 197, 94);
+      doc.setTextColor(52, 211, 153);
     } else {
       doc.setTextColor(239, 68, 68);
     }
@@ -344,7 +344,7 @@ export default function Calculator() {
     doc.setTextColor(30, 41, 59);
     doc.text('Estimated Net', margin + 16, ty);
     if (displayResults.netProceeds >= 0) {
-      doc.setTextColor(34, 197, 94);
+      doc.setTextColor(52, 211, 153);
     } else {
       doc.setTextColor(239, 68, 68);
     }
@@ -557,7 +557,7 @@ export default function Calculator() {
   const chartData = useMemo(() => {
     if (!displayResults) return [];
     return [
-      { name: 'Net Proceeds', value: Math.max(displayResults.netProceeds, 0), color: '#22c55e' },
+      { name: 'Net Proceeds', value: Math.max(displayResults.netProceeds, 0), color: '#34d399' },
       ...(displayResults.mortgage > 0 ? [{ name: 'Mortgage', value: displayResults.mortgage, color: '#94a3b8' }] : []),
       ...(displayResults.secondMtg > 0 ? [{ name: '2nd Mortgage', value: displayResults.secondMtg, color: '#a1a1aa' }] : []),
       ...(displayResults.helocAmt > 0 ? [{ name: 'HELOC', value: displayResults.helocAmt, color: '#b4b4bb' }] : []),
@@ -622,9 +622,9 @@ export default function Calculator() {
                           transition={{ duration: 0.3, delay: 0.6 }}
                           className="flex justify-center w-full absolute top-full mt-2.5 z-10"
                         >
-                          <div className="relative bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                          <div className="relative bg-emerald-400 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
                             Start here — enter your projected sale price
-                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-green-600" />
+                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-emerald-400" />
                           </div>
                         </motion.div>
                       )}
@@ -812,14 +812,14 @@ export default function Calculator() {
                         value={annualPropertyTax}
                         onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
                         onBlur={() => formatCurrencyOnBlur(annualPropertyTax, setAnnualPropertyTax)}
-                        className="w-full pl-7 pr-2 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                        className="w-full pl-7 pr-2 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
                       />
                     </div>
                     <span className="text-xs text-slate-400 shrink-0">closing</span>
                     <select
                       value={closingMonth}
                       onChange={(e) => setClosingMonth(parseInt(e.target.value))}
-                      className="text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 focus:shadow-md"
+                      className="text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
                     >
                       <option value={1}>Jan</option>
                       <option value={2}>Feb</option>
@@ -942,7 +942,7 @@ export default function Calculator() {
                         placeholder="Field name"
                         value={field.name}
                         onChange={(e) => updateCustomField(index, 'name', e.target.value)}
-                        className="text-sm font-medium text-gray-900 bg-transparent border-b border-gray-300 focus:border-green-500 focus:outline-none pb-0.5 w-[60%] transition-all duration-200 ease-in-out"
+                        className="text-sm font-medium text-gray-900 bg-transparent border-b border-gray-300 focus:border-emerald-400 focus:outline-none pb-0.5 w-[60%] transition-all duration-200 ease-in-out"
                       />
                       <button
                         onClick={() => setCustomFields(customFields.filter((_, i) => i !== index))}
@@ -986,7 +986,7 @@ export default function Calculator() {
             <div ref={resultsRef} className="p-5 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Estimated Net Proceeds</h3>
-                <p className={`text-4xl font-bold transition-all duration-300 ease-out ${!displayResults ? 'text-gray-300' : displayResults.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <p className={`text-4xl font-bold transition-all duration-300 ease-out ${!displayResults ? 'text-gray-300' : displayResults.netProceeds >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
                   {formatCurrency(displayedNet)}
                 </p>
                 {!displayResults && (
@@ -998,9 +998,9 @@ export default function Calculator() {
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -4 }}
-                      className="mt-3 bg-green-50 border-l-4 border-green-400 px-3 py-2 rounded text-left"
+                      className="mt-3 bg-emerald-50 border-l-4 border-emerald-400 px-3 py-2 rounded text-left"
                     >
-                      <p className="text-xs text-green-800">
+                      <p className="text-xs text-emerald-800">
                         <span className="font-semibold">Sample scenario:</span> $400k Albuquerque home — enter your sale price above to see your own estimate
                       </p>
                     </motion.div>
@@ -1223,7 +1223,7 @@ export default function Calculator() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <span className={`text-xl font-bold ${displayResults.netProceeds >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                <span className={`text-xl font-bold ${displayResults.netProceeds >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
                   {formatCurrency(displayedNet)}
                 </span>
               </div>
