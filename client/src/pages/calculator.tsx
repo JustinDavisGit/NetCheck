@@ -242,8 +242,17 @@ export default function Calculator() {
 
     const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
     const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
     const margin = 40;
+    const bottomMargin = 40;
     let y = 0;
+
+    const checkPage = (needed: number) => {
+      if (y + needed > pageH - bottomMargin) {
+        doc.addPage();
+        y = margin;
+      }
+    };
 
     const pillW = 180;
     const pillH = 44;
@@ -316,11 +325,12 @@ export default function Calculator() {
 
     const rowH = 24;
     const tableH = items.length * rowH + 40;
+    checkPage(tableH + 30);
     doc.setFillColor(248, 250, 252);
     doc.roundedRect(margin, y, pageW - margin * 2, tableH, 6, 6, 'F');
 
     let ty = y + 20;
-    items.forEach((item, i) => {
+    items.forEach((item) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(11);
       doc.setTextColor(100, 116, 139);
@@ -358,6 +368,7 @@ export default function Calculator() {
         const imgData = canvas.toDataURL('image/png');
         const imgW = pageW - margin * 2 - 40;
         const imgH = (canvas.height / canvas.width) * imgW;
+        checkPage(imgH + 20);
         const imgX = (pageW - imgW) / 2;
         doc.addImage(imgData, 'PNG', imgX, y, imgW, imgH);
         y += imgH + 15;
@@ -366,6 +377,7 @@ export default function Calculator() {
       }
     }
 
+    checkPage(40);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
