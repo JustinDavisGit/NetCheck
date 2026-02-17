@@ -91,10 +91,6 @@ export default function Calculator() {
 
   const [resultsInView, setResultsInView] = useState(false);
 
-  const isMobileRef = useRef(typeof window !== 'undefined' && window.innerWidth < 1024);
-  const [introPhase, setIntroPhase] = useState<'full' | 'shrinking' | 'done'>(isMobileRef.current ? 'full' : 'done');
-  const [showGlow, setShowGlow] = useState(!isMobileRef.current);
-
   const salePriceRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -510,16 +506,6 @@ export default function Calculator() {
     };
   }, [displayResults, animateNumber]);
 
-  useEffect(() => {
-    if (!isMobileRef.current) return;
-    const t1 = setTimeout(() => setIntroPhase('shrinking'), 1800);
-    const t2 = setTimeout(() => {
-      setIntroPhase('done');
-      setShowGlow(true);
-    }, 2700);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
-
   const handlePercentInput = (
     value: string,
     setInput: (v: string) => void,
@@ -656,7 +642,7 @@ export default function Calculator() {
                       value={salePrice}
                       onChange={(e) => handleCurrencyInput(e.target.value, setSalePrice)}
                       onBlur={() => formatCurrencyOnBlur(salePrice, setSalePrice)}
-                      className={`pl-8 text-lg h-12 font-medium ${isSample && showGlow ? 'animate-pulse-glow' : ''}`}
+                      className={`pl-8 text-lg h-12 font-medium ${isSample ? 'animate-pulse-glow' : ''}`}
                     />
                     <AnimatePresence>
                       {showCallout && (
@@ -1270,7 +1256,7 @@ export default function Calculator() {
       </div>
 
       <AnimatePresence>
-        {displayResults && !resultsInView && introPhase === 'done' && (
+        {displayResults && !resultsInView && (
           <motion.div
             initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -1311,77 +1297,6 @@ export default function Calculator() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {introPhase !== 'done' && displayResults && (
-          <motion.div
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 lg:hidden"
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <motion.div
-              className="flex flex-col items-center"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={
-                introPhase === 'full'
-                  ? { scale: 1, opacity: 1, y: 0 }
-                  : { scale: 0.18, opacity: 0.9, y: 'calc(50vh - 40px)' }
-              }
-              transition={
-                introPhase === 'full'
-                  ? { type: 'spring', stiffness: 120, damping: 14, delay: 0.2 }
-                  : { type: 'spring', stiffness: 80, damping: 18 }
-              }
-            >
-              <div className="w-[280px] h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={70}
-                      outerRadius={120}
-                      paddingAngle={2}
-                      dataKey="value"
-                      stroke="none"
-                      animationBegin={300}
-                      animationDuration={1000}
-                      animationEasing="ease-out"
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell key={`intro-cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <text
-                      x="50%"
-                      y="46%"
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      style={{
-                        fontSize: '20px',
-                        fontWeight: 700,
-                        fill: displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
-                      }}
-                    >
-                      {formatCurrency(displayResults.netProceeds)}
-                    </text>
-                    <text
-                      x="50%"
-                      y="56%"
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      style={{ fontSize: '10px', fontWeight: 500, fill: '#94a3b8' }}
-                    >
-                      Sample Net Proceeds
-                    </text>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
