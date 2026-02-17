@@ -604,7 +604,7 @@ export default function Calculator() {
       { name: 'Title/Escrow', value: displayResults.titleEscrowAmount, color: '#f97316' },
       ...(displayResults.taxProration > 0 ? [{ name: 'Tax Proration', value: displayResults.taxProration, color: '#a78bfa' }] : []),
       ...(displayResults.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: displayResults.surveyAmount, color: '#f472b6' }] : []),
-      ...(displayResults.hoaAmount > 0 ? [{ name: 'HOA Fee', value: displayResults.hoaAmount, color: '#2dd4bf' }] : []),
+      ...(displayResults.hoaAmount > 0 ? [{ name: 'HOA Transfer', value: displayResults.hoaAmount, color: '#d4c5a0' }] : []),
       ...(displayResults.septicAmount > 0 ? [{ name: 'Septic Inspection', value: displayResults.septicAmount, color: '#92400e' }] : []),
       ...(displayResults.wellAmount > 0 ? [{ name: 'Well Inspection', value: displayResults.wellAmount, color: '#3b82f6' }] : []),
       ...(displayResults.waterBillAmount > 0 ? [{ name: 'Final Water Bill', value: displayResults.waterBillAmount, color: '#06b6d4' }] : []),
@@ -1487,7 +1487,7 @@ export default function Calculator() {
                       )}
                       {displayResults.hoaAmount > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">HOA Fee</span>
+                          <span className="text-slate-500">HOA Transfer</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(displayResults.hoaAmount)}</span>
                         </div>
                       )}
