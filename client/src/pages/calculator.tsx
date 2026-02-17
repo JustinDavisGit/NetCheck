@@ -778,26 +778,27 @@ export default function Calculator() {
                   </AnimatePresence>
                 </div>
 
-                <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Real Estate Commissions</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newTotal = Math.max(totalCommissionPct - 0.25, 0);
-                          setListingAgentPct(newTotal / 2);
-                          setBuyerAgentPct(newTotal / 2);
-                          if (isSample) setIsSample(false);
-                          if (showCallout) setShowCallout(false);
-                        }}
-                        className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
-                      >
-                        <Minus className="w-3 h-3 text-slate-500" />
-                      </button>
-                      <input
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Handshake className="w-4 h-4 text-blue-400" />
+                    Real Estate Commissions
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newTotal = Math.max(totalCommissionPct - 0.25, 0);
+                        setListingAgentPct(newTotal / 2);
+                        setBuyerAgentPct(newTotal / 2);
+                        if (isSample) setIsSample(false);
+                        if (showCallout) setShowCallout(false);
+                      }}
+                      className="w-8 h-12 flex items-center justify-center rounded-lg border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                    >
+                      <Minus className="w-3.5 h-3.5 text-slate-500" />
+                    </button>
+                    <div className="relative flex-1">
+                      <Input
                         type="text"
                         inputMode="decimal"
                         value={totalCommissionPct.toFixed(2)}
@@ -816,32 +817,32 @@ export default function Calculator() {
                           setListingAgentPct(clamped / 2);
                           setBuyerAgentPct(clamped / 2);
                         }}
-                        className={`w-[56px] ${INLINE_INPUT_CLASS}`}
+                        className="text-lg h-12 font-medium text-center pr-8"
                       />
-                      <span className="text-xs text-slate-400">%</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newTotal = Math.min(totalCommissionPct + 0.25, 10);
-                          setListingAgentPct(newTotal / 2);
-                          setBuyerAgentPct(newTotal / 2);
-                          if (isSample) setIsSample(false);
-                          if (showCallout) setShowCallout(false);
-                        }}
-                        className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
-                      >
-                        <Plus className="w-3 h-3 text-slate-500" />
-                      </button>
-                      <span className="text-xs text-slate-500 font-medium ml-1">
-                        {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100)}
-                      </span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">%</span>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newTotal = Math.min(totalCommissionPct + 0.25, 10);
+                        setListingAgentPct(newTotal / 2);
+                        setBuyerAgentPct(newTotal / 2);
+                        if (isSample) setIsSample(false);
+                        if (showCallout) setShowCallout(false);
+                      }}
+                      className="w-8 h-12 flex items-center justify-center rounded-lg border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-slate-500" />
+                    </button>
                   </div>
+                  <p className="text-xs text-slate-400 text-center">
+                    {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100)}
+                  </p>
 
                   <button
                     type="button"
                     onClick={() => setCommissionExpanded(!commissionExpanded)}
-                    className="flex items-center gap-1 w-full"
+                    className="flex items-center gap-1 w-full justify-center pt-1"
                   >
                     <span className="text-[10px] text-slate-400">Commission Breakdown</span>
                     <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
@@ -854,8 +855,9 @@ export default function Calculator() {
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="overflow-hidden space-y-2.5"
+                        className="overflow-hidden"
                       >
+                        <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
                             <Label className="text-xs font-medium text-slate-500">NM GRT Rate</Label>
@@ -992,6 +994,7 @@ export default function Calculator() {
                         </div>
 
                         <p className="text-[10px] text-slate-400 italic">Total commission is split between agents</p>
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
