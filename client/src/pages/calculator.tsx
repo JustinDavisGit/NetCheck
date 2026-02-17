@@ -29,7 +29,7 @@ const SAMPLE_ANNUAL_TAX = 3000;
 const SAMPLE_BROKER = 6;
 const SAMPLE_GRT = 7.625;
 const SAMPLE_SURVEY = 275;
-const SAMPLE_MONTH = new Date().getMonth() + 1;
+const SAMPLE_MONTH = (new Date().getMonth() + 1) % 12 + 1;
 
 function buildSampleResults() {
   const commissionAmount = SAMPLE_PRICE * (SAMPLE_BROKER / 100);
@@ -87,7 +87,7 @@ export default function Calculator() {
   const [heloc, setHeloc] = useState<string>("");
   const [solarLoan, setSolarLoan] = useState<string>("");
   const [annualPropertyTax, setAnnualPropertyTax] = useState<string>("");
-  const [closingMonth, setClosingMonth] = useState<number>(new Date().getMonth() + 1);
+  const [closingMonth, setClosingMonth] = useState<number>((new Date().getMonth() + 1) % 12 + 1);
   const [hasHoa, setHasHoa] = useState(false);
   const [hoaFee, setHoaFee] = useState<string>("350");
   const [hasSeptic, setHasSeptic] = useState(false);
@@ -213,7 +213,7 @@ export default function Calculator() {
       if (solarLoan) params.set('sol', solarLoan);
     }
     if (annualPropertyTax) params.set('apt', annualPropertyTax);
-    if (closingMonth !== new Date().getMonth() + 1) params.set('cm', closingMonth.toString());
+    if (closingMonth !== (new Date().getMonth() + 1) % 12 + 1) params.set('cm', closingMonth.toString());
     if (surveyFee !== '275') params.set('sf', surveyFee);
     if (hasHoa) {
       params.set('hoa', '1');
@@ -1409,7 +1409,7 @@ export default function Calculator() {
                       className="mt-3 bg-emerald-50 border-l-4 border-emerald-400 px-3 py-2 rounded text-left"
                     >
                       <p className="text-xs text-emerald-800">
-                        <span className="font-semibold">Sample scenario:</span> $400k Albuquerque home — enter your sale price above to see your own estimate
+                        <span className="font-semibold">Sample scenario:</span> $400k Albuquerque home — enter your sale price <span className="lg:hidden">above </span>to see your own estimate
                       </p>
                     </motion.div>
                   )}
