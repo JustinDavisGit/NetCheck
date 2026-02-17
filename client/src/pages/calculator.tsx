@@ -1055,53 +1055,6 @@ export default function Calculator() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium text-slate-500">
-                      Annual Property Tax
-                    </Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={annualPropertyTax}
-                        onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
-                        onBlur={() => formatCurrencyOnBlur(annualPropertyTax, setAnnualPropertyTax)}
-                        className={`w-[100px] ${INLINE_CURRENCY_CLASS}`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium text-slate-500">
-                      Estimated Month of Closing
-                    </Label>
-                    <select
-                      value={closingMonth}
-                      onChange={(e) => setClosingMonth(parseInt(e.target.value))}
-                      className="text-xs font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
-                    >
-                      <option value={1}>January</option>
-                      <option value={2}>February</option>
-                      <option value={3}>March</option>
-                      <option value={4}>April</option>
-                      <option value={5}>May</option>
-                      <option value={6}>June</option>
-                      <option value={7}>July</option>
-                      <option value={8}>August</option>
-                      <option value={9}>September</option>
-                      <option value={10}>October</option>
-                      <option value={11}>November</option>
-                      <option value={12}>December</option>
-                    </select>
-                  </div>
-
-                  {parseCurrency(annualPropertyTax) > 0 && (
-                    <p className="text-[11px] text-slate-400">
-                      Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}
-                    </p>
-                  )}
-
                   <div className="pt-1 space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-medium text-slate-500">
@@ -1154,6 +1107,53 @@ export default function Calculator() {
                       )}
                     </AnimatePresence>
                   </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-slate-500">
+                      Annual Property Tax
+                    </Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={annualPropertyTax}
+                        onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
+                        onBlur={() => formatCurrencyOnBlur(annualPropertyTax, setAnnualPropertyTax)}
+                        className={`w-[100px] ${INLINE_CURRENCY_CLASS}`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-slate-500">
+                      Estimated Month of Closing
+                    </Label>
+                    <select
+                      value={closingMonth}
+                      onChange={(e) => setClosingMonth(parseInt(e.target.value))}
+                      className="text-xs font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
+                    >
+                      <option value={1}>January</option>
+                      <option value={2}>February</option>
+                      <option value={3}>March</option>
+                      <option value={4}>April</option>
+                      <option value={5}>May</option>
+                      <option value={6}>June</option>
+                      <option value={7}>July</option>
+                      <option value={8}>August</option>
+                      <option value={9}>September</option>
+                      <option value={10}>October</option>
+                      <option value={11}>November</option>
+                      <option value={12}>December</option>
+                    </select>
+                  </div>
+
+                  {parseCurrency(annualPropertyTax) > 0 && (
+                    <p className="text-[11px] text-slate-400">
+                      Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
