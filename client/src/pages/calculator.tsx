@@ -706,17 +706,17 @@ export default function Calculator() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-0.5">
                   <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                     <Landmark className="w-4 h-4 text-blue-400" />
                     Additional Liens
                   </Label>
-                  <div className="flex justify-center">
+                  <div className="flex justify-center -mb-2">
                     <button
                       type="button"
                       title="Add second mortgage, HELOC, or solar loan"
                       onClick={() => setHasAdditionalLiens(!hasAdditionalLiens)}
-                      className="p-1 rounded-full text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
+                      className="p-0.5 rounded-full text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
                     >
                       <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${hasAdditionalLiens ? 'rotate-180' : ''}`} />
                     </button>
@@ -781,7 +781,7 @@ export default function Calculator() {
                   </AnimatePresence>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-0.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                       <Handshake className="w-4 h-4 text-blue-400" />
@@ -850,12 +850,12 @@ export default function Calculator() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex justify-center">
+                  <div className="flex justify-center -mb-2">
                     <button
                       type="button"
                       title="View commission breakdown"
                       onClick={() => setCommissionExpanded(!commissionExpanded)}
-                      className="p-1 rounded-full text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
+                      className="p-0.5 rounded-full text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
                     >
                       <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
                     </button>
