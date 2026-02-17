@@ -791,80 +791,84 @@ export default function Calculator() {
                     <Handshake className="w-4 h-4 text-blue-400" />
                     Real Estate Commissions
                   </Label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newTotal = Math.max(totalCommissionPct - 0.25, 0);
-                        setListingAgentPct(newTotal / 2);
-                        setBuyerAgentPct(newTotal / 2);
-                        setTotalCommissionInput(newTotal.toFixed(2));
-                        if (isSample) setIsSample(false);
-                        if (showCallout) setShowCallout(false);
-                      }}
-                      className="w-8 h-12 flex items-center justify-center rounded-lg border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
-                    >
-                      <Minus className="w-3.5 h-3.5 text-slate-500" />
-                    </button>
-                    <div className="relative w-24">
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={totalCommissionInput}
-                        onFocus={() => setIsEditingTotalCommission(true)}
-                        onChange={(e) => {
-                          const cleaned = e.target.value.replace(/[^0-9.]/g, '');
-                          const parts = cleaned.split('.');
-                          const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
-                          setTotalCommissionInput(sanitized);
-                          const parsed = parseFloat(sanitized);
-                          if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
-                            setListingAgentPct(parsed / 2);
-                            setBuyerAgentPct(parsed / 2);
-                          }
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center h-11 rounded-xl border border-slate-200 overflow-hidden shadow-sm focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newTotal = Math.max(totalCommissionPct - 0.25, 0);
+                          setListingAgentPct(newTotal / 2);
+                          setBuyerAgentPct(newTotal / 2);
+                          setTotalCommissionInput(newTotal.toFixed(2));
                           if (isSample) setIsSample(false);
                           if (showCallout) setShowCallout(false);
                         }}
-                        onBlur={() => {
-                          setIsEditingTotalCommission(false);
-                          let parsed = parseFloat(totalCommissionInput);
-                          if (isNaN(parsed)) parsed = 6;
-                          parsed = Math.min(Math.max(parsed, 0), 10);
-                          setListingAgentPct(parsed / 2);
-                          setBuyerAgentPct(parsed / 2);
-                          setTotalCommissionInput(parsed.toFixed(2));
+                        className="w-9 h-full flex items-center justify-center bg-slate-50 hover:bg-emerald-50 border-r border-slate-200 transition-colors"
+                      >
+                        <Minus className="w-3.5 h-3.5 text-slate-400" />
+                      </button>
+                      <div className="relative w-16">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={totalCommissionInput}
+                          onFocus={() => setIsEditingTotalCommission(true)}
+                          onChange={(e) => {
+                            const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                            const parts = cleaned.split('.');
+                            const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+                            setTotalCommissionInput(sanitized);
+                            const parsed = parseFloat(sanitized);
+                            if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+                              setListingAgentPct(parsed / 2);
+                              setBuyerAgentPct(parsed / 2);
+                            }
+                            if (isSample) setIsSample(false);
+                            if (showCallout) setShowCallout(false);
+                          }}
+                          onBlur={() => {
+                            setIsEditingTotalCommission(false);
+                            let parsed = parseFloat(totalCommissionInput);
+                            if (isNaN(parsed)) parsed = 6;
+                            parsed = Math.min(Math.max(parsed, 0), 10);
+                            setListingAgentPct(parsed / 2);
+                            setBuyerAgentPct(parsed / 2);
+                            setTotalCommissionInput(parsed.toFixed(2));
+                          }}
+                          className="w-full h-full text-center text-[15px] font-semibold text-slate-700 bg-transparent outline-none border-none"
+                        />
+                      </div>
+                      <span className="text-xs text-slate-400 font-medium pr-1">%</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newTotal = Math.min(totalCommissionPct + 0.25, 10);
+                          setListingAgentPct(newTotal / 2);
+                          setBuyerAgentPct(newTotal / 2);
+                          setTotalCommissionInput(newTotal.toFixed(2));
+                          if (isSample) setIsSample(false);
+                          if (showCallout) setShowCallout(false);
                         }}
-                        className="text-lg h-12 font-medium text-center pr-7"
-                      />
-                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">%</span>
+                        className="w-9 h-full flex items-center justify-center bg-slate-50 hover:bg-emerald-50 border-l border-slate-200 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-slate-400" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newTotal = Math.min(totalCommissionPct + 0.25, 10);
-                        setListingAgentPct(newTotal / 2);
-                        setBuyerAgentPct(newTotal / 2);
-                        setTotalCommissionInput(newTotal.toFixed(2));
-                        if (isSample) setIsSample(false);
-                        if (showCallout) setShowCallout(false);
-                      }}
-                      className="w-8 h-12 flex items-center justify-center rounded-lg border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-slate-500" />
-                    </button>
-                    <span className="text-sm text-slate-500 font-medium ml-1 whitespace-nowrap">
-                      <span className="text-[10px] text-slate-400">+ GRT</span>{' '}
-                      {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100)}
-                    </span>
+                    <div className="flex flex-col items-end leading-tight">
+                      <span className="text-[15px] font-semibold text-slate-700">
+                        {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100)}
+                      </span>
+                      <span className="text-[10px] text-slate-400 tracking-wide">incl. NM GRT</span>
+                    </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setCommissionExpanded(!commissionExpanded)}
-                    className="flex items-center gap-1 w-full justify-center pt-1"
+                    className="flex items-center gap-1.5 text-slate-400 hover:text-slate-500 transition-colors pt-0.5"
                   >
-                    <span className="text-[10px] text-slate-400">Commission Breakdown</span>
-                    <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
+                    <span className="text-[11px] border-b border-dotted border-slate-300">Agent split & GRT details</span>
+                    <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
                   </button>
 
                   <AnimatePresence>
