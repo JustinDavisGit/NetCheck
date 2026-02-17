@@ -1052,23 +1052,6 @@ export default function Calculator() {
                 <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
                   <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Property-Specific Costs</p>
 
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium text-slate-500">
-                      Survey / ILR (Improvement Location Report)
-                    </Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={surveyFee}
-                        onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
-                        onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
-                        className={`w-[80px] ${INLINE_CURRENCY_CLASS}`}
-                      />
-                    </div>
-                  </div>
-
                   <div className="pt-1 space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-medium text-slate-500">
@@ -1245,6 +1228,23 @@ export default function Calculator() {
                         onBlur={() => formatCurrencyOnBlur(waterBill, setWaterBill)}
                         className={`w-[80px] ${INLINE_CURRENCY_CLASS}`}
                         disabled={hasWell}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-slate-500">
+                      Survey / ILR (Improvement Location Report)
+                    </Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={surveyFee}
+                        onChange={(e) => handleCurrencyInput(e.target.value, setSurveyFee)}
+                        onBlur={() => formatCurrencyOnBlur(surveyFee, setSurveyFee)}
+                        className={`w-[80px] ${INLINE_CURRENCY_CLASS}`}
                       />
                     </div>
                   </div>
