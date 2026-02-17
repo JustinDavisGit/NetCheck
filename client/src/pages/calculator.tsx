@@ -708,7 +708,7 @@ export default function Calculator() {
 
                 <div className="space-y-2">
                   <p className="text-xs text-slate-500">
-                    Any second mortgage, HELOC, or solar loan balance to be paid at closing?
+                    Any second mortgage, HELOC, or solar loan balance?
                   </p>
                   <div className="flex gap-2">
                     <button
