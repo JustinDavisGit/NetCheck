@@ -68,10 +68,17 @@ export default function Calculator() {
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [listingAgentPct, setListingAgentPct] = useState<number>(3);
   const [buyerAgentPct, setBuyerAgentPct] = useState<number>(3);
+  const [totalCommissionInput, setTotalCommissionInput] = useState<string>("6.00");
   const [commissionExpanded, setCommissionExpanded] = useState(false);
   const [grtRate, setGrtRate] = useState<number>(7.625);
   const [grtInput, setGrtInput] = useState<string>("7.6250");
   const totalCommissionPct = listingAgentPct + buyerAgentPct;
+  const [isEditingTotalCommission, setIsEditingTotalCommission] = useState(false);
+  useEffect(() => {
+    if (!isEditingTotalCommission) {
+      setTotalCommissionInput(totalCommissionPct.toFixed(2));
+    }
+  }, [totalCommissionPct, isEditingTotalCommission]);
   const [hasAdditionalLiens, setHasAdditionalLiens] = useState(false);
   const [secondMortgage, setSecondMortgage] = useState<string>("");
   const [heloc, setHeloc] = useState<string>("");
@@ -118,6 +125,7 @@ export default function Calculator() {
       if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
         setListingAgentPct(parsed / 2);
         setBuyerAgentPct(parsed / 2);
+        setTotalCommissionInput(parsed.toFixed(2));
       }
     }
     const grt = params.get('grt');
@@ -790,6 +798,7 @@ export default function Calculator() {
                         const newTotal = Math.max(totalCommissionPct - 0.25, 0);
                         setListingAgentPct(newTotal / 2);
                         setBuyerAgentPct(newTotal / 2);
+                        setTotalCommissionInput(newTotal.toFixed(2));
                         if (isSample) setIsSample(false);
                         if (showCallout) setShowCallout(false);
                       }}
@@ -797,14 +806,18 @@ export default function Calculator() {
                     >
                       <Minus className="w-3.5 h-3.5 text-slate-500" />
                     </button>
-                    <div className="relative flex-1">
+                    <div className="relative w-24">
                       <Input
                         type="text"
                         inputMode="decimal"
-                        value={totalCommissionPct.toFixed(2)}
+                        value={totalCommissionInput}
+                        onFocus={() => setIsEditingTotalCommission(true)}
                         onChange={(e) => {
                           const cleaned = e.target.value.replace(/[^0-9.]/g, '');
-                          const parsed = parseFloat(cleaned);
+                          const parts = cleaned.split('.');
+                          const sanitized = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+                          setTotalCommissionInput(sanitized);
+                          const parsed = parseFloat(sanitized);
                           if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
                             setListingAgentPct(parsed / 2);
                             setBuyerAgentPct(parsed / 2);
@@ -813,13 +826,17 @@ export default function Calculator() {
                           if (showCallout) setShowCallout(false);
                         }}
                         onBlur={() => {
-                          const clamped = Math.min(Math.max(totalCommissionPct, 0), 10);
-                          setListingAgentPct(clamped / 2);
-                          setBuyerAgentPct(clamped / 2);
+                          setIsEditingTotalCommission(false);
+                          let parsed = parseFloat(totalCommissionInput);
+                          if (isNaN(parsed)) parsed = 6;
+                          parsed = Math.min(Math.max(parsed, 0), 10);
+                          setListingAgentPct(parsed / 2);
+                          setBuyerAgentPct(parsed / 2);
+                          setTotalCommissionInput(parsed.toFixed(2));
                         }}
-                        className="text-lg h-12 font-medium text-center pr-8"
+                        className="text-lg h-12 font-medium text-center pr-7"
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">%</span>
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">%</span>
                     </div>
                     <button
                       type="button"
@@ -827,6 +844,7 @@ export default function Calculator() {
                         const newTotal = Math.min(totalCommissionPct + 0.25, 10);
                         setListingAgentPct(newTotal / 2);
                         setBuyerAgentPct(newTotal / 2);
+                        setTotalCommissionInput(newTotal.toFixed(2));
                         if (isSample) setIsSample(false);
                         if (showCallout) setShowCallout(false);
                       }}
@@ -834,10 +852,10 @@ export default function Calculator() {
                     >
                       <Plus className="w-3.5 h-3.5 text-slate-500" />
                     </button>
+                    <span className="text-sm text-slate-500 font-medium ml-1">
+                      {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100)}
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-400 text-center">
-                    {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100)}
-                  </p>
 
                   <button
                     type="button"
@@ -890,7 +908,9 @@ export default function Calculator() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setListingAgentPct(Math.max(listingAgentPct - 0.25, 0));
+                                  const newVal = Math.max(listingAgentPct - 0.25, 0);
+                                  setListingAgentPct(newVal);
+                                  setTotalCommissionInput((newVal + buyerAgentPct).toFixed(2));
                                   if (isSample) setIsSample(false);
                                   if (showCallout) setShowCallout(false);
                                 }}
@@ -907,12 +927,15 @@ export default function Calculator() {
                                   const parsed = parseFloat(cleaned);
                                   if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
                                     setListingAgentPct(parsed);
+                                    setTotalCommissionInput((parsed + buyerAgentPct).toFixed(2));
                                   }
                                   if (isSample) setIsSample(false);
                                   if (showCallout) setShowCallout(false);
                                 }}
                                 onBlur={() => {
-                                  setListingAgentPct(Math.min(Math.max(listingAgentPct, 0), 10));
+                                  const clamped = Math.min(Math.max(listingAgentPct, 0), 10);
+                                  setListingAgentPct(clamped);
+                                  setTotalCommissionInput((clamped + buyerAgentPct).toFixed(2));
                                 }}
                                 className={`w-[56px] ${INLINE_INPUT_CLASS}`}
                               />
@@ -920,7 +943,9 @@ export default function Calculator() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setListingAgentPct(Math.min(listingAgentPct + 0.25, 10));
+                                  const newVal = Math.min(listingAgentPct + 0.25, 10);
+                                  setListingAgentPct(newVal);
+                                  setTotalCommissionInput((newVal + buyerAgentPct).toFixed(2));
                                   if (isSample) setIsSample(false);
                                   if (showCallout) setShowCallout(false);
                                 }}
@@ -945,7 +970,9 @@ export default function Calculator() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setBuyerAgentPct(Math.max(buyerAgentPct - 0.25, 0));
+                                  const newVal = Math.max(buyerAgentPct - 0.25, 0);
+                                  setBuyerAgentPct(newVal);
+                                  setTotalCommissionInput((listingAgentPct + newVal).toFixed(2));
                                   if (isSample) setIsSample(false);
                                   if (showCallout) setShowCallout(false);
                                 }}
@@ -962,12 +989,15 @@ export default function Calculator() {
                                   const parsed = parseFloat(cleaned);
                                   if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
                                     setBuyerAgentPct(parsed);
+                                    setTotalCommissionInput((listingAgentPct + parsed).toFixed(2));
                                   }
                                   if (isSample) setIsSample(false);
                                   if (showCallout) setShowCallout(false);
                                 }}
                                 onBlur={() => {
-                                  setBuyerAgentPct(Math.min(Math.max(buyerAgentPct, 0), 10));
+                                  const clamped = Math.min(Math.max(buyerAgentPct, 0), 10);
+                                  setBuyerAgentPct(clamped);
+                                  setTotalCommissionInput((listingAgentPct + clamped).toFixed(2));
                                 }}
                                 className={`w-[56px] ${INLINE_INPUT_CLASS}`}
                               />
@@ -975,7 +1005,9 @@ export default function Calculator() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setBuyerAgentPct(Math.min(buyerAgentPct + 0.25, 10));
+                                  const newVal = Math.min(buyerAgentPct + 0.25, 10);
+                                  setBuyerAgentPct(newVal);
+                                  setTotalCommissionInput((listingAgentPct + newVal).toFixed(2));
                                   if (isSample) setIsSample(false);
                                   if (showCallout) setShowCallout(false);
                                 }}
