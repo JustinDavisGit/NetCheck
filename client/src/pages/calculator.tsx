@@ -36,7 +36,7 @@ function buildSampleResults() {
   const grtAmount = commissionAmount * (SAMPLE_GRT / 100);
   const titleEscrowAmount = getEstimatedTitleEscrowFee(SAMPLE_PRICE);
   const taxProration = (SAMPLE_MONTH / 12) * SAMPLE_ANNUAL_TAX;
-  const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + SAMPLE_SURVEY;
+  const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + SAMPLE_SURVEY + 100;
   const netProceeds = SAMPLE_PRICE - SAMPLE_MORTGAGE - totalDeductions;
   return {
     price: SAMPLE_PRICE,
@@ -46,6 +46,9 @@ function buildSampleResults() {
     titleEscrowAmount,
     taxProration,
     hoaAmount: 0,
+    septicAmount: 0,
+    wellAmount: 0,
+    waterBillAmount: 100,
     surveyAmount: SAMPLE_SURVEY,
     concessionsAmt: 0,
     repairAmt: 0,
@@ -87,6 +90,11 @@ export default function Calculator() {
   const [closingMonth, setClosingMonth] = useState<number>(new Date().getMonth() + 1);
   const [hasHoa, setHasHoa] = useState(false);
   const [hoaFee, setHoaFee] = useState<string>("350");
+  const [hasSeptic, setHasSeptic] = useState(false);
+  const [septicFee, setSepticFee] = useState<string>("550");
+  const [hasWell, setHasWell] = useState(false);
+  const [wellFee, setWellFee] = useState<string>("550");
+  const [waterBill, setWaterBill] = useState<string>("100");
   const [sellerConcessions, setSellerConcessions] = useState<string>("");
   const [repairCosts, setRepairCosts] = useState<string>("");
   const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
@@ -448,11 +456,14 @@ export default function Calculator() {
     const annualTax = parseCurrency(annualPropertyTax);
     const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
     const hoaAmount = hasHoa ? parseCurrency(hoaFee) : 0;
+    const septicAmount = hasSeptic ? parseCurrency(septicFee) : 0;
+    const wellAmount = hasWell ? parseCurrency(wellFee) : 0;
+    const waterBillAmount = hasWell ? 0 : parseCurrency(waterBill);
     const surveyAmount = parseCurrency(surveyFee);
     const concessionsAmt = parseCurrency(sellerConcessions);
     const repairAmt = parseCurrency(repairCosts);
     const customFieldsTotal = customFields.reduce((sum, f) => sum + parseCurrency(f.amount), 0);
-    const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal;
+    const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + septicAmount + wellAmount + waterBillAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal;
     const netProceeds = price - totalLiens - totalDeductions;
 
     return {
@@ -463,6 +474,9 @@ export default function Calculator() {
       titleEscrowAmount,
       taxProration,
       hoaAmount,
+      septicAmount,
+      wellAmount,
+      waterBillAmount,
       surveyAmount,
       concessionsAmt,
       repairAmt,
@@ -473,7 +487,7 @@ export default function Calculator() {
       solarAmt,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts, customFields]);
+  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, sellerConcessions, repairCosts, customFields]);
 
   const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
 
@@ -1036,7 +1050,7 @@ export default function Calculator() {
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Closing Costs & Fees</p>
+                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Property-Specific Costs</p>
 
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-medium text-slate-500">
@@ -1058,7 +1072,7 @@ export default function Calculator() {
                   <div className="pt-1 space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-medium text-slate-500">
-                        HOA?
+                        Homeowners Association (HOA)?
                       </Label>
                       <div className="flex gap-1.5">
                         <button
@@ -1077,7 +1091,6 @@ export default function Calculator() {
                         </button>
                       </div>
                     </div>
-
                     <AnimatePresence>
                       {hasHoa && (
                         <motion.div
@@ -1107,6 +1120,138 @@ export default function Calculator() {
                       )}
                     </AnimatePresence>
                   </div>
+
+                  <div className="pt-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-slate-500">
+                        Septic System?
+                      </Label>
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setHasSeptic(true)}
+                          className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${hasSeptic ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHasSeptic(false)}
+                          className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${!hasSeptic ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {hasSeptic && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="flex items-center justify-between pt-1">
+                            <Label className="text-xs text-slate-400">
+                              Septic Inspection
+                            </Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={septicFee}
+                                onChange={(e) => handleCurrencyInput(e.target.value, setSepticFee)}
+                                onBlur={() => formatCurrencyOnBlur(septicFee, setSepticFee)}
+                                className={`w-[80px] ${INLINE_CURRENCY_CLASS}`}
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="pt-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-slate-500">
+                        Well?
+                      </Label>
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setHasWell(true);
+                            setWaterBill("0");
+                          }}
+                          className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${hasWell ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setHasWell(false);
+                            setWaterBill("100");
+                          }}
+                          className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${!hasWell ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {hasWell && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="flex items-center justify-between pt-1">
+                            <Label className="text-xs text-slate-400">
+                              Well Inspection & Water Test
+                            </Label>
+                            <div className="relative">
+                              <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={wellFee}
+                                onChange={(e) => handleCurrencyInput(e.target.value, setWellFee)}
+                                onBlur={() => formatCurrencyOnBlur(wellFee, setWellFee)}
+                                className={`w-[80px] ${INLINE_CURRENCY_CLASS}`}
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-slate-500">
+                      Final Water Bill
+                    </Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={waterBill}
+                        onChange={(e) => handleCurrencyInput(e.target.value, setWaterBill)}
+                        onBlur={() => formatCurrencyOnBlur(waterBill, setWaterBill)}
+                        className={`w-[80px] ${INLINE_CURRENCY_CLASS}`}
+                        disabled={hasWell}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
+                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Tax Proration</p>
 
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-medium text-slate-500">
@@ -1341,6 +1486,24 @@ export default function Calculator() {
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">HOA Fee</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(displayResults.hoaAmount)}</span>
+                        </div>
+                      )}
+                      {displayResults.septicAmount > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Septic Inspection</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.septicAmount)}</span>
+                        </div>
+                      )}
+                      {displayResults.wellAmount > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Well Inspection & Water Test</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.wellAmount)}</span>
+                        </div>
+                      )}
+                      {displayResults.waterBillAmount > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Final Water Bill</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.waterBillAmount)}</span>
                         </div>
                       )}
                       {displayResults.concessionsAmt > 0 && (
