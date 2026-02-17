@@ -1055,43 +1055,44 @@ export default function Calculator() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center justify-between">
                     <Label className="text-xs font-medium text-slate-500">
-                      Property Tax Proration
+                      Annual Property Tax
                     </Label>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                    <div className="relative">
+                      <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
                       <input
                         type="text"
                         inputMode="decimal"
-                        placeholder="Annual taxes"
                         value={annualPropertyTax}
                         onChange={(e) => handleCurrencyInput(e.target.value, setAnnualPropertyTax)}
                         onBlur={() => formatCurrencyOnBlur(annualPropertyTax, setAnnualPropertyTax)}
-                        className="w-full pl-7 pr-2 py-1 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
+                        className={`w-[100px] ${INLINE_CURRENCY_CLASS}`}
                       />
                     </div>
-                    <span className="text-xs text-slate-400 shrink-0">closing</span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium text-slate-500">
+                      Estimated Month of Closing
+                    </Label>
                     <select
                       value={closingMonth}
                       onChange={(e) => setClosingMonth(parseInt(e.target.value))}
-                      className="text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
+                      className="text-xs font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
                     >
-                      <option value={1}>Jan</option>
-                      <option value={2}>Feb</option>
-                      <option value={3}>Mar</option>
-                      <option value={4}>Apr</option>
+                      <option value={1}>January</option>
+                      <option value={2}>February</option>
+                      <option value={3}>March</option>
+                      <option value={4}>April</option>
                       <option value={5}>May</option>
-                      <option value={6}>Jun</option>
-                      <option value={7}>Jul</option>
-                      <option value={8}>Aug</option>
-                      <option value={9}>Sep</option>
-                      <option value={10}>Oct</option>
-                      <option value={11}>Nov</option>
-                      <option value={12}>Dec</option>
+                      <option value={6}>June</option>
+                      <option value={7}>July</option>
+                      <option value={8}>August</option>
+                      <option value={9}>September</option>
+                      <option value={10}>October</option>
+                      <option value={11}>November</option>
+                      <option value={12}>December</option>
                     </select>
                   </div>
 
