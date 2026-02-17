@@ -168,3 +168,28 @@
   border-color: rgba(34, 197, 94, 0.5) !important;
 }
 
+@keyframes netSlicePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  70% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.net-proceeds-pulse {
+  animation: netSlicePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+
+@keyframes netTextPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.net-center-text-pulse {
+  animation: netTextPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+

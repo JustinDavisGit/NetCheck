@@ -594,8 +594,16 @@ export default function Calculator() {
     const isNetProceeds = payload && payload.name === 'Net Proceeds';
     const isUserHovering = activeSlice !== null;
     const isDefaultEmphasis = isNetProceeds && !isUserHovering;
+    const isNetHovered = isNetProceeds && isUserHovering;
+    const glowFilter = isNetHovered
+      ? 'drop-shadow(0 4px 16px rgba(16,185,129,0.5)) drop-shadow(0 0 8px rgba(52,211,153,0.3))'
+      : isDefaultEmphasis
+        ? 'drop-shadow(0 3px 10px rgba(16,185,129,0.35))'
+        : isNetProceeds
+          ? 'drop-shadow(0 3px 10px rgba(16,185,129,0.35))'
+          : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))';
     return (
-      <g>
+      <g className={isNetHovered ? 'net-proceeds-pulse' : ''}>
         <Sector
           cx={cx}
           cy={cy}
@@ -604,7 +612,7 @@ export default function Calculator() {
           startAngle={startAngle}
           endAngle={endAngle}
           fill={isNetProceeds ? 'url(#netProceedsGradient)' : fill}
-          style={{ filter: isNetProceeds ? 'drop-shadow(0 3px 10px rgba(16,185,129,0.35))' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
+          style={{ filter: glowFilter, transition: 'filter 0.2s ease-out' }}
         />
       </g>
     );
@@ -1191,15 +1199,18 @@ export default function Calculator() {
                               y="47%"
                               textAnchor="middle"
                               dominantBaseline="central"
+                              className={activeSlice !== null && chartData[activeSlice]?.name === 'Net Proceeds' ? 'net-center-text-pulse' : ''}
                               style={{
-                                fontSize: activeSlice !== null ? '20px' : '24px',
+                                fontSize: activeSlice !== null && chartData[activeSlice]
+                                  ? (chartData[activeSlice].name === 'Net Proceeds' ? '28px' : '20px')
+                                  : '24px',
                                 fontWeight: 700,
                                 fill: activeSlice !== null && chartData[activeSlice]
                                   ? (chartData[activeSlice].name === 'Net Proceeds'
                                     ? '#10b981'
                                     : chartData[activeSlice].color)
                                   : displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
-                                transition: 'all 0.15s ease-out',
+                                transition: 'font-size 0.2s ease-out, fill 0.15s ease-out',
                               }}
                             >
                               {activeSlice !== null && chartData[activeSlice]
@@ -1213,13 +1224,13 @@ export default function Calculator() {
                               dominantBaseline="central"
                               style={{
                                 fontSize: '11px',
-                                fontWeight: 500,
-                                fill: '#94a3b8',
+                                fontWeight: activeSlice !== null && chartData[activeSlice]?.name === 'Net Proceeds' ? 600 : 500,
+                                fill: activeSlice !== null && chartData[activeSlice]?.name === 'Net Proceeds' ? '#6ee7b7' : '#94a3b8',
                                 transition: 'all 0.15s ease-out',
                               }}
                             >
                               {activeSlice !== null && chartData[activeSlice]
-                                ? chartData[activeSlice].name
+                                ? (chartData[activeSlice].name === 'Net Proceeds' ? 'In your pocket' : chartData[activeSlice].name)
                                 : 'Net Proceeds'}
                             </text>
                           </PieChart>
