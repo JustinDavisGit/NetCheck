@@ -948,14 +948,13 @@ export default function Calculator() {
                               >
                                 <Plus className="w-3 h-3 text-slate-500" />
                               </button>
-                              <span className="text-xs text-slate-500 font-medium ml-1">
+                              <span className="text-xs text-slate-500 font-medium ml-1 whitespace-nowrap">
                                 {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100)}
+                                <span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100 * grtRate / 100)}</span>
+                                <span className="text-[10px] text-slate-400"> GRT</span>
                               </span>
                             </div>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-0.5">
-                            GRT — {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100 * grtRate / 100)}
-                          </p>
                         </div>
 
                         <div>
@@ -1010,17 +1009,21 @@ export default function Calculator() {
                               >
                                 <Plus className="w-3 h-3 text-slate-500" />
                               </button>
-                              <span className="text-xs text-slate-500 font-medium ml-1">
+                              <span className="text-xs text-slate-500 font-medium ml-1 whitespace-nowrap">
                                 {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100)}
+                                <span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100 * grtRate / 100)}</span>
+                                <span className="text-[10px] text-slate-400"> GRT</span>
                               </span>
                             </div>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-0.5">
-                            GRT — {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100 * grtRate / 100)}
-                          </p>
                         </div>
 
-                        <p className="text-[10px] text-slate-400 italic">Total commission is split between agents</p>
+                        <div className="border-t border-slate-200 pt-2 mt-1 flex items-center justify-between">
+                          <span className="text-xs font-semibold text-slate-600">Total Commission + GRT</span>
+                          <span className="text-xs font-semibold text-slate-700">
+                            {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100)}
+                          </span>
+                        </div>
                         </div>
                       </motion.div>
                     )}
