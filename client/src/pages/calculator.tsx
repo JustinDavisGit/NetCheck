@@ -1207,7 +1207,7 @@ export default function Calculator() {
                                 fontWeight: 700,
                                 fill: activeSlice !== null && chartData[activeSlice]
                                   ? (chartData[activeSlice].name === 'Net Proceeds'
-                                    ? '#10b981'
+                                    ? '#34d399'
                                     : chartData[activeSlice].color)
                                   : displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
                                 transition: 'font-size 0.2s ease-out, fill 0.15s ease-out',
