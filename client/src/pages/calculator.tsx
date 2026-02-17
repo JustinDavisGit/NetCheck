@@ -855,21 +855,15 @@ export default function Calculator() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-center">
                     <button
                       type="button"
+                      title="View commission breakdown"
                       onClick={() => setCommissionExpanded(!commissionExpanded)}
-                      className="flex items-center gap-1.5 text-slate-400 hover:text-slate-500 transition-colors"
+                      className="p-1 rounded-full text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
                     >
-                      <span className="text-[11px] border-b border-dotted border-slate-300">Agent split & GRT details</span>
-                      <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
                     </button>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-sm font-semibold text-slate-700">
-                        {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100)}
-                      </span>
-                      <span className="text-[10px] text-slate-400">incl. GRT</span>
-                    </div>
                   </div>
 
                   <AnimatePresence>
