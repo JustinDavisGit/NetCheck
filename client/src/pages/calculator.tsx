@@ -786,13 +786,13 @@ export default function Calculator() {
                   </AnimatePresence>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                    <Handshake className="w-4 h-4 text-blue-400" />
-                    Real Estate Commissions
-                  </Label>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center h-11 rounded-xl border border-slate-200 overflow-hidden shadow-sm focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                      <Handshake className="w-4 h-4 text-blue-400" />
+                      Real Estate Commissions
+                    </Label>
+                    <div className="flex items-center h-8 rounded-lg border border-slate-200 overflow-hidden shadow-sm focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
                       <button
                         type="button"
                         onClick={() => {
@@ -803,11 +803,11 @@ export default function Calculator() {
                           if (isSample) setIsSample(false);
                           if (showCallout) setShowCallout(false);
                         }}
-                        className="w-9 h-full flex items-center justify-center bg-slate-50 hover:bg-emerald-50 border-r border-slate-200 transition-colors"
+                        className="w-7 h-full flex items-center justify-center bg-slate-50 hover:bg-emerald-50 border-r border-slate-200 transition-colors"
                       >
-                        <Minus className="w-3.5 h-3.5 text-slate-400" />
+                        <Minus className="w-3 h-3 text-slate-400" />
                       </button>
-                      <div className="relative w-16">
+                      <div className="relative w-14">
                         <input
                           type="text"
                           inputMode="decimal"
@@ -835,10 +835,10 @@ export default function Calculator() {
                             setBuyerAgentPct(parsed / 2);
                             setTotalCommissionInput(parsed.toFixed(2));
                           }}
-                          className="w-full h-full text-center text-[15px] font-semibold text-slate-700 bg-transparent outline-none border-none"
+                          className="w-full h-full text-center text-sm font-semibold text-slate-700 bg-transparent outline-none border-none"
                         />
                       </div>
-                      <span className="text-xs text-slate-400 font-medium pr-1">%</span>
+                      <span className="text-[11px] text-slate-400 font-medium pr-0.5">%</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -849,27 +849,28 @@ export default function Calculator() {
                           if (isSample) setIsSample(false);
                           if (showCallout) setShowCallout(false);
                         }}
-                        className="w-9 h-full flex items-center justify-center bg-slate-50 hover:bg-emerald-50 border-l border-slate-200 transition-colors"
+                        className="w-7 h-full flex items-center justify-center bg-slate-50 hover:bg-emerald-50 border-l border-slate-200 transition-colors"
                       >
-                        <Plus className="w-3.5 h-3.5 text-slate-400" />
+                        <Plus className="w-3 h-3 text-slate-400" />
                       </button>
                     </div>
-                    <div className="flex flex-col items-end leading-tight">
-                      <span className="text-[15px] font-semibold text-slate-700">
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setCommissionExpanded(!commissionExpanded)}
+                      className="flex items-center gap-1.5 text-slate-400 hover:text-slate-500 transition-colors"
+                    >
+                      <span className="text-[11px] border-b border-dotted border-slate-300">Agent split & GRT details</span>
+                      <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-sm font-semibold text-slate-700">
                         {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100)}
                       </span>
-                      <span className="text-[10px] text-slate-400 tracking-wide">incl. NM GRT</span>
+                      <span className="text-[10px] text-slate-400">incl. GRT</span>
                     </div>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setCommissionExpanded(!commissionExpanded)}
-                    className="flex items-center gap-1.5 text-slate-400 hover:text-slate-500 transition-colors pt-0.5"
-                  >
-                    <span className="text-[11px] border-b border-dotted border-slate-300">Agent split & GRT details</span>
-                    <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
-                  </button>
 
                   <AnimatePresence>
                     {commissionExpanded && (
