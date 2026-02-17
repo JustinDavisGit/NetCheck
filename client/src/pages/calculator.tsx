@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Copy, Check, Handshake, Info, Wrench, Plus, X, FileDown, ChevronDown, Minus } from "lucide-react";
+import { DollarSign, Home, FileText, Copy, Check, Handshake, Info, Wrench, Plus, X, FileDown, ChevronDown, Minus, Landmark } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from "framer-motion";
@@ -706,24 +706,19 @@ export default function Calculator() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <p className="text-xs text-slate-500">
-                    Any second mortgage, HELOC, or solar loan balance to be paid at closing?
-                  </p>
-                  <div className="flex gap-2">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Landmark className="w-4 h-4 text-blue-400" />
+                    Additional Liens
+                  </Label>
+                  <div className="flex justify-center">
                     <button
                       type="button"
-                      onClick={() => setHasAdditionalLiens(true)}
-                      className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${hasAdditionalLiens ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                      title="Add second mortgage, HELOC, or solar loan"
+                      onClick={() => setHasAdditionalLiens(!hasAdditionalLiens)}
+                      className="p-1 rounded-full text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-all"
                     >
-                      Yes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setHasAdditionalLiens(false)}
-                      className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-colors ${!hasAdditionalLiens ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
-                    >
-                      No
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${hasAdditionalLiens ? 'rotate-180' : ''}`} />
                     </button>
                   </div>
 
