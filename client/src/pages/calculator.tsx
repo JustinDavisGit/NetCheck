@@ -587,23 +587,28 @@ export default function Calculator() {
     ].filter(d => d.value > 0);
   }, [displayResults]);
 
+  const netProceedsIndex = useMemo(() => chartData.findIndex(d => d.name === 'Net Proceeds'), [chartData]);
+
   const renderActiveShape = useCallback((props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
+    const isNetProceeds = payload && payload.name === 'Net Proceeds';
+    const isUserHovering = activeSlice !== null;
+    const isDefaultEmphasis = isNetProceeds && !isUserHovering;
     return (
       <g>
         <Sector
           cx={cx}
           cy={cy}
-          innerRadius={innerRadius - 2}
-          outerRadius={outerRadius + 8}
+          innerRadius={isDefaultEmphasis ? innerRadius : innerRadius - 2}
+          outerRadius={isDefaultEmphasis ? outerRadius + 4 : outerRadius + 8}
           startAngle={startAngle}
           endAngle={endAngle}
-          fill={fill}
-          style={{ filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
+          fill={isNetProceeds ? 'url(#netProceedsGradient)' : fill}
+          style={{ filter: isNetProceeds ? 'drop-shadow(0 3px 10px rgba(16,185,129,0.35))' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
         />
       </g>
     );
-  }, []);
+  }, [activeSlice]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
@@ -1144,6 +1149,12 @@ export default function Calculator() {
                       <div style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.06))' }}>
                         <ResponsiveContainer width="100%" height={360}>
                           <PieChart>
+                            <defs>
+                              <linearGradient id="netProceedsGradient" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor="#34d399" />
+                                <stop offset="100%" stopColor="#10b981" />
+                              </linearGradient>
+                            </defs>
                             <Pie
                               data={chartData}
                               cx="50%"
@@ -1153,23 +1164,26 @@ export default function Calculator() {
                               paddingAngle={2}
                               dataKey="value"
                               stroke="none"
-                              activeIndex={activeSlice !== null ? activeSlice : undefined}
+                              activeIndex={activeSlice !== null ? activeSlice : (netProceedsIndex >= 0 ? netProceedsIndex : undefined)}
                               activeShape={renderActiveShape}
                               onMouseEnter={(_, index) => setActiveSlice(index)}
                               onMouseLeave={() => setActiveSlice(null)}
                               labelLine={false}
                             >
-                              {chartData.map((entry, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={entry.color}
-                                  style={{
-                                    opacity: activeSlice !== null && activeSlice !== index ? 0.45 : 1,
-                                    transition: 'opacity 0.15s ease-out',
-                                    cursor: 'pointer',
-                                  }}
-                                />
-                              ))}
+                              {chartData.map((entry, index) => {
+                                const isNet = entry.name === 'Net Proceeds';
+                                return (
+                                  <Cell
+                                    key={`cell-${index}`}
+                                    fill={isNet ? 'url(#netProceedsGradient)' : entry.color}
+                                    style={{
+                                      opacity: activeSlice !== null && activeSlice !== index ? 0.45 : 1,
+                                      transition: 'opacity 0.15s ease-out',
+                                      cursor: 'pointer',
+                                    }}
+                                  />
+                                );
+                              })}
                             </Pie>
                             
                             <text
@@ -1178,21 +1192,35 @@ export default function Calculator() {
                               textAnchor="middle"
                               dominantBaseline="central"
                               style={{
-                                fontSize: '24px',
+                                fontSize: activeSlice !== null ? '20px' : '24px',
                                 fontWeight: 700,
-                                fill: displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
+                                fill: activeSlice !== null && chartData[activeSlice]
+                                  ? (chartData[activeSlice].name === 'Net Proceeds'
+                                    ? '#10b981'
+                                    : chartData[activeSlice].color)
+                                  : displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
+                                transition: 'all 0.15s ease-out',
                               }}
                             >
-                              {formatCurrency(displayResults.netProceeds)}
+                              {activeSlice !== null && chartData[activeSlice]
+                                ? formatCurrency(chartData[activeSlice].value)
+                                : formatCurrency(displayResults.netProceeds)}
                             </text>
                             <text
                               x="50%"
                               y="55%"
                               textAnchor="middle"
                               dominantBaseline="central"
-                              style={{ fontSize: '11px', fontWeight: 500, fill: '#94a3b8' }}
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 500,
+                                fill: '#94a3b8',
+                                transition: 'all 0.15s ease-out',
+                              }}
                             >
-                              Net Proceeds
+                              {activeSlice !== null && chartData[activeSlice]
+                                ? chartData[activeSlice].name
+                                : 'Net Proceeds'}
                             </text>
                           </PieChart>
                         </ResponsiveContainer>
