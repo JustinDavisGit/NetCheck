@@ -605,6 +605,9 @@ export default function Calculator() {
       ...(displayResults.taxProration > 0 ? [{ name: 'Tax Proration', value: displayResults.taxProration, color: '#a78bfa' }] : []),
       ...(displayResults.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: displayResults.surveyAmount, color: '#f472b6' }] : []),
       ...(displayResults.hoaAmount > 0 ? [{ name: 'HOA Fee', value: displayResults.hoaAmount, color: '#2dd4bf' }] : []),
+      ...(displayResults.septicAmount > 0 ? [{ name: 'Septic Inspection', value: displayResults.septicAmount, color: '#92400e' }] : []),
+      ...(displayResults.wellAmount > 0 ? [{ name: 'Well Inspection', value: displayResults.wellAmount, color: '#3b82f6' }] : []),
+      ...(displayResults.waterBillAmount > 0 ? [{ name: 'Final Water Bill', value: displayResults.waterBillAmount, color: '#06b6d4' }] : []),
       ...(displayResults.concessionsAmt > 0 ? [{ name: 'Concessions', value: displayResults.concessionsAmt, color: '#fb923c' }] : []),
       ...(displayResults.repairAmt > 0 ? [{ name: 'Repairs', value: displayResults.repairAmt, color: '#e879f9' }] : []),
       ...displayResults.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
@@ -662,7 +665,7 @@ export default function Calculator() {
             className="w-full lg:w-[420px] lg:shrink-0"
           >
             <Card className="shadow-lg border-0">
-              <CardContent className="p-6 space-y-6">
+              <CardContent className="p-6 space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="salePrice" className="text-sm font-medium text-slate-700 flex items-center gap-2">
                     <Home className="w-4 h-4 text-blue-400" />
