@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Copy, Check, Handshake, Info, Wrench, Plus, X, FileDown } from "lucide-react";
+import { DollarSign, Home, FileText, Copy, Check, Handshake, Info, Wrench, Plus, X, FileDown, ChevronDown, Minus } from "lucide-react";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from "framer-motion";
@@ -66,10 +66,12 @@ const INLINE_CURRENCY_CLASS = "text-right text-sm font-semibold text-gray-900 bg
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
-  const [brokerCompensation, setBrokerCompensation] = useState<number>(6);
-  const [brokerInput, setBrokerInput] = useState<string>("6.0");
+  const [listingAgentPct, setListingAgentPct] = useState<number>(3);
+  const [buyerAgentPct, setBuyerAgentPct] = useState<number>(3);
+  const [commissionExpanded, setCommissionExpanded] = useState(false);
   const [grtRate, setGrtRate] = useState<number>(7.625);
   const [grtInput, setGrtInput] = useState<string>("7.6250");
+  const totalCommissionPct = listingAgentPct + buyerAgentPct;
   const [hasAdditionalLiens, setHasAdditionalLiens] = useState(false);
   const [secondMortgage, setSecondMortgage] = useState<string>("");
   const [heloc, setHeloc] = useState<string>("");
@@ -114,8 +116,8 @@ export default function Calculator() {
     if (bc) {
       const parsed = parseFloat(bc);
       if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
-        setBrokerCompensation(parsed);
-        setBrokerInput(parsed.toFixed(1));
+        setListingAgentPct(parsed / 2);
+        setBuyerAgentPct(parsed / 2);
       }
     }
     const grt = params.get('grt');
@@ -186,7 +188,7 @@ export default function Calculator() {
     const params = new URLSearchParams();
     if (salePrice) params.set('sp', salePrice);
     if (mortgageBalance) params.set('mb', mortgageBalance);
-    if (brokerCompensation !== 6) params.set('bc', brokerCompensation.toString());
+    if (totalCommissionPct !== 6) params.set('bc', totalCommissionPct.toString());
     if (grtRate !== 7.625) params.set('grt', grtRate.toString());
     if (hasAdditionalLiens) {
       params.set('liens', '1');
@@ -303,7 +305,7 @@ export default function Calculator() {
 
     y += 30;
 
-    const brokerPct = isSample ? SAMPLE_BROKER : brokerCompensation;
+    const brokerPct = isSample ? SAMPLE_BROKER : totalCommissionPct;
     const grtPct = isSample ? SAMPLE_GRT : grtRate;
 
     const items: { label: string; amount: number }[] = [];
@@ -432,7 +434,7 @@ export default function Calculator() {
 
     if (price === 0) return null;
 
-    const commissionAmount = price * (brokerCompensation / 100);
+    const commissionAmount = price * (totalCommissionPct / 100);
     const grtAmount = commissionAmount * (grtRate / 100);
     const titleEscrowAmount = getEstimatedTitleEscrowFee(price);
     const annualTax = parseCurrency(annualPropertyTax);
@@ -463,7 +465,7 @@ export default function Calculator() {
       solarAmt,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, brokerCompensation, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts, customFields]);
+  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, surveyFee, sellerConcessions, repairCosts, customFields]);
 
   const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
 
@@ -777,51 +779,226 @@ export default function Calculator() {
                 </div>
 
                 <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Closing Costs & Fees</p>
-
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium text-slate-500">
-                      Real Estate Brokerage Compensation
-                    </Label>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Real Estate Commissions</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newTotal = Math.max(totalCommissionPct - 0.25, 0);
+                          setListingAgentPct(newTotal / 2);
+                          setBuyerAgentPct(newTotal / 2);
+                          if (isSample) setIsSample(false);
+                          if (showCallout) setShowCallout(false);
+                        }}
+                        className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                      >
+                        <Minus className="w-3 h-3 text-slate-500" />
+                      </button>
                       <input
                         type="text"
                         inputMode="decimal"
-                        value={brokerInput}
-                        onChange={(e) => handlePercentInput(e.target.value, setBrokerInput, setBrokerCompensation, 10)}
-                        onBlur={() => handlePercentBlur(brokerInput, setBrokerInput, setBrokerCompensation, 6, 10, 1)}
+                        value={totalCommissionPct.toFixed(2)}
+                        onChange={(e) => {
+                          const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                          const parsed = parseFloat(cleaned);
+                          if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+                            setListingAgentPct(parsed / 2);
+                            setBuyerAgentPct(parsed / 2);
+                          }
+                          if (isSample) setIsSample(false);
+                          if (showCallout) setShowCallout(false);
+                        }}
+                        onBlur={() => {
+                          const clamped = Math.min(Math.max(totalCommissionPct, 0), 10);
+                          setListingAgentPct(clamped / 2);
+                          setBuyerAgentPct(clamped / 2);
+                        }}
                         className={`w-[56px] ${INLINE_INPUT_CLASS}`}
                       />
                       <span className="text-xs text-slate-400">%</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newTotal = Math.min(totalCommissionPct + 0.25, 10);
+                          setListingAgentPct(newTotal / 2);
+                          setBuyerAgentPct(newTotal / 2);
+                          if (isSample) setIsSample(false);
+                          if (showCallout) setShowCallout(false);
+                        }}
+                        className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                      >
+                        <Plus className="w-3 h-3 text-slate-500" />
+                      </button>
+                      <span className="text-xs text-slate-500 font-medium ml-1">
+                        {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100)}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <Label className="text-xs font-medium text-slate-500">
-                        NM GRT on Commission
-                      </Label>
-                      <a
-                        href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => setCommissionExpanded(!commissionExpanded)}
+                    className="flex items-center gap-1 w-full"
+                  >
+                    <span className="text-[10px] text-slate-400">Commission Breakdown</span>
+                    <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${commissionExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {commissionExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden space-y-2.5"
                       >
-                        (Location Codes)
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={grtInput}
-                        onChange={(e) => handlePercentInput(e.target.value, setGrtInput, setGrtRate, 15)}
-                        onBlur={() => handlePercentBlur(grtInput, setGrtInput, setGrtRate, 7.625, 15, 4)}
-                        className={`w-[72px] ${INLINE_INPUT_CLASS}`}
-                      />
-                      <span className="text-xs text-slate-400">%</span>
-                    </div>
-                  </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Label className="text-xs font-medium text-slate-500">NM GRT Rate</Label>
+                            <a
+                              href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+                            >
+                              (Location Codes)
+                            </a>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={grtInput}
+                              onChange={(e) => handlePercentInput(e.target.value, setGrtInput, setGrtRate, 15)}
+                              onBlur={() => handlePercentBlur(grtInput, setGrtInput, setGrtRate, 7.625, 15, 4)}
+                              className={`w-[72px] ${INLINE_INPUT_CLASS}`}
+                            />
+                            <span className="text-xs text-slate-400">%</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs font-medium text-slate-500">Listing Agent</Label>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setListingAgentPct(Math.max(listingAgentPct - 0.25, 0));
+                                  if (isSample) setIsSample(false);
+                                  if (showCallout) setShowCallout(false);
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                              >
+                                <Minus className="w-3 h-3 text-slate-500" />
+                              </button>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={listingAgentPct.toFixed(2)}
+                                onChange={(e) => {
+                                  const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                                  const parsed = parseFloat(cleaned);
+                                  if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+                                    setListingAgentPct(parsed);
+                                  }
+                                  if (isSample) setIsSample(false);
+                                  if (showCallout) setShowCallout(false);
+                                }}
+                                onBlur={() => {
+                                  setListingAgentPct(Math.min(Math.max(listingAgentPct, 0), 10));
+                                }}
+                                className={`w-[56px] ${INLINE_INPUT_CLASS}`}
+                              />
+                              <span className="text-xs text-slate-400">%</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setListingAgentPct(Math.min(listingAgentPct + 0.25, 10));
+                                  if (isSample) setIsSample(false);
+                                  if (showCallout) setShowCallout(false);
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                              >
+                                <Plus className="w-3 h-3 text-slate-500" />
+                              </button>
+                              <span className="text-xs text-slate-500 font-medium ml-1">
+                                {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100)}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            GRT — {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100 * grtRate / 100)}
+                          </p>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs font-medium text-slate-500">Buyer's Agent</Label>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBuyerAgentPct(Math.max(buyerAgentPct - 0.25, 0));
+                                  if (isSample) setIsSample(false);
+                                  if (showCallout) setShowCallout(false);
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                              >
+                                <Minus className="w-3 h-3 text-slate-500" />
+                              </button>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={buyerAgentPct.toFixed(2)}
+                                onChange={(e) => {
+                                  const cleaned = e.target.value.replace(/[^0-9.]/g, '');
+                                  const parsed = parseFloat(cleaned);
+                                  if (!isNaN(parsed) && parsed >= 0 && parsed <= 10) {
+                                    setBuyerAgentPct(parsed);
+                                  }
+                                  if (isSample) setIsSample(false);
+                                  if (showCallout) setShowCallout(false);
+                                }}
+                                onBlur={() => {
+                                  setBuyerAgentPct(Math.min(Math.max(buyerAgentPct, 0), 10));
+                                }}
+                                className={`w-[56px] ${INLINE_INPUT_CLASS}`}
+                              />
+                              <span className="text-xs text-slate-400">%</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBuyerAgentPct(Math.min(buyerAgentPct + 0.25, 10));
+                                  if (isSample) setIsSample(false);
+                                  if (showCallout) setShowCallout(false);
+                                }}
+                                className="w-6 h-6 flex items-center justify-center rounded border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors"
+                              >
+                                <Plus className="w-3 h-3 text-slate-500" />
+                              </button>
+                              <span className="text-xs text-slate-500 font-medium ml-1">
+                                {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100)}
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            GRT — {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100 * grtRate / 100)}
+                          </p>
+                        </div>
+
+                        <p className="text-[10px] text-slate-400 italic">Total commission is split between agents</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
+                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Closing Costs & Fees</p>
 
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-medium text-slate-500">
@@ -1090,7 +1267,7 @@ export default function Calculator() {
                         </div>
                       )}
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Commission ({(isSample ? SAMPLE_BROKER : brokerCompensation).toFixed(1)}%)</span>
+                        <span className="text-slate-500">Commission ({(isSample ? SAMPLE_BROKER : totalCommissionPct).toFixed(1)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(displayResults.commissionAmount)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
