@@ -594,55 +594,18 @@ export default function Calculator() {
     const isNetProceeds = payload && payload.name === 'Net Proceeds';
     const isUserHovering = activeSlice !== null;
     const isDefaultEmphasis = isNetProceeds && !isUserHovering;
-    const isNetHovered = isNetProceeds && isUserHovering;
-    const midAngle = ((startAngle + endAngle) / 2) * (Math.PI / 180);
-    const pulseOffset = isNetHovered ? 3 : 0;
-    const offsetX = Math.cos(midAngle) * pulseOffset;
-    const offsetY = -Math.sin(midAngle) * pulseOffset;
     return (
       <g>
-        {isNetHovered && (
-          <Sector
-            cx={cx + offsetX}
-            cy={cy + offsetY}
-            innerRadius={innerRadius - 4}
-            outerRadius={outerRadius + 14}
-            startAngle={startAngle}
-            endAngle={endAngle}
-            fill="none"
-            stroke="none"
-            style={{ filter: 'drop-shadow(0 0 18px rgba(16,185,129,0.45))' }}
-          />
-        )}
         <Sector
-          cx={cx + offsetX}
-          cy={cy + offsetY}
+          cx={cx}
+          cy={cy}
           innerRadius={isDefaultEmphasis ? innerRadius : innerRadius - 2}
-          outerRadius={isDefaultEmphasis ? outerRadius + 4 : outerRadius + 10}
+          outerRadius={isDefaultEmphasis ? outerRadius + 4 : outerRadius + 8}
           startAngle={startAngle}
           endAngle={endAngle}
-          fill={isNetHovered ? 'url(#netProceedsGradientBright)' : isNetProceeds ? 'url(#netProceedsGradient)' : fill}
-          style={{
-            filter: isNetHovered
-              ? 'drop-shadow(0 4px 16px rgba(16,185,129,0.5))'
-              : isNetProceeds
-                ? 'drop-shadow(0 3px 10px rgba(16,185,129,0.35))'
-                : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))',
-            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }}
+          fill={isNetProceeds ? 'url(#netProceedsGradient)' : fill}
+          style={{ filter: isNetProceeds ? 'drop-shadow(0 3px 10px rgba(16,185,129,0.35))' : 'drop-shadow(0 2px 6px rgba(0,0,0,0.15))' }}
         />
-        {isNetHovered && (
-          <Sector
-            cx={cx + offsetX}
-            cy={cy + offsetY}
-            innerRadius={outerRadius + 11}
-            outerRadius={outerRadius + 13}
-            startAngle={startAngle}
-            endAngle={endAngle}
-            fill="rgba(52,211,153,0.3)"
-            stroke="none"
-          />
-        )}
       </g>
     );
   }, [activeSlice]);
@@ -1191,11 +1154,6 @@ export default function Calculator() {
                                 <stop offset="0%" stopColor="#34d399" />
                                 <stop offset="100%" stopColor="#10b981" />
                               </linearGradient>
-                              <linearGradient id="netProceedsGradientBright" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stopColor="#6ee7b7" />
-                                <stop offset="50%" stopColor="#34d399" />
-                                <stop offset="100%" stopColor="#10b981" />
-                              </linearGradient>
                             </defs>
                             <Pie
                               data={chartData}
@@ -1228,58 +1186,42 @@ export default function Calculator() {
                               })}
                             </Pie>
                             
-                            {(() => {
-                              const isNetHovered = activeSlice !== null && chartData[activeSlice]?.name === 'Net Proceeds';
-                              const hoveredSlice = activeSlice !== null ? chartData[activeSlice] : null;
-                              const amountColor = isNetHovered
-                                ? '#059669'
-                                : hoveredSlice
-                                  ? hoveredSlice.color
-                                  : displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444';
-                              const amount = hoveredSlice
-                                ? formatCurrency(hoveredSlice.value)
-                                : formatCurrency(displayResults.netProceeds);
-                              const label = isNetHovered
-                                ? 'You Keep'
-                                : hoveredSlice
-                                  ? hoveredSlice.name
-                                  : 'Net Proceeds';
-                              const labelColor = isNetHovered ? '#10b981' : '#94a3b8';
-                              return (
-                                <g style={{ transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-                                  <text
-                                    x="50%"
-                                    y={isNetHovered ? '44%' : '47%'}
-                                    textAnchor="middle"
-                                    dominantBaseline="central"
-                                    style={{
-                                      fontSize: isNetHovered ? '26px' : activeSlice !== null ? '20px' : '24px',
-                                      fontWeight: 800,
-                                      fill: amountColor,
-                                      transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                                    }}
-                                  >
-                                    {amount}
-                                  </text>
-                                  <text
-                                    x="50%"
-                                    y={isNetHovered ? '53%' : '55%'}
-                                    textAnchor="middle"
-                                    dominantBaseline="central"
-                                    style={{
-                                      fontSize: isNetHovered ? '13px' : '11px',
-                                      fontWeight: isNetHovered ? 600 : 500,
-                                      fill: labelColor,
-                                      letterSpacing: isNetHovered ? '0.5px' : '0px',
-                                      textTransform: isNetHovered ? 'uppercase' as const : 'none' as const,
-                                      transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                                    }}
-                                  >
-                                    {label}
-                                  </text>
-                                </g>
-                              );
-                            })()}
+                            <text
+                              x="50%"
+                              y="47%"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              style={{
+                                fontSize: activeSlice !== null ? '20px' : '24px',
+                                fontWeight: 700,
+                                fill: activeSlice !== null && chartData[activeSlice]
+                                  ? (chartData[activeSlice].name === 'Net Proceeds'
+                                    ? '#10b981'
+                                    : chartData[activeSlice].color)
+                                  : displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
+                                transition: 'all 0.15s ease-out',
+                              }}
+                            >
+                              {activeSlice !== null && chartData[activeSlice]
+                                ? formatCurrency(chartData[activeSlice].value)
+                                : formatCurrency(displayResults.netProceeds)}
+                            </text>
+                            <text
+                              x="50%"
+                              y="55%"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 500,
+                                fill: '#94a3b8',
+                                transition: 'all 0.15s ease-out',
+                              }}
+                            >
+                              {activeSlice !== null && chartData[activeSlice]
+                                ? chartData[activeSlice].name
+                                : 'Net Proceeds'}
+                            </text>
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
