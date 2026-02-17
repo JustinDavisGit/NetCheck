@@ -1225,7 +1225,7 @@ export default function Calculator() {
                               style={{
                                 fontSize: '11px',
                                 fontWeight: activeSlice !== null && chartData[activeSlice]?.name === 'Net Proceeds' ? 600 : 500,
-                                fill: activeSlice !== null && chartData[activeSlice]?.name === 'Net Proceeds' ? '#6ee7b7' : '#94a3b8',
+                                fill: '#94a3b8',
                                 transition: 'all 0.15s ease-out',
                               }}
                             >
