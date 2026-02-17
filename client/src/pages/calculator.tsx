@@ -852,8 +852,9 @@ export default function Calculator() {
                     >
                       <Plus className="w-3.5 h-3.5 text-slate-500" />
                     </button>
-                    <span className="text-sm text-slate-500 font-medium ml-1">
-                      {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100)}
+                    <span className="text-sm text-slate-500 font-medium ml-1 whitespace-nowrap">
+                      <span className="text-[10px] text-slate-400">+ GRT</span>{' '}
+                      {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100)}
                     </span>
                   </div>
 
