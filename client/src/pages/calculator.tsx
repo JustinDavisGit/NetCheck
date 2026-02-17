@@ -1230,7 +1230,7 @@ export default function Calculator() {
                               }}
                             >
                               {activeSlice !== null && chartData[activeSlice]
-                                ? (chartData[activeSlice].name === 'Net Proceeds' ? 'In your pocket' : chartData[activeSlice].name)
+                                ? (chartData[activeSlice].name === 'Net Proceeds' ? 'In Your Pocket' : chartData[activeSlice].name)
                                 : 'Net Proceeds'}
                             </text>
                           </PieChart>
