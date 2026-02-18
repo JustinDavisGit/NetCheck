@@ -859,7 +859,7 @@ export default function Calculator() {
                     </AnimatePresence>
                   </div>
                   <AnimatePresence>
-                    {salePrice && (
+                    {salePrice.replace(/[^0-9]/g, '').length >= 5 && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -867,8 +867,11 @@ export default function Calculator() {
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="flex items-center gap-2 pt-1">
-                          <MapPin className="w-4 h-4 text-blue-400 shrink-0" />
+                        <div className="space-y-1.5 pt-2">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-4 h-4 text-blue-400 shrink-0" />
+                            <span className="text-sm font-medium text-slate-700">Where is the property located?</span>
+                          </div>
                           <select
                             value={selectedState}
                             onChange={(e) => {
@@ -876,7 +879,7 @@ export default function Calculator() {
                               if (isSample) setIsSample(false);
                               if (showCallout) setShowCallout(false);
                             }}
-                            className="flex-1 text-sm h-9 rounded-lg border border-gray-300 bg-white px-2 py-1 text-slate-700 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 transition-all"
+                            className="w-full text-sm h-9 rounded-lg border border-gray-300 bg-white px-2 py-1 text-slate-700 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 transition-all"
                           >
                             {US_STATES.map(s => (
                               <option key={s.value} value={s.value}>{s.label}</option>
