@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Home, FileText, Copy, Check, Briefcase, Handshake, Info, Wrench, Plus, X, FileDown, ChevronDown, Minus } from "lucide-react";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 import { useToast } from "@/hooks/use-toast";
@@ -255,33 +254,24 @@ export default function Calculator() {
 
   const handleGeneratePDF = async () => {
     if (!displayResults) return;
+    try {
 
     const fmt = (value: number) =>
       new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
 
     const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'letter' });
     const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
     const margin = 40;
-    const bottomMargin = 40;
     let y = 0;
 
-    const checkPage = (needed: number) => {
-      if (y + needed > pageH - bottomMargin) {
-        doc.addPage();
-        y = margin;
-      }
-    };
-
-    const pillW = 180;
-    const pillH = 44;
-    const pillX = (pageW - pillW) / 2;
-    const pillY = 14;
-    const pillR = 14;
+    const pillW = 140;
+    const pillH = 32;
+    const pillX = margin;
+    const pillY = 28;
+    const pillR = 10;
     doc.setFillColor(52, 211, 153);
     doc.roundedRect(pillX, pillY, pillW, pillH, pillR, pillR, 'F');
-
-    doc.setFontSize(26);
+    doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
     const netText = 'Net';
     const checkText = 'Check';
@@ -289,122 +279,252 @@ export default function Calculator() {
     const netW = doc.getTextWidth(netText);
     doc.setFont('helvetica', 'normal');
     const checkW = doc.getTextWidth(checkText);
-    const totalW = netW + checkW;
-    const startX = (pageW - totalW) / 2;
-    const textY = pillY + pillH / 2 + 9;
+    const brandTotalW = netW + checkW;
+    const brandStartX = pillX + (pillW - brandTotalW) / 2;
+    const brandTextY = pillY + pillH / 2 + 6;
     doc.setFont('helvetica', 'bold');
-    doc.text(netText, startX, textY);
+    doc.text(netText, brandStartX, brandTextY);
     doc.setFont('helvetica', 'normal');
-    doc.text(checkText, startX + netW, textY);
+    doc.text(checkText, brandStartX + netW, brandTextY);
 
-    y = 85;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(14);
-    doc.setTextColor(100, 116, 139);
-    doc.text('Net Proceeds Estimate', pageW / 2, y, { align: 'center' });
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Net Proceeds Estimate  •  New Mexico', pageW - margin, pillY + pillH / 2 + 3, { align: 'right' });
 
-    y += 35;
+    y = 80;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageW - margin, y);
+
+    y += 28;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(32);
+    doc.setFontSize(36);
     if (displayResults.netProceeds >= 0) {
       doc.setTextColor(52, 211, 153);
     } else {
       doc.setTextColor(239, 68, 68);
     }
-    doc.text(fmt(displayResults.netProceeds), pageW / 2, y, { align: 'center' });
+    doc.text(fmt(displayResults.netProceeds), margin, y);
 
-    y += 22;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Sale Price: ${fmt(displayResults.price)}`, pageW / 2, y, { align: 'center' });
+    doc.text('Estimated Net Proceeds', margin, y + 16);
 
-    y += 30;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(51, 65, 85);
+    doc.text(fmt(displayResults.price), pageW - margin, y, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Sale Price', pageW - margin, y + 16, { align: 'right' });
+
+    y += 40;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, pageW - margin, y);
+
+    y += 16;
 
     const brokerPct = isSample ? SAMPLE_BROKER : totalCommissionPct;
     const grtPct = isSample ? SAMPLE_GRT : grtRate;
 
-    const items: { label: string; amount: number }[] = [];
-    items.push({ label: 'Sale Price', amount: displayResults.price });
-    if (displayResults.mortgage > 0) items.push({ label: 'Mortgage Payoff', amount: -displayResults.mortgage });
-    if (displayResults.secondMtg > 0) items.push({ label: 'Second Mortgage', amount: -displayResults.secondMtg });
-    if (displayResults.helocAmt > 0) items.push({ label: 'HELOC', amount: -displayResults.helocAmt });
-    if (displayResults.solarAmt > 0) items.push({ label: 'Solar Loan', amount: -displayResults.solarAmt });
-    if (displayResults.commissionAmount > 0) items.push({ label: `Commission (${brokerPct}%)`, amount: -displayResults.commissionAmount });
-    if (displayResults.grtAmount > 0) items.push({ label: `NM GRT (${grtPct}%)`, amount: -displayResults.grtAmount });
-    if (displayResults.titleEscrowAmount > 0) items.push({ label: 'Est. Title/Escrow Fees', amount: -displayResults.titleEscrowAmount });
-    if (displayResults.taxProration > 0) items.push({ label: 'Tax Proration', amount: -displayResults.taxProration });
-    if (displayResults.surveyAmount > 0) items.push({ label: 'Survey / ILR', amount: -displayResults.surveyAmount });
-    if (displayResults.hoaAmount > 0) items.push({ label: 'HOA Fee', amount: -displayResults.hoaAmount });
-    if (displayResults.concessionsAmt > 0) items.push({ label: 'Seller Concessions', amount: -displayResults.concessionsAmt });
-    if (displayResults.repairAmt > 0) items.push({ label: 'Repairs', amount: -displayResults.repairAmt });
-    displayResults.customFields.forEach((f) => {
-      if (f.amount > 0) items.push({ label: f.name, amount: -f.amount });
+    const deductions: { label: string; amount: number; color: string }[] = [];
+    if (displayResults.mortgage > 0) deductions.push({ label: 'Mortgage Payoff', amount: displayResults.mortgage, color: '#94a3b8' });
+    if (displayResults.secondMtg > 0) deductions.push({ label: 'Second Mortgage', amount: displayResults.secondMtg, color: '#a1a1aa' });
+    if (displayResults.helocAmt > 0) deductions.push({ label: 'HELOC', amount: displayResults.helocAmt, color: '#b4b4bb' });
+    if (displayResults.solarAmt > 0) deductions.push({ label: 'Solar Loan', amount: displayResults.solarAmt, color: '#c4c4cc' });
+    if (displayResults.commissionAmount > 0) deductions.push({ label: `Commission (${brokerPct}%)`, amount: displayResults.commissionAmount, color: '#60a5fa' });
+    if (displayResults.grtAmount > 0) deductions.push({ label: `NM GRT on Commission (${grtPct}%)`, amount: displayResults.grtAmount, color: '#fbbf24' });
+    if (displayResults.titleEscrowAmount > 0) deductions.push({ label: 'Est. Title & Escrow', amount: displayResults.titleEscrowAmount, color: '#f97316' });
+    if (displayResults.taxProration > 0) deductions.push({ label: 'Tax Proration', amount: displayResults.taxProration, color: '#a78bfa' });
+    if (displayResults.surveyAmount > 0) deductions.push({ label: 'Survey / ILR', amount: displayResults.surveyAmount, color: '#f472b6' });
+    if (displayResults.hoaAmount > 0) deductions.push({ label: 'HOA Transfer Fee', amount: displayResults.hoaAmount, color: '#d4c5a0' });
+    if (displayResults.septicAmount > 0) deductions.push({ label: 'Septic Inspection', amount: displayResults.septicAmount, color: '#92400e' });
+    if (displayResults.wellAmount > 0) deductions.push({ label: 'Well Inspection', amount: displayResults.wellAmount, color: '#3b82f6' });
+    if (displayResults.waterBillAmount > 0) deductions.push({ label: 'Final Water Bill', amount: displayResults.waterBillAmount, color: '#06b6d4' });
+    if (displayResults.concessionsAmt > 0) deductions.push({ label: 'Seller Concessions', amount: displayResults.concessionsAmt, color: '#fb923c' });
+    if (displayResults.repairAmt > 0) deductions.push({ label: 'Repairs', amount: displayResults.repairAmt, color: '#e879f9' });
+    const customColors = ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'];
+    displayResults.customFields.forEach((f, i) => {
+      if (f.amount > 0) deductions.push({ label: f.name, amount: f.amount, color: customColors[i % 5] });
     });
 
-    const rowH = 24;
-    const tableH = items.length * rowH + 40;
-    checkPage(tableH + 30);
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(margin, y, pageW - margin * 2, tableH, 6, 6, 'F');
+    const totalDeductions = deductions.reduce((s, d) => s + d.amount, 0);
 
-    let ty = y + 20;
-    items.forEach((item) => {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.setTextColor(100, 116, 139);
-      doc.text(item.label, margin + 16, ty);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(51, 65, 85);
-      const amtStr = item.amount >= 0 ? fmt(item.amount) : `-${fmt(Math.abs(item.amount))}`;
-      doc.text(amtStr, pageW - margin - 16, ty, { align: 'right' });
-
-      ty += rowH;
-    });
-
-    ty += 4;
-    doc.setDrawColor(148, 163, 184);
-    doc.setLineWidth(0.5);
-    doc.line(margin + 16, ty - 14, pageW - margin - 16, ty - 14);
+    const leftColW = (pageW - margin * 2) * 0.52;
+    const rightColX = margin + leftColW + 20;
+    const rightColW = pageW - margin - rightColX;
+    const tableStartY = y;
 
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text('DEDUCTIONS', margin, y + 2);
+    doc.text('AMOUNT', margin + leftColW, y + 2, { align: 'right' });
+    y += 14;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, margin + leftColW, y);
+    y += 12;
+
+    const hexToRgb = (hex: string) => ({
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
+    });
+    const maxTableH = 340;
+    const rowH = Math.min(18, Math.max(13, Math.floor((maxTableH - 50) / Math.max(deductions.length, 1))));
+    const fontSize = rowH >= 16 ? 9.5 : 8.5;
+    deductions.forEach((item) => {
+      const rgb = hexToRgb(item.color);
+      doc.setFillColor(rgb.r, rgb.g, rgb.b);
+      doc.circle(margin + 4, y - 3, 3, 'F');
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(fontSize);
+      doc.setTextColor(71, 85, 105);
+      doc.text(item.label, margin + 14, y);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(fontSize);
+      doc.setTextColor(51, 65, 85);
+      doc.text(`-${fmt(item.amount)}`, margin + leftColW, y, { align: 'right' });
+
+      y += rowH;
+    });
+
+    y += 4;
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y, margin + leftColW, y);
+    y += 14;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Total Deductions', margin, y);
+    doc.setTextColor(239, 68, 68);
+    doc.text(`-${fmt(totalDeductions)}`, margin + leftColW, y, { align: 'right' });
+
+    y += 20;
+    doc.setFillColor(240, 253, 244);
+    doc.roundedRect(margin, y - 2, leftColW, 24, 4, 4, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
     doc.setTextColor(30, 41, 59);
-    doc.text('Estimated Net', margin + 16, ty);
+    doc.text('Estimated Net Proceeds', margin + 8, y + 14);
     if (displayResults.netProceeds >= 0) {
-      doc.setTextColor(52, 211, 153);
+      doc.setTextColor(16, 185, 129);
     } else {
       doc.setTextColor(239, 68, 68);
     }
-    doc.text(fmt(displayResults.netProceeds), pageW - margin - 16, ty, { align: 'right' });
+    doc.text(fmt(displayResults.netProceeds), margin + leftColW - 8, y + 14, { align: 'right' });
 
-    y = ty + 20;
+    const donutSlices: { name: string; value: number; color: string }[] = [
+      { name: 'Net Proceeds', value: Math.max(displayResults.netProceeds, 0), color: '#34d399' },
+      ...deductions.map(d => ({ name: d.label, value: d.amount, color: d.color })),
+    ].filter(d => d.value > 0);
 
-    if (pieChartRef.current) {
-      try {
-        const canvas = await html2canvas(pieChartRef.current, { backgroundColor: '#ffffff', scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-        const imgW = pageW - margin * 2 - 40;
-        const imgH = (canvas.height / canvas.width) * imgW;
-        checkPage(imgH + 20);
-        const imgX = (pageW - imgW) / 2;
-        doc.addImage(imgData, 'PNG', imgX, y, imgW, imgH);
-        y += imgH + 15;
-      } catch (e) {
-        y += 10;
-      }
+    const donutTotal = donutSlices.reduce((s, d) => s + d.value, 0);
+    const price = displayResults.price || 1;
+    const netPct = Math.round((Math.max(displayResults.netProceeds, 0) / price) * 100);
+    const deductPct = Math.round((totalDeductions / price) * 100);
+
+    const canvasSize = 400;
+    const canvasPad = 20;
+    const cCanvas = document.createElement('canvas');
+    cCanvas.width = canvasSize;
+    cCanvas.height = canvasSize;
+    const ctx = cCanvas.getContext('2d')!;
+    const cx = canvasSize / 2;
+    const cy = canvasSize / 2;
+    const outerR = (canvasSize - canvasPad * 2) / 2;
+    const innerR = outerR * 0.6;
+    const netOuterR = outerR + 4;
+
+    let angleCursor = -Math.PI / 2;
+    if (donutTotal <= 0) {
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = outerR - innerR;
+      ctx.beginPath();
+      ctx.arc(cx, cy, (outerR + innerR) / 2, 0, Math.PI * 2);
+      ctx.stroke();
     }
+    donutSlices.forEach((slice) => {
+      if (donutTotal <= 0) return;
+      const sliceAngle = (slice.value / donutTotal) * Math.PI * 2;
+      const startAngle = angleCursor;
+      const endAngle = angleCursor + sliceAngle;
+      angleCursor = endAngle;
 
-    checkPage(40);
+      const isNet = slice.name === 'Net Proceeds';
+      const r = isNet ? netOuterR : outerR;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, startAngle, endAngle);
+      ctx.arc(cx, cy, innerR, endAngle, startAngle, true);
+      ctx.closePath();
+      ctx.fillStyle = slice.color;
+      ctx.fill();
+
+      if (isNet) {
+        ctx.shadowColor = 'rgba(16, 185, 129, 0.35)';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      }
+    });
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 32px Helvetica, Arial, sans-serif';
+    ctx.fillStyle = displayResults.netProceeds >= 0 ? '#10b981' : '#ef4444';
+    ctx.fillText(fmt(displayResults.netProceeds), cx, cy - 8);
+    ctx.font = '500 14px Helvetica, Arial, sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Net Proceeds', cx, cy + 18);
+
+    const chartImgData = cCanvas.toDataURL('image/png');
+    const chartPdfSize = 180;
+    const chartX = rightColX + (rightColW - chartPdfSize) / 2;
+    const chartY = tableStartY + 4;
+    doc.addImage(chartImgData, 'PNG', chartX, chartY, chartPdfSize, chartPdfSize);
+
+    const legendY = chartY + chartPdfSize + 8;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(148, 163, 184);
-    doc.text('This is an estimate only. Actual figures may vary.', pageW / 2, y, { align: 'center' });
-    y += 14;
-    doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageW / 2, y, { align: 'center' });
+    doc.setFillColor(52, 211, 153);
+    const legendCx = rightColX + rightColW / 2;
+    doc.circle(legendCx - 40, legendY - 2, 3, 'F');
+    doc.setTextColor(71, 85, 105);
+    doc.text(`Net ${netPct}%`, legendCx - 34, legendY);
+    doc.setFillColor(148, 163, 184);
+    doc.circle(legendCx + 10, legendY - 2, 3, 'F');
+    doc.text(`Costs ${deductPct}%`, legendCx + 16, legendY);
 
-    window.open(doc.output('bloburl') as unknown as string, '_blank');
+    const footerY = doc.internal.pageSize.getHeight() - 30;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.line(margin, footerY - 12, pageW - margin, footerY - 12);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('This is an estimate only. Actual figures may vary at closing.', margin, footerY);
+    doc.text(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), pageW - margin, footerY, { align: 'right' });
+
+    doc.save('NetCheck-Estimate.pdf');
+    } catch {
+      toast({ title: 'Could not generate PDF', description: 'Please try again.', variant: 'destructive' });
+    }
   };
 
   const formatCurrency = (value: number) => {
