@@ -399,7 +399,7 @@ export default function Calculator() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
-    doc.text('DEDUCTIONS', margin, y + 2);
+    doc.text('CLOSING COSTS', margin, y + 2);
     doc.text('AMOUNT', margin + leftColW, y + 2, { align: 'right' });
     y += 14;
     doc.setDrawColor(226, 232, 240);
@@ -412,8 +412,20 @@ export default function Calculator() {
       g: parseInt(hex.slice(3, 5), 16),
       b: parseInt(hex.slice(5, 7), 16),
     });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Sale Price', margin, y);
+    doc.text(fmt(displayResults.price), margin + leftColW, y, { align: 'right' });
+    y += 16;
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, margin + leftColW, y);
+    y += 12;
+
     const maxTableH = 340;
-    const rowH = Math.min(18, Math.max(13, Math.floor((maxTableH - 50) / Math.max(deductions.length, 1))));
+    const rowH = Math.min(18, Math.max(13, Math.floor((maxTableH - 80) / Math.max(deductions.length, 1))));
     const fontSize = rowH >= 16 ? 9.5 : 8.5;
     deductions.forEach((item) => {
       const rgb = hexToRgb(item.color);
@@ -441,9 +453,9 @@ export default function Calculator() {
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.setTextColor(51, 65, 85);
-    doc.text('Total Deductions', margin, y);
-    doc.setTextColor(239, 68, 68);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Total Closing Costs', margin, y);
+    doc.setTextColor(100, 116, 139);
     doc.text(`-${fmt(totalDeductions)}`, margin + leftColW, y, { align: 'right' });
 
     y += 20;
@@ -460,15 +472,19 @@ export default function Calculator() {
     }
     doc.text(fmt(Math.abs(displayResults.netProceeds)), margin + leftColW - 8, y + 14, { align: 'right' });
 
+    const sliceLabelMap: Record<string, string> = {
+      'Mortgage Payoff': 'Mortgage', 'Second Mortgage': '2nd Mortgage', 'HELOC': 'HELOC', 'Solar Loan': 'Solar Loan',
+      [`Commission (${brokerPct}%)`]: 'Commission', [`NM GRT on Commission (${grtPct}%)`]: 'NM GRT',
+      'Est. Title & Escrow': 'Title/Escrow', 'Tax Proration': 'Tax Proration', 'Survey / ILR': 'Survey / ILR',
+      'HOA Transfer Fee': 'HOA Transfer', 'Septic Inspection': 'Septic Inspection', 'Well Inspection': 'Well Inspection',
+      'Final Water Bill': 'Final Water Bill', 'Seller Concessions': 'Concessions', 'Repairs': 'Repairs',
+    };
     const donutSlices: { name: string; value: number; color: string }[] = [
-      { name: 'Net Proceeds', value: Math.max(displayResults.netProceeds, 0), color: '#34d399' },
-      ...deductions.map(d => ({ name: d.label, value: d.amount, color: d.color })),
+      { name: displayResults.netProceeds >= 0 ? 'Net Proceeds' : 'Bring to Closing', value: Math.max(displayResults.netProceeds, 0), color: '#34d399' },
+      ...deductions.map(d => ({ name: sliceLabelMap[d.label] || d.label, value: d.amount, color: d.color })),
     ].filter(d => d.value > 0);
 
     const donutTotal = donutSlices.reduce((s, d) => s + d.value, 0);
-    const price = displayResults.price || 1;
-    const netPct = Math.round((Math.max(displayResults.netProceeds, 0) / price) * 100);
-    const deductPct = Math.round((totalDeductions / price) * 100);
 
     const canvasSize = 400;
     const canvasPad = 20;
@@ -504,15 +520,25 @@ export default function Calculator() {
       ctx.arc(cx, cy, r, startAngle, endAngle);
       ctx.arc(cx, cy, innerR, endAngle, startAngle, true);
       ctx.closePath();
-      ctx.fillStyle = slice.color;
-      ctx.fill();
 
       if (isNet) {
+        const midAngle = (startAngle + endAngle) / 2;
+        const gx0 = cx + Math.cos(midAngle) * innerR;
+        const gy0 = cy + Math.sin(midAngle) * innerR;
+        const gx1 = cx + Math.cos(midAngle) * r;
+        const gy1 = cy + Math.sin(midAngle) * r;
+        const grad = ctx.createLinearGradient(gx0, gy0, gx1, gy1);
+        grad.addColorStop(0, '#6ee7b7');
+        grad.addColorStop(1, '#34d399');
+        ctx.fillStyle = grad;
         ctx.shadowColor = 'rgba(16, 185, 129, 0.35)';
         ctx.shadowBlur = 12;
         ctx.fill();
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
+      } else {
+        ctx.fillStyle = slice.color;
+        ctx.fill();
       }
     });
 
@@ -536,17 +562,25 @@ export default function Calculator() {
     const chartY = tableStartY + 4;
     doc.addImage(chartImgData, 'PNG', chartX, chartY, chartPdfSize, chartPdfSize);
 
-    const legendY = chartY + chartPdfSize + 8;
+    let legendY = chartY + chartPdfSize + 6;
+    const footerLimit = doc.internal.pageSize.getHeight() - 50;
+    const legendRowH = donutSlices.length > 12 ? 9 : 11;
+    const legendFontSize = donutSlices.length > 12 ? 6 : 7;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setFillColor(52, 211, 153);
-    const legendCx = rightColX + rightColW / 2;
-    doc.circle(legendCx - 40, legendY - 2, 3, 'F');
-    doc.setTextColor(71, 85, 105);
-    doc.text(`Net ${netPct}%`, legendCx - 34, legendY);
-    doc.setFillColor(148, 163, 184);
-    doc.circle(legendCx + 10, legendY - 2, 3, 'F');
-    doc.text(`Costs ${deductPct}%`, legendCx + 16, legendY);
+    doc.setFontSize(legendFontSize);
+    const legendColW = rightColW / 2;
+    donutSlices.forEach((item, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const ly = legendY + row * legendRowH;
+      if (ly > footerLimit) return;
+      const lx = rightColX + col * legendColW;
+      const rgb = hexToRgb(item.color);
+      doc.setFillColor(rgb.r, rgb.g, rgb.b);
+      doc.circle(lx + 4, ly - 2, 2.5, 'F');
+      doc.setTextColor(100, 116, 139);
+      doc.text(item.name, lx + 10, ly);
+    });
 
     const footerY = doc.internal.pageSize.getHeight() - 30;
     doc.setDrawColor(226, 232, 240);
