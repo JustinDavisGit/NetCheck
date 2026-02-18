@@ -327,7 +327,7 @@ export default function Calculator() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(148, 163, 184);
-    doc.text('Net Proceeds Estimate  •  ' + (US_STATES.find(s => s.value === selectedState)?.label || selectedState), pageW - margin, pillY + pillH / 2 + 3, { align: 'right' });
+    doc.text((displayResults.netProceeds >= 0 ? 'Net Proceeds Estimate' : 'Bring to Closing Estimate') + '  •  ' + (US_STATES.find(s => s.value === selectedState)?.label || selectedState), pageW - margin, pillY + pillH / 2 + 3, { align: 'right' });
 
     y = 80;
     doc.setDrawColor(226, 232, 240);
@@ -342,12 +342,12 @@ export default function Calculator() {
     } else {
       doc.setTextColor(239, 68, 68);
     }
-    doc.text(fmt(displayResults.netProceeds), margin, y);
+    doc.text(fmt(Math.abs(displayResults.netProceeds)), margin, y);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(100, 116, 139);
-    doc.text('Estimated Net Proceeds', margin, y + 16);
+    doc.text(displayResults.netProceeds >= 0 ? 'Estimated Net Proceeds' : 'Estimated Amount to Bring to Closing', margin, y + 16);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
@@ -452,13 +452,13 @@ export default function Calculator() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.setTextColor(30, 41, 59);
-    doc.text('Estimated Net Proceeds', margin + 8, y + 14);
+    doc.text(displayResults.netProceeds >= 0 ? 'Estimated Net Proceeds' : 'Est. Amount to Bring to Closing', margin + 8, y + 14);
     if (displayResults.netProceeds >= 0) {
       doc.setTextColor(16, 185, 129);
     } else {
       doc.setTextColor(239, 68, 68);
     }
-    doc.text(fmt(displayResults.netProceeds), margin + leftColW - 8, y + 14, { align: 'right' });
+    doc.text(fmt(Math.abs(displayResults.netProceeds)), margin + leftColW - 8, y + 14, { align: 'right' });
 
     const donutSlices: { name: string; value: number; color: string }[] = [
       { name: 'Net Proceeds', value: Math.max(displayResults.netProceeds, 0), color: '#34d399' },
@@ -497,7 +497,7 @@ export default function Calculator() {
       const endAngle = angleCursor + sliceAngle;
       angleCursor = endAngle;
 
-      const isNet = slice.name === 'Net Proceeds';
+      const isNet = slice.name === 'Net Proceeds' || slice.name === 'Bring to Closing';
       const r = isNet ? netOuterR : outerR;
 
       ctx.beginPath();
@@ -525,10 +525,10 @@ export default function Calculator() {
     ctx.textBaseline = 'middle';
     ctx.font = 'bold 32px Helvetica, Arial, sans-serif';
     ctx.fillStyle = displayResults.netProceeds >= 0 ? '#10b981' : '#ef4444';
-    ctx.fillText(fmt(displayResults.netProceeds), cx, cy - 8);
+    ctx.fillText(fmt(Math.abs(displayResults.netProceeds)), cx, cy - 8);
     ctx.font = '500 14px Helvetica, Arial, sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Net Proceeds', cx, cy + 18);
+    ctx.fillText(displayResults.netProceeds >= 0 ? 'Net Proceeds' : 'Bring to Closing', cx, cy + 18);
 
     const chartImgData = cCanvas.toDataURL('image/png');
     const chartPdfSize = 180;
@@ -751,7 +751,7 @@ export default function Calculator() {
   const chartData = useMemo(() => {
     if (!displayResults) return [];
     return [
-      { name: 'Net Proceeds', value: Math.max(displayResults.netProceeds, 0), color: '#34d399' },
+      { name: displayResults.netProceeds >= 0 ? 'Net Proceeds' : 'Bring to Closing', value: Math.max(displayResults.netProceeds, 0), color: '#34d399' },
       ...(displayResults.mortgage > 0 ? [{ name: 'Mortgage', value: displayResults.mortgage, color: '#94a3b8' }] : []),
       ...(displayResults.secondMtg > 0 ? [{ name: '2nd Mortgage', value: displayResults.secondMtg, color: '#a1a1aa' }] : []),
       ...(displayResults.helocAmt > 0 ? [{ name: 'HELOC', value: displayResults.helocAmt, color: '#b4b4bb' }] : []),
@@ -771,11 +771,11 @@ export default function Calculator() {
     ].filter(d => d.value > 0);
   }, [displayResults]);
 
-  const netProceedsIndex = useMemo(() => chartData.findIndex(d => d.name === 'Net Proceeds'), [chartData]);
+  const netProceedsIndex = useMemo(() => chartData.findIndex(d => d.name === 'Net Proceeds' || d.name === 'Bring to Closing'), [chartData]);
 
   const renderActiveShape = useCallback((props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
-    const isNetProceeds = payload && payload.name === 'Net Proceeds';
+    const isNetProceeds = payload && (payload.name === 'Net Proceeds' || payload.name === 'Bring to Closing');
     const isUserHovering = activeSlice !== null;
     const isDefaultEmphasis = isNetProceeds && !isUserHovering;
     const isNetHovered = isNetProceeds && isUserHovering;
@@ -1581,9 +1581,9 @@ export default function Calculator() {
           >
             <div ref={resultsRef} className="p-5 bg-gray-50 rounded-lg shadow-sm border border-gray-100">
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Estimated Net Proceeds</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">{displayResults && displayResults.netProceeds < 0 ? 'Estimated Amount to Bring to Closing' : 'Estimated Net Proceeds'}</h3>
                 <p className={`text-4xl font-bold transition-all duration-300 ease-out ${!displayResults ? 'text-gray-300' : displayResults.netProceeds >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
-                  {formatCurrency(displayedNet)}
+                  {formatCurrency(Math.abs(displayedNet))}
                 </p>
                 {!displayResults && (
                   <p className="text-sm text-slate-400 mt-3">Enter a sale price to get started</p>
@@ -1718,9 +1718,9 @@ export default function Calculator() {
                         </div>
                       ))}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
-                        <span className="font-bold text-slate-800">Estimated Net</span>
+                        <span className="font-bold text-slate-800">{displayResults.netProceeds >= 0 ? 'Estimated Net' : 'Bring to Closing'}</span>
                         <span className={`font-bold ${displayResults.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                          {formatCurrency(displayResults.netProceeds)}
+                          {formatCurrency(Math.abs(displayResults.netProceeds))}
                         </span>
                       </div>
                     </div>
@@ -1751,7 +1751,7 @@ export default function Calculator() {
                               labelLine={false}
                             >
                               {chartData.map((entry, index) => {
-                                const isNet = entry.name === 'Net Proceeds';
+                                const isNet = entry.name === 'Net Proceeds' || entry.name === 'Bring to Closing';
                                 return (
                                   <Cell
                                     key={`cell-${index}`}
@@ -1771,23 +1771,23 @@ export default function Calculator() {
                               y="47%"
                               textAnchor="middle"
                               dominantBaseline="central"
-                              className={activeSlice !== null && chartData[activeSlice]?.name === 'Net Proceeds' ? 'net-center-text-pulse' : ''}
+                              className={activeSlice !== null && (chartData[activeSlice]?.name === 'Net Proceeds' || chartData[activeSlice]?.name === 'Bring to Closing') ? 'net-center-text-pulse' : ''}
                               style={{
                                 fontSize: activeSlice !== null && chartData[activeSlice]
-                                  ? (chartData[activeSlice].name === 'Net Proceeds' ? '28px' : '20px')
+                                  ? ((chartData[activeSlice].name === 'Net Proceeds' || chartData[activeSlice].name === 'Bring to Closing') ? '28px' : '20px')
                                   : '24px',
                                 fontWeight: 700,
                                 fill: activeSlice !== null && chartData[activeSlice]
-                                  ? (chartData[activeSlice].name === 'Net Proceeds'
-                                    ? '#34d399'
+                                  ? ((chartData[activeSlice].name === 'Net Proceeds' || chartData[activeSlice].name === 'Bring to Closing')
+                                    ? (displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444')
                                     : chartData[activeSlice].color)
                                   : displayResults.netProceeds >= 0 ? '#34d399' : '#ef4444',
                                 transition: 'font-size 0.2s ease-out, fill 0.15s ease-out',
                               }}
                             >
                               {activeSlice !== null && chartData[activeSlice]
-                                ? formatCurrency(chartData[activeSlice].value)
-                                : formatCurrency(displayResults.netProceeds)}
+                                ? ((chartData[activeSlice].name === 'Net Proceeds' || chartData[activeSlice].name === 'Bring to Closing') ? formatCurrency(Math.abs(displayResults.netProceeds)) : formatCurrency(chartData[activeSlice].value))
+                                : formatCurrency(Math.abs(displayResults.netProceeds))}
                             </text>
                             <text
                               x="50%"
@@ -1796,14 +1796,14 @@ export default function Calculator() {
                               dominantBaseline="central"
                               style={{
                                 fontSize: '11px',
-                                fontWeight: activeSlice !== null && chartData[activeSlice]?.name === 'Net Proceeds' ? 600 : 500,
+                                fontWeight: activeSlice !== null && (chartData[activeSlice]?.name === 'Net Proceeds' || chartData[activeSlice]?.name === 'Bring to Closing') ? 600 : 500,
                                 fill: '#94a3b8',
                                 transition: 'all 0.15s ease-out',
                               }}
                             >
                               {activeSlice !== null && chartData[activeSlice]
-                                ? (chartData[activeSlice].name === 'Net Proceeds' ? 'In Your Pocket' : chartData[activeSlice].name)
-                                : 'Net Proceeds'}
+                                ? ((chartData[activeSlice].name === 'Net Proceeds' || chartData[activeSlice].name === 'Bring to Closing') ? (displayResults.netProceeds >= 0 ? 'In Your Pocket' : 'Bring to Closing') : chartData[activeSlice].name)
+                                : (displayResults.netProceeds >= 0 ? 'Net Proceeds' : 'Bring to Closing')}
                             </text>
                           </PieChart>
                         </ResponsiveContainer>
@@ -1877,7 +1877,7 @@ export default function Calculator() {
           >
             <div className="bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-4 py-2.5">
               <div className="flex items-center justify-between max-w-md mx-auto">
-                <span className="text-xs font-medium text-slate-500">{isSample ? 'Sample Net' : 'Est. Net'}</span>
+                <span className="text-xs font-medium text-slate-500">{isSample ? 'Sample Net' : displayResults.netProceeds >= 0 ? 'Est. Net' : 'Bring to Closing'}</span>
                 <div className="w-10 h-10 shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -1900,7 +1900,7 @@ export default function Calculator() {
                   </ResponsiveContainer>
                 </div>
                 <span className={`text-xl font-bold ${displayResults.netProceeds >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
-                  {formatCurrency(displayedNet)}
+                  {formatCurrency(Math.abs(displayedNet))}
                 </span>
               </div>
             </div>
