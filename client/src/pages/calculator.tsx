@@ -115,11 +115,12 @@ export default function Calculator() {
   const [septicFee, setSepticFee] = useState<string>("550");
   const [hasWell, setHasWell] = useState(false);
   const [wellFee, setWellFee] = useState<string>("550");
-  const [waterBill, setWaterBill] = useState<string>("100");
+  const [waterBill, setWaterBill] = useState<string>("0");
   const [sellerConcessions, setSellerConcessions] = useState<string>("");
   const [repairCosts, setRepairCosts] = useState<string>("");
   const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
-  const [surveyFee, setSurveyFee] = useState<string>("275");
+  const [surveyFee, setSurveyFee] = useState<string>("0");
+  const defaultCostsApplied = useRef(false);
   const [copied, setCopied] = useState(false);
   const [isSample, setIsSample] = useState(true);
   const [showCallout, setShowCallout] = useState(true);
@@ -147,7 +148,12 @@ export default function Calculator() {
     }
     if (mb) {
       const cleaned = mb.replace(/[^0-9]/g, '');
-      if (cleaned) setMortgageBalance(cleaned);
+      if (cleaned) {
+        setMortgageBalance(cleaned);
+        defaultCostsApplied.current = true;
+        setSurveyFee("275");
+        setWaterBill("100");
+      }
     }
     if (bc) {
       const parsed = parseFloat(bc);
@@ -250,7 +256,7 @@ export default function Calculator() {
     }
     if (annualPropertyTax) params.set('apt', annualPropertyTax);
     if (closingMonth !== (new Date().getMonth() + 1) % 12 + 1) params.set('cm', closingMonth.toString());
-    if (surveyFee !== '275') params.set('sf', surveyFee);
+    if (surveyFee !== '275' && surveyFee !== '0') params.set('sf', surveyFee);
     if (hasHoa) {
       params.set('hoa', '1');
       if (hoaFee !== '350') params.set('hoaf', hoaFee);
@@ -938,7 +944,14 @@ export default function Calculator() {
                       inputMode="decimal"
                       placeholder="0"
                       value={mortgageBalance}
-                      onChange={(e) => handleCurrencyInput(e.target.value, setMortgageBalance)}
+                      onChange={(e) => {
+                        handleCurrencyInput(e.target.value, setMortgageBalance);
+                        if (!defaultCostsApplied.current && e.target.value.replace(/[^0-9]/g, '').length > 0) {
+                          defaultCostsApplied.current = true;
+                          setSurveyFee("275");
+                          setWaterBill("100");
+                        }
+                      }}
                       onBlur={() => formatCurrencyOnBlur(mortgageBalance, setMortgageBalance)}
                       className="pl-8 text-lg h-12 font-medium"
                     />
