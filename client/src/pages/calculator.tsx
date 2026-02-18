@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Copy, Check, Briefcase, Handshake, Info, Wrench, Plus, X, FileDown, ChevronDown, Minus } from "lucide-react";
+import { DollarSign, Home, FileText, Copy, Check, Briefcase, Handshake, Info, Wrench, Plus, X, FileDown, ChevronDown, Minus, MapPin } from "lucide-react";
 import jsPDF from 'jspdf';
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
@@ -65,8 +65,29 @@ const SAMPLE_RESULTS = buildSampleResults();
 const INLINE_INPUT_CLASS = "text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md";
 const INLINE_CURRENCY_CLASS = "text-right text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded-lg pl-6 pr-2 py-0.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md";
 
+const US_STATES = [
+  { value: 'AL', label: 'Alabama' }, { value: 'AK', label: 'Alaska' }, { value: 'AZ', label: 'Arizona' },
+  { value: 'AR', label: 'Arkansas' }, { value: 'CA', label: 'California' }, { value: 'CO', label: 'Colorado' },
+  { value: 'CT', label: 'Connecticut' }, { value: 'DE', label: 'Delaware' }, { value: 'FL', label: 'Florida' },
+  { value: 'GA', label: 'Georgia' }, { value: 'HI', label: 'Hawaii' }, { value: 'ID', label: 'Idaho' },
+  { value: 'IL', label: 'Illinois' }, { value: 'IN', label: 'Indiana' }, { value: 'IA', label: 'Iowa' },
+  { value: 'KS', label: 'Kansas' }, { value: 'KY', label: 'Kentucky' }, { value: 'LA', label: 'Louisiana' },
+  { value: 'ME', label: 'Maine' }, { value: 'MD', label: 'Maryland' }, { value: 'MA', label: 'Massachusetts' },
+  { value: 'MI', label: 'Michigan' }, { value: 'MN', label: 'Minnesota' }, { value: 'MS', label: 'Mississippi' },
+  { value: 'MO', label: 'Missouri' }, { value: 'MT', label: 'Montana' }, { value: 'NE', label: 'Nebraska' },
+  { value: 'NV', label: 'Nevada' }, { value: 'NH', label: 'New Hampshire' }, { value: 'NJ', label: 'New Jersey' },
+  { value: 'NM', label: 'New Mexico' }, { value: 'NY', label: 'New York' }, { value: 'NC', label: 'North Carolina' },
+  { value: 'ND', label: 'North Dakota' }, { value: 'OH', label: 'Ohio' }, { value: 'OK', label: 'Oklahoma' },
+  { value: 'OR', label: 'Oregon' }, { value: 'PA', label: 'Pennsylvania' }, { value: 'RI', label: 'Rhode Island' },
+  { value: 'SC', label: 'South Carolina' }, { value: 'SD', label: 'South Dakota' }, { value: 'TN', label: 'Tennessee' },
+  { value: 'TX', label: 'Texas' }, { value: 'UT', label: 'Utah' }, { value: 'VT', label: 'Vermont' },
+  { value: 'VA', label: 'Virginia' }, { value: 'WA', label: 'Washington' }, { value: 'WV', label: 'West Virginia' },
+  { value: 'WI', label: 'Wisconsin' }, { value: 'WY', label: 'Wyoming' }, { value: 'DC', label: 'District of Columbia' },
+];
+
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
+  const [selectedState, setSelectedState] = useState<string>("NM");
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [listingAgentPct, setListingAgentPct] = useState<number>(3);
   const [buyerAgentPct, setBuyerAgentPct] = useState<number>(3);
@@ -74,6 +95,7 @@ export default function Calculator() {
   const [commissionExpanded, setCommissionExpanded] = useState(false);
   const [grtRate, setGrtRate] = useState<number>(7.625);
   const [grtInput, setGrtInput] = useState<string>("7.6250");
+  const isNM = selectedState === 'NM';
   const totalCommissionPct = listingAgentPct + buyerAgentPct;
   const [isEditingTotalCommission, setIsEditingTotalCommission] = useState(false);
   useEffect(() => {
@@ -199,12 +221,27 @@ export default function Calculator() {
     };
   }, []);
 
+  useEffect(() => {
+    const detectState = async () => {
+      try {
+        const res = await fetch('https://ip-api.com/json/?fields=regionName');
+        const data = await res.json();
+        if (data.regionName) {
+          const match = US_STATES.find(s => s.label === data.regionName);
+          if (match) setSelectedState(match.value);
+        }
+      } catch {
+      }
+    };
+    detectState();
+  }, []);
+
   const generateShareUrl = () => {
     const params = new URLSearchParams();
     if (salePrice) params.set('sp', salePrice);
     if (mortgageBalance) params.set('mb', mortgageBalance);
     if (totalCommissionPct !== 6) params.set('bc', totalCommissionPct.toString());
-    if (grtRate !== 7.625) params.set('grt', grtRate.toString());
+    if (isNM && grtRate !== 7.625) params.set('grt', grtRate.toString());
     if (hasAdditionalLiens) {
       params.set('liens', '1');
       if (secondMortgage) params.set('sm', secondMortgage);
@@ -290,7 +327,7 @@ export default function Calculator() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(148, 163, 184);
-    doc.text('Net Proceeds Estimate  •  New Mexico', pageW - margin, pillY + pillH / 2 + 3, { align: 'right' });
+    doc.text('Net Proceeds Estimate  •  ' + (US_STATES.find(s => s.value === selectedState)?.label || selectedState), pageW - margin, pillY + pillH / 2 + 3, { align: 'right' });
 
     y = 80;
     doc.setDrawColor(226, 232, 240);
@@ -337,7 +374,7 @@ export default function Calculator() {
     if (displayResults.helocAmt > 0) deductions.push({ label: 'HELOC', amount: displayResults.helocAmt, color: '#b4b4bb' });
     if (displayResults.solarAmt > 0) deductions.push({ label: 'Solar Loan', amount: displayResults.solarAmt, color: '#c4c4cc' });
     if (displayResults.commissionAmount > 0) deductions.push({ label: `Commission (${brokerPct}%)`, amount: displayResults.commissionAmount, color: '#60a5fa' });
-    if (displayResults.grtAmount > 0) deductions.push({ label: `NM GRT on Commission (${grtPct}%)`, amount: displayResults.grtAmount, color: '#fbbf24' });
+    if (isNM && displayResults.grtAmount > 0) deductions.push({ label: `NM GRT on Commission (${grtPct}%)`, amount: displayResults.grtAmount, color: '#fbbf24' });
     if (displayResults.titleEscrowAmount > 0) deductions.push({ label: 'Est. Title & Escrow', amount: displayResults.titleEscrowAmount, color: '#f97316' });
     if (displayResults.taxProration > 0) deductions.push({ label: 'Tax Proration', amount: displayResults.taxProration, color: '#a78bfa' });
     if (displayResults.surveyAmount > 0) deductions.push({ label: 'Survey / ILR', amount: displayResults.surveyAmount, color: '#f472b6' });
@@ -571,7 +608,7 @@ export default function Calculator() {
     if (price === 0) return null;
 
     const commissionAmount = price * (totalCommissionPct / 100);
-    const grtAmount = commissionAmount * (grtRate / 100);
+    const grtAmount = isNM ? commissionAmount * (grtRate / 100) : 0;
     const titleEscrowAmount = getEstimatedTitleEscrowFee(price);
     const annualTax = parseCurrency(annualPropertyTax);
     const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
@@ -607,7 +644,7 @@ export default function Calculator() {
       solarAmt,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, sellerConcessions, repairCosts, customFields]);
+  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, sellerConcessions, repairCosts, customFields, selectedState]);
 
   const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
 
@@ -720,7 +757,7 @@ export default function Calculator() {
       ...(displayResults.helocAmt > 0 ? [{ name: 'HELOC', value: displayResults.helocAmt, color: '#b4b4bb' }] : []),
       ...(displayResults.solarAmt > 0 ? [{ name: 'Solar Loan', value: displayResults.solarAmt, color: '#c4c4cc' }] : []),
       { name: 'Commission', value: displayResults.commissionAmount, color: '#60a5fa' },
-      { name: 'NM GRT', value: displayResults.grtAmount, color: '#fbbf24' },
+      ...(isNM && displayResults.grtAmount > 0 ? [{ name: 'NM GRT', value: displayResults.grtAmount, color: '#fbbf24' }] : []),
       { name: 'Title/Escrow', value: displayResults.titleEscrowAmount, color: '#f97316' },
       ...(displayResults.taxProration > 0 ? [{ name: 'Tax Proration', value: displayResults.taxProration, color: '#a78bfa' }] : []),
       ...(displayResults.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: displayResults.surveyAmount, color: '#f472b6' }] : []),
@@ -821,6 +858,34 @@ export default function Calculator() {
                       )}
                     </AnimatePresence>
                   </div>
+                  <AnimatePresence>
+                    {salePrice && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex items-center gap-2 pt-1">
+                          <MapPin className="w-4 h-4 text-blue-400 shrink-0" />
+                          <select
+                            value={selectedState}
+                            onChange={(e) => {
+                              setSelectedState(e.target.value);
+                              if (isSample) setIsSample(false);
+                              if (showCallout) setShowCallout(false);
+                            }}
+                            className="flex-1 text-sm h-9 rounded-lg border border-gray-300 bg-white px-2 py-1 text-slate-700 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 transition-all"
+                          >
+                            {US_STATES.map(s => (
+                              <option key={s.value} value={s.value}>{s.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="space-y-2">
@@ -1013,6 +1078,7 @@ export default function Calculator() {
                         className="overflow-hidden"
                       >
                         <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
+                        {isNM && (
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
                             <Label className="text-xs font-medium text-slate-500">NM GRT Rate</Label>
@@ -1037,6 +1103,7 @@ export default function Calculator() {
                             <span className="text-xs text-slate-400">%</span>
                           </div>
                         </div>
+                        )}
 
                         <div>
                           <div className="flex items-center justify-between">
@@ -1092,8 +1159,7 @@ export default function Calculator() {
                               </button>
                               <span className="text-xs text-slate-500 font-medium ml-1 whitespace-nowrap">
                                 {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100)}
-                                <span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100 * grtRate / 100)}</span>
-                                <span className="text-[10px] text-slate-400"> GRT</span>
+                                {isNM && (<><span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100 * grtRate / 100)}</span><span className="text-[10px] text-slate-400"> GRT</span></>)}
                               </span>
                             </div>
                           </div>
@@ -1153,17 +1219,16 @@ export default function Calculator() {
                               </button>
                               <span className="text-xs text-slate-500 font-medium ml-1 whitespace-nowrap">
                                 {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100)}
-                                <span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100 * grtRate / 100)}</span>
-                                <span className="text-[10px] text-slate-400"> GRT</span>
+                                {isNM && (<><span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100 * grtRate / 100)}</span><span className="text-[10px] text-slate-400"> GRT</span></>)}
                               </span>
                             </div>
                           </div>
                         </div>
 
                         <div className="border-t border-slate-200 pt-2 mt-1 flex items-center justify-between">
-                          <span className="text-xs font-semibold text-slate-600">Total Commission + GRT</span>
+                          <span className="text-xs font-semibold text-slate-600">{isNM ? 'Total Commission + GRT' : 'Total Commission'}</span>
                           <span className="text-xs font-semibold text-slate-700">
-                            {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100)}
+                            {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + (isNM ? parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100 : 0))}
                           </span>
                         </div>
                         </div>
@@ -1577,10 +1642,12 @@ export default function Calculator() {
                         <span className="text-slate-500">Commission ({(isSample ? SAMPLE_BROKER : totalCommissionPct).toFixed(1)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(displayResults.commissionAmount)}</span>
                       </div>
+                      {isNM && (
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500">NM GRT ({(isSample ? SAMPLE_GRT : grtRate).toFixed(4)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(displayResults.grtAmount)}</span>
                       </div>
+                      )}
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-500 flex items-center gap-1">
                           Est. Title/Escrow Fees
