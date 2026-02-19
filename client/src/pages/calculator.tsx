@@ -859,10 +859,10 @@ export default function Calculator() {
         {stateBgImage && (
           <motion.div
             key={selectedState}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            initial={{ opacity: 0, scale: 1.03, filter: "blur(4px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 1, filter: "blur(2px)" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
             className="absolute inset-0 z-0"
           >
             <img
