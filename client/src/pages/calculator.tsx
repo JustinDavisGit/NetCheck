@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import nmBg from "@assets/NM.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,6 +85,10 @@ const US_STATES = [
   { value: 'VA', label: 'Virginia' }, { value: 'WA', label: 'Washington' }, { value: 'WV', label: 'West Virginia' },
   { value: 'WI', label: 'Wisconsin' }, { value: 'WY', label: 'Wyoming' }, { value: 'DC', label: 'District of Columbia' },
 ];
+
+const STATE_BACKGROUNDS: Record<string, string> = {
+  NM: nmBg,
+};
 
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
@@ -842,15 +847,37 @@ export default function Calculator() {
     );
   }, [activeSlice]);
 
+  const stateBgImage = STATE_BACKGROUNDS[selectedState] || null;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 relative overflow-hidden">
+      <AnimatePresence mode="wait">
+        {stateBgImage && (
+          <motion.div
+            key={selectedState}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="absolute inset-0 z-0"
+          >
+            <img
+              src={stateBgImage}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/70" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="relative z-10">
       <div className="text-center pt-6 pb-4 px-4">
         <div className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-emerald-400 mb-3 shadow-lg">
           <span className="text-3xl font-extrabold text-white tracking-tight font-display">
             Net<span className="font-light">Check</span>
           </span>
         </div>
-        <p className="text-slate-500 text-sm">Estimate what you'll take home at closing.</p>
+        <p className={`text-sm ${stateBgImage ? 'text-white/70' : 'text-slate-500'}`}>Estimate what you'll take home at closing.</p>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pb-24 lg:pb-8">
@@ -1955,9 +1982,10 @@ export default function Calculator() {
         )}
       </AnimatePresence>
 
-      <footer className="text-center py-6 text-sm text-slate-400">
+      <footer className={`text-center py-6 text-sm ${stateBgImage ? 'text-white/50' : 'text-slate-400'}`}>
         NetCheck © 2026
       </footer>
+      </div>
     </div>
   );
 }
