@@ -97,6 +97,13 @@ const STATE_BACKGROUNDS: Record<string, string> = {
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("NM");
+  const [isLargeScreen, setIsLargeScreen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const handler = (e: MediaQueryListEvent) => setIsLargeScreen(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [listingAgentPct, setListingAgentPct] = useState<number>(3);
   const [buyerAgentPct, setBuyerAgentPct] = useState<number>(3);
@@ -851,7 +858,7 @@ export default function Calculator() {
     );
   }, [activeSlice]);
 
-  const stateBgImage = STATE_BACKGROUNDS[selectedState] || null;
+  const stateBgImage = isLargeScreen ? (STATE_BACKGROUNDS[selectedState] || null) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 relative overflow-hidden">
