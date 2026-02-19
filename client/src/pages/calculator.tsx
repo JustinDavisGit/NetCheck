@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import nmBg from "@assets/NM.jpg";
 import nyBg from "@assets/NY.jpg";
+import njBg from "@assets/nj.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -90,6 +91,7 @@ const US_STATES = [
 const STATE_BACKGROUNDS: Record<string, string> = {
   NM: nmBg,
   NY: nyBg,
+  NJ: njBg,
 };
 
 export default function Calculator() {
