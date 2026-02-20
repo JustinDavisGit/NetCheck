@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import nmBg from "@assets/NM.jpg";
 import nyBg from "@assets/NY.jpg";
 import njBg from "@assets/nj.jpg";
 import { Card, CardContent } from "@/components/ui/card";
@@ -89,7 +88,7 @@ const US_STATES = [
 ];
 
 const STATE_BACKGROUNDS: Record<string, string> = {
-  NM: nmBg,
+  NM: null as any,
   NY: nyBg,
   NJ: njBg,
 };
