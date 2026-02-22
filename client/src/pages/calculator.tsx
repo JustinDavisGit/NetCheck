@@ -159,11 +159,11 @@ export default function Calculator() {
     const mb = params.get('mb');
     const bc = params.get('bc');
     if (sp) {
-      const cleaned = sp.replace(/[^0-9]/g, '');
+      const cleaned = sp.replace(/[^0-9.]/g, '');
       if (cleaned) setSalePrice(cleaned);
     }
     if (mb) {
-      const cleaned = mb.replace(/[^0-9]/g, '');
+      const cleaned = mb.replace(/[^0-9.]/g, '');
       if (cleaned) {
         setMortgageBalance(cleaned);
         defaultCostsApplied.current = true;
@@ -191,14 +191,14 @@ export default function Calculator() {
     if (liens === '1') {
       setHasAdditionalLiens(true);
       const sm = params.get('sm');
-      if (sm) setSecondMortgage(sm.replace(/[^0-9]/g, ''));
+      if (sm) setSecondMortgage(sm.replace(/[^0-9.]/g, ''));
       const hel = params.get('hel');
-      if (hel) setHeloc(hel.replace(/[^0-9]/g, ''));
+      if (hel) setHeloc(hel.replace(/[^0-9.]/g, ''));
       const sol = params.get('sol');
-      if (sol) setSolarLoan(sol.replace(/[^0-9]/g, ''));
+      if (sol) setSolarLoan(sol.replace(/[^0-9.]/g, ''));
     }
     const apt = params.get('apt');
-    if (apt) setAnnualPropertyTax(apt.replace(/[^0-9]/g, ''));
+    if (apt) setAnnualPropertyTax(apt.replace(/[^0-9.]/g, ''));
     const cm = params.get('cm');
     if (cm) {
       const parsed = parseInt(cm, 10);
@@ -213,9 +213,9 @@ export default function Calculator() {
       if (hoaf) setHoaFee(hoaf);
     }
     const sc = params.get('sc');
-    if (sc) setSellerConcessions(sc.replace(/[^0-9]/g, ''));
+    if (sc) setSellerConcessions(sc.replace(/[^0-9.]/g, ''));
     const rc = params.get('rc');
-    if (rc) setRepairCosts(rc.replace(/[^0-9]/g, ''));
+    if (rc) setRepairCosts(rc.replace(/[^0-9.]/g, ''));
     const cf = params.get('cf');
     if (cf) {
       const fields = cf.split(';;').map(entry => {
