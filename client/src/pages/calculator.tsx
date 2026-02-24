@@ -1964,25 +1964,23 @@ export default function Calculator() {
               <div className="flex items-center justify-between max-w-md mx-auto">
                 <span className="text-xs font-medium text-slate-500">{isSample ? 'Sample Net' : displayResults.netProceeds >= 0 ? 'Est. Net' : 'Bring to Closing'}</span>
                 <div className="w-10 h-10 shrink-0">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={12}
-                        outerRadius={19}
-                        paddingAngle={1}
-                        dataKey="value"
-                        stroke="none"
-                        isAnimationActive={false}
-                      >
-                        {chartData.map((entry, index) => (
-                          <Cell key={`mini-cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <PieChart width={40} height={40}>
+                    <Pie
+                      data={chartData}
+                      cx={20}
+                      cy={20}
+                      innerRadius={12}
+                      outerRadius={19}
+                      paddingAngle={1}
+                      dataKey="value"
+                      stroke="none"
+                      isAnimationActive={false}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`mini-cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
                 </div>
                 <span className={`text-xl font-bold ${displayResults.netProceeds >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
                   {formatCurrency(Math.abs(displayedNet))}
