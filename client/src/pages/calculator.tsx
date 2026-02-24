@@ -1991,7 +1991,10 @@ export default function Calculator() {
         )}
       </AnimatePresence>
 
-      <footer className={`text-center py-6 text-sm ${stateBgImage ? 'text-white/50' : 'text-slate-400'}`}>NetCheck LLC © 2026</footer>
+      <footer className={`text-center py-6 ${stateBgImage ? 'text-white/50' : 'text-slate-400'}`}>
+        <p className="text-sm">NetCheck LLC © 2026</p>
+        <p className="text-[10px] mt-1 max-w-md mx-auto leading-snug">NetCheck LLC provides estimates only - not financial advice. Actual results and dollar amounts may differ. Always consult a licensed professional.</p>
+      </footer>
       </div>
     </div>
   );
