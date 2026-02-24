@@ -1991,9 +1991,7 @@ export default function Calculator() {
         )}
       </AnimatePresence>
 
-      <footer className={`text-center py-6 text-sm ${stateBgImage ? 'text-white/50' : 'text-slate-400'}`}>
-        NetCheck © 2026
-      </footer>
+      <footer className={`text-center py-6 text-sm ${stateBgImage ? 'text-white/50' : 'text-slate-400'}`}>NetCheck LLC © 2026</footer>
       </div>
     </div>
   );
