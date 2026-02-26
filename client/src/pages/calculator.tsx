@@ -944,7 +944,7 @@ export default function Calculator() {
             Net<span className="font-light">Check</span>
           </span>
         </div>
-        <p className={`text-sm ${stateBgImage ? 'text-white/70' : 'text-slate-500'}`}>Estimate what you'll take home at closing.</p>
+        <p className={`text-sm ${stateBgImage ? 'text-white/70' : 'text-slate-500'}`}>See what you'll walk away with.</p>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pb-24 lg:pb-8">
