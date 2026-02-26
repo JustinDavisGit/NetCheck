@@ -1,0 +1,41 @@
+You are a senior UI engineer. Improve the “Seller Concessions” and “Repairs” inputs so the % / $ selector looks polished and the input field reads clearly.
+
+Current problems:
+- The %/$ UI feels clunky and visually disconnected from the input.
+- The “% = $3,850” helper text looks like it’s floating/overlapping and not aligned.
+- The input doesn’t clearly communicate whether the user is typing percent or dollars.
+
+Design goals:
+- A clean, modern control (iOS-like) that matches the rest of the form style.
+- Selector and input feel like one cohesive component.
+- Clear affordance and excellent alignment/spacing.
+- Accessible, keyboard-friendly, and responsive.
+
+Requirements:
+1) Replace the separate %/$ pills with a segmented control (two options: “%” and “$”) that is visually attached to the input (same height, shared border radius, consistent padding).
+2) Show the selected unit as a suffix INSIDE the input on the right (e.g., “6.00%” or “$3,850”) OR use the segmented control as the suffix — but pick ONE approach and make it consistent.
+3) Remove the floating “% = $3,850” badge. Instead, show a small helper line under the input, left-aligned:
+   - If mode is percent: “Estimated: $3,850”
+   - If mode is dollars: “As % of price: 1.00%”
+   Style: muted text (gray), 12–13px, with proper spacing (8px below input).
+4) Ensure the input has:
+   - consistent height with other fields (e.g., 44–48px),
+   - clear focus state (subtle ring),
+   - proper formatting: percent up to 2 decimals; dollars with commas, no decimals by default.
+5) State management:
+   - Store canonical value in dollars internally.
+   - When user enters percent, convert to dollars using salePrice.
+   - When user enters dollars, compute percent for the helper text.
+   - Switching % <-> $ should preserve meaning (keep the same dollars value; just change how it’s displayed).
+6) Validation:
+   - Disallow negative.
+   - Cap percent at 0–100.
+   - Cap dollars at salePrice (or show warning if above).
+7) Implement as a reusable component:
+   <MoneyOrPercentInput
+      label="Seller Concessions"
+      salePrice={salePrice}
+      valueDollars={concessionsDollars}
+      onChangeDollars={setConcessionsDollars}
+   />
+   Same for Repairs.
