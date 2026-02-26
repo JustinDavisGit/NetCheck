@@ -1370,7 +1370,7 @@ export default function Calculator() {
                         </div>
 
                         <div className="border-t border-slate-200 pt-2 mt-1 flex items-center justify-between">
-                          <span className="text-xs font-semibold text-slate-600">{isNM ? 'Total Commission + GRT' : 'Total Commission'}</span>
+                          <span className="text-xs font-semibold text-slate-600">{isNM ? 'Total Agent Fees + GRT' : 'Total Agent Fees'}</span>
                           <span className="text-xs font-semibold text-slate-700">
                             {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + (isNM ? parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100 : 0))}
                           </span>
