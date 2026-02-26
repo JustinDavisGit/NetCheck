@@ -1329,6 +1329,44 @@ export default function Calculator() {
                   </AnimatePresence>
                 </div>
 
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Handshake className="w-4 h-4 text-blue-400" />
+                    Seller Concessions
+                  </Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={sellerConcessions}
+                      onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcessions)}
+                      onBlur={() => formatCurrencyOnBlur(sellerConcessions, setSellerConcessions)}
+                      className="pl-8 text-lg h-12 font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-blue-400" />
+                    Repairs
+                  </Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={repairCosts}
+                      onChange={(e) => handleCurrencyInput(e.target.value, setRepairCosts)}
+                      onBlur={() => formatCurrencyOnBlur(repairCosts, setRepairCosts)}
+                      className="pl-8 text-lg h-12 font-medium"
+                    />
+                  </div>
+                </div>
+
                 <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3">
                   <button
                     type="button"
@@ -1617,44 +1655,6 @@ export default function Calculator() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                    <Handshake className="w-4 h-4 text-blue-400" />
-                    Seller Concessions
-                  </Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="0"
-                      value={sellerConcessions}
-                      onChange={(e) => handleCurrencyInput(e.target.value, setSellerConcessions)}
-                      onBlur={() => formatCurrencyOnBlur(sellerConcessions, setSellerConcessions)}
-                      className="pl-8 text-lg h-12 font-medium"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                    <Wrench className="w-4 h-4 text-blue-400" />
-                    Repairs
-                  </Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="0"
-                      value={repairCosts}
-                      onChange={(e) => handleCurrencyInput(e.target.value, setRepairCosts)}
-                      onBlur={() => formatCurrencyOnBlur(repairCosts, setRepairCosts)}
-                      className="pl-8 text-lg h-12 font-medium"
-                    />
-                  </div>
                 </div>
 
                 {customFields.map((field, index) => (
