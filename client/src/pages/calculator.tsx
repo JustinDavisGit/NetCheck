@@ -2218,13 +2218,13 @@ export default function Calculator() {
           >
             <div className="bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-4 py-2.5">
               <div className="flex items-center justify-between max-w-md mx-auto">
-                <span className="text-xs font-medium text-slate-500">{isSample ? 'Sample Net' : displayResults.netProceeds >= 0 ? 'Est. Net' : 'Bring to Closing'}</span>
-                <div className="w-10 h-10 shrink-0">
-                  <PieChart width={40} height={40}>
+                <span className="text-xs font-medium text-slate-500">{isSample ? 'Sample Scenario' : displayResults.netProceeds >= 0 ? 'In Your Pocket' : 'Bring to Closing'}</span>
+                <div className="w-12 h-12 shrink-0 overflow-visible flex items-center justify-center">
+                  <PieChart width={44} height={44}>
                     <Pie
                       data={chartData}
-                      cx={20}
-                      cy={20}
+                      cx={22}
+                      cy={22}
                       innerRadius={12}
                       outerRadius={19}
                       paddingAngle={1}
