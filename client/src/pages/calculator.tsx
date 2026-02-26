@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import nmBg from "@assets/nm.jpg";
 import nyBg from "@assets/NY.jpg";
 import njBg from "@assets/nj.jpg";
+import caBg from "@assets/ca_1772118145828.jpeg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -94,6 +95,7 @@ const STATE_BACKGROUNDS: Record<string, string> = {
   NM: nmBg,
   NY: nyBg,
   NJ: njBg,
+  CA: caBg,
 };
 
 export default function Calculator() {
