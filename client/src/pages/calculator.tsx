@@ -136,6 +136,7 @@ export default function Calculator() {
   const [repairCosts, setRepairCosts] = useState<string>("");
   const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
   const [surveyFee, setSurveyFee] = useState<string>("0");
+  const [propertyDetailsOpen, setPropertyDetailsOpen] = useState(false);
   const defaultCostsApplied = useRef(false);
   const [copied, setCopied] = useState(false);
   const [isSample, setIsSample] = useState(true);
@@ -223,6 +224,9 @@ export default function Calculator() {
         return { name: name || '', amount: amount || '' };
       });
       if (fields.length > 0) setCustomFields(fields);
+    }
+    if (apt || cm || hoa || sf) {
+      setPropertyDetailsOpen(true);
     }
     if (sp || mb || bc || grt || liens || apt || cm || sf || hoa || sc || rc || cf) {
       setIsSample(false);
@@ -1325,8 +1329,41 @@ export default function Calculator() {
                   </AnimatePresence>
                 </div>
 
-                <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Property-Specific Costs</p>
+                <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => setPropertyDetailsOpen(!propertyDetailsOpen)}
+                    className="w-full flex items-center justify-between"
+                  >
+                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Property-Specific Costs & Tax Proration</p>
+                    <motion.div animate={{ rotate: propertyDetailsOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    </motion.div>
+                  </button>
+                  {!propertyDetailsOpen && (
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      {(() => {
+                        const items: string[] = [];
+                        if (hasHoa) items.push('HOA');
+                        if (hasSeptic) items.push('Septic');
+                        if (hasWell) items.push('Well');
+                        if (parseCurrency(annualPropertyTax) > 0) items.push('Tax Proration');
+                        if (parseCurrency(surveyFee) > 0) items.push('Survey');
+                        if (parseCurrency(waterBill) > 0) items.push('Water Bill');
+                        return items.length > 0 ? items.join(', ') : 'Tap to expand';
+                      })()}
+                    </p>
+                  )}
+                  <AnimatePresence>
+                    {propertyDetailsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-3 space-y-2.5">
 
                   <div className="pt-1 space-y-2">
                     <div className="flex items-center justify-between">
@@ -1524,10 +1561,10 @@ export default function Calculator() {
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-                  <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Tax Proration</p>
+                  <div className="border-t border-slate-200 mt-3 pt-3">
+                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-2.5">Tax Proration</p>
+                  </div>
 
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-medium text-slate-500">
@@ -1575,6 +1612,11 @@ export default function Calculator() {
                       Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}
                     </p>
                   )}
+
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="space-y-2">
