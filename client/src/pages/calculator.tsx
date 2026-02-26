@@ -985,7 +985,7 @@ export default function Calculator() {
                           className="flex justify-center w-full absolute top-full mt-2.5 z-10"
                         >
                           <div className="relative bg-emerald-400 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
-                            Start here — enter your projected sale price
+                            Start here - enter your estimated sale price
                             <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-emerald-400" />
                           </div>
                         </motion.div>
