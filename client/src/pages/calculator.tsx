@@ -139,11 +139,12 @@ export default function Calculator() {
   const [wellFee, setWellFee] = useState<string>("550");
   const [waterBill, setWaterBill] = useState<string>("0");
   const [concessionsDollars, setConcessionsDollars] = useState<number>(0);
-  const [concessionDisplay, setConcessionDisplay] = useState<string>("1.00");
+  const [concessionDisplay, setConcessionDisplay] = useState<string>("0");
   const [concessionMode, setConcessionMode] = useState<'pct' | 'dollar'>('pct');
   const [repairsDollars, setRepairsDollars] = useState<number>(0);
-  const [repairDisplay, setRepairDisplay] = useState<string>("1.00");
-  const [repairMode, setRepairMode] = useState<'pct' | 'dollar'>('pct');
+  const [repairDisplay, setRepairDisplay] = useState<string>("0");
+  const [useSpecificDate, setUseSpecificDate] = useState(false);
+  const [closingDate, setClosingDate] = useState<string>("");
   const [concessionsRepairsOpen, setConcessionsRepairsOpen] = useState(false);
   const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
   const [surveyFee, setSurveyFee] = useState<string>("0");
@@ -172,13 +173,6 @@ export default function Calculator() {
     }
   }, [salePrice, concessionMode, concessionDisplay]);
 
-  useEffect(() => {
-    const price = parseCurrency(salePrice);
-    if (repairMode === 'pct' && price > 0) {
-      const pct = parseFloat(repairDisplay) || 0;
-      setRepairsDollars(Math.round(price * pct / 100));
-    }
-  }, [salePrice, repairMode, repairDisplay]);
 
   // Load state from URL parameters on mount
   useEffect(() => {
@@ -227,6 +221,11 @@ export default function Calculator() {
     }
     const apt = params.get('apt');
     if (apt) setAnnualPropertyTax(apt.replace(/[^0-9.]/g, ''));
+    const cd = params.get('cd');
+    if (cd) {
+      setUseSpecificDate(true);
+      setClosingDate(cd);
+    }
     const cm = params.get('cm');
     if (cm) {
       const parsed = parseInt(cm, 10);
@@ -253,7 +252,6 @@ export default function Calculator() {
       const rcVal = parseFloat(rc.replace(/[^0-9.]/g, '')) || 0;
       setRepairsDollars(rcVal);
       setRepairDisplay(rcVal.toLocaleString('en-US', { maximumFractionDigits: 0 }));
-      setRepairMode('dollar');
       setConcessionsRepairsOpen(true);
     }
     const cf = params.get('cf');
@@ -264,10 +262,10 @@ export default function Calculator() {
       });
       if (fields.length > 0) setCustomFields(fields);
     }
-    if (apt || cm || hoa || sf) {
+    if (apt || cm || cd || hoa || sf) {
       setPropertyDetailsOpen(true);
     }
-    if (sp || mb || bc || grt || liens || apt || cm || sf || hoa || sc || rc || cf) {
+    if (sp || mb || bc || grt || liens || apt || cm || cd || sf || hoa || sc || rc || cf) {
       setIsSample(false);
       setShowCallout(false);
     }
@@ -314,7 +312,11 @@ export default function Calculator() {
       if (solarLoan) params.set('sol', solarLoan);
     }
     if (annualPropertyTax) params.set('apt', annualPropertyTax);
-    if (closingMonth !== (new Date().getMonth() + 1) % 12 + 1) params.set('cm', closingMonth.toString());
+    if (useSpecificDate && closingDate) {
+      params.set('cd', closingDate);
+    } else if (closingMonth !== (new Date().getMonth() + 1) % 12 + 1) {
+      params.set('cm', closingMonth.toString());
+    }
     if (surveyFee !== '275' && surveyFee !== '0') params.set('sf', surveyFee);
     if (hasHoa) {
       params.set('hoa', '1');
@@ -710,7 +712,18 @@ export default function Calculator() {
     const grtAmount = isNM ? commissionAmount * (grtRate / 100) : 0;
     const titleEscrowAmount = getEstimatedTitleEscrowFee(price);
     const annualTax = parseCurrency(annualPropertyTax);
-    const taxProration = annualTax > 0 ? (closingMonth / 12) * annualTax : 0;
+    let taxProrationFraction = closingMonth / 12;
+    if (useSpecificDate && closingDate) {
+      const d = new Date(closingDate + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        const year = d.getFullYear();
+        const startOfYear = new Date(year, 0, 1);
+        const dayOfYear = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000) + 1;
+        const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+        taxProrationFraction = dayOfYear / daysInYear;
+      }
+    }
+    const taxProration = annualTax > 0 ? taxProrationFraction * annualTax : 0;
     const hoaAmount = hasHoa ? parseCurrency(hoaFee) : 0;
     const septicAmount = hasSeptic ? parseCurrency(septicFee) : 0;
     const wellAmount = hasWell ? parseCurrency(wellFee) : 0;
@@ -743,7 +756,7 @@ export default function Calculator() {
       solarAmt,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, concessionsDollars, repairsDollars, customFields, selectedState]);
+  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, useSpecificDate, closingDate, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, concessionsDollars, repairsDollars, customFields, selectedState]);
 
   const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
 
@@ -1384,7 +1397,7 @@ export default function Calculator() {
                       {(() => {
                         const items: string[] = [];
                         if (concessionsDollars > 0) items.push(concessionMode === 'pct' ? `Concessions ${concessionDisplay}%` : `Concessions ${formatCurrency(concessionsDollars)}`);
-                        if (repairsDollars > 0) items.push(repairMode === 'pct' ? `Repairs ${repairDisplay}%` : `Repairs ${formatCurrency(repairsDollars)}`);
+                        if (repairsDollars > 0) items.push(`Repairs ${formatCurrency(repairsDollars)}`);
                         return items.length > 0 ? items.join(', ') : 'Tap to expand';
                       })()}
                     </p>
@@ -1480,79 +1493,27 @@ export default function Calculator() {
 
                           <div>
                             <Label className="text-xs font-medium text-slate-500 mb-1.5 block">Repairs</Label>
-                            <div className="flex h-11 rounded-lg border border-gray-300 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-emerald-400/50 focus-within:border-emerald-400 transition-all duration-200">
-                              <div className="relative flex-1">
-                                {repairMode === 'dollar' && (
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">$</span>
-                                )}
-                                <input
-                                  type="text"
-                                  inputMode="decimal"
-                                  placeholder="0"
-                                  value={repairDisplay}
-                                  onChange={(e) => {
-                                    const price = parseCurrency(salePrice);
-                                    if (repairMode === 'pct') {
-                                      let val = e.target.value.replace(/[^0-9.]/g, '');
-                                      const num = parseFloat(val);
-                                      if (num > 100) val = '100';
-                                      setRepairDisplay(val);
-                                      setRepairsDollars(Math.round(price * (parseFloat(val) || 0) / 100));
-                                    } else {
-                                      const raw = e.target.value.replace(/[^0-9]/g, '');
-                                      const num = parseInt(raw) || 0;
-                                      setRepairDisplay(num > 0 ? num.toLocaleString('en-US') : raw);
-                                      setRepairsDollars(num);
-                                    }
-                                  }}
-                                  onBlur={() => {
-                                    if (repairMode === 'pct') {
-                                      const num = parseFloat(repairDisplay) || 0;
-                                      setRepairDisplay(num > 0 ? num.toFixed(2) : '0');
-                                    } else {
-                                      setRepairDisplay(repairsDollars > 0 ? repairsDollars.toLocaleString('en-US') : '0');
-                                    }
-                                  }}
-                                  className={`w-full h-full text-sm font-semibold text-gray-900 bg-white outline-none ${repairMode === 'dollar' ? 'pl-7 pr-3' : 'pl-3 pr-3'}`}
-                                />
-                                {repairMode === 'pct' && (
-                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">%</span>
-                                )}
-                              </div>
-                              <div className="flex border-l border-gray-300">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (repairMode !== 'pct') {
-                                      const price = parseCurrency(salePrice);
-                                      const pct = price > 0 ? (repairsDollars / price * 100) : 0;
-                                      setRepairMode('pct');
-                                      setRepairDisplay(pct > 0 ? pct.toFixed(2) : '0');
-                                    }
-                                  }}
-                                  className={`px-3 h-full text-xs font-semibold transition-colors ${repairMode === 'pct' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-slate-400 hover:bg-gray-100'}`}
-                                >
-                                  %
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (repairMode !== 'dollar') {
-                                      setRepairMode('dollar');
-                                      setRepairDisplay(repairsDollars > 0 ? repairsDollars.toLocaleString('en-US') : '0');
-                                    }
-                                  }}
-                                  className={`px-3 h-full text-xs font-semibold transition-colors ${repairMode === 'dollar' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-slate-400 hover:bg-gray-100'}`}
-                                >
-                                  $
-                                </button>
-                              </div>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">$</span>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                placeholder="0"
+                                value={repairDisplay}
+                                onChange={(e) => {
+                                  const raw = e.target.value.replace(/[^0-9]/g, '');
+                                  const num = parseInt(raw) || 0;
+                                  setRepairDisplay(num > 0 ? num.toLocaleString('en-US') : raw);
+                                  setRepairsDollars(num);
+                                }}
+                                onBlur={() => {
+                                  setRepairDisplay(repairsDollars > 0 ? repairsDollars.toLocaleString('en-US') : '0');
+                                }}
+                                className="w-full h-11 text-sm font-semibold text-gray-900 bg-white pl-7 pr-3 rounded-lg border border-gray-300 shadow-sm outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 transition-all duration-200"
+                              />
                             </div>
                             <p className="text-[12px] text-slate-400 mt-1.5">
-                              {repairMode === 'pct'
-                                ? `Estimated: ${formatCurrency(repairsDollars)}`
-                                : `As % of price: ${parseCurrency(salePrice) > 0 ? (repairsDollars / parseCurrency(salePrice) * 100).toFixed(2) : '0.00'}%`
-                              }
+                              {`As % of price: ${parseCurrency(salePrice) > 0 ? (repairsDollars / parseCurrency(salePrice) * 100).toFixed(2) : '0.00'}%`}
                             </p>
                           </div>
 
@@ -1816,33 +1777,79 @@ export default function Calculator() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium text-slate-500">
-                      Estimated Month of Closing
-                    </Label>
-                    <select
-                      value={closingMonth}
-                      onChange={(e) => setClosingMonth(parseInt(e.target.value))}
-                      className="text-xs font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
-                    >
-                      <option value={1}>January</option>
-                      <option value={2}>February</option>
-                      <option value={3}>March</option>
-                      <option value={4}>April</option>
-                      <option value={5}>May</option>
-                      <option value={6}>June</option>
-                      <option value={7}>July</option>
-                      <option value={8}>August</option>
-                      <option value={9}>September</option>
-                      <option value={10}>October</option>
-                      <option value={11}>November</option>
-                      <option value={12}>December</option>
-                    </select>
+                  <div className="space-y-1.5">
+                    {!useSpecificDate ? (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-medium text-slate-500">
+                            Estimated Month of Closing
+                          </Label>
+                          <select
+                            value={closingMonth}
+                            onChange={(e) => setClosingMonth(parseInt(e.target.value))}
+                            className="text-xs font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
+                          >
+                            <option value={1}>January</option>
+                            <option value={2}>February</option>
+                            <option value={3}>March</option>
+                            <option value={4}>April</option>
+                            <option value={5}>May</option>
+                            <option value={6}>June</option>
+                            <option value={7}>July</option>
+                            <option value={8}>August</option>
+                            <option value={9}>September</option>
+                            <option value={10}>October</option>
+                            <option value={11}>November</option>
+                            <option value={12}>December</option>
+                          </select>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setUseSpecificDate(true)}
+                          className="text-[11px] text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+                        >
+                          Enter specific date
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-medium text-slate-500">
+                            Closing Date
+                          </Label>
+                          <input
+                            type="date"
+                            value={closingDate}
+                            onChange={(e) => setClosingDate(e.target.value)}
+                            className="text-xs font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1.5 shadow-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 focus:shadow-md"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setUseSpecificDate(false)}
+                          className="text-[11px] text-blue-400 hover:text-blue-500 hover:underline transition-colors"
+                        >
+                          Use month instead
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   {parseCurrency(annualPropertyTax) > 0 && (
                     <p className="text-[11px] text-slate-400">
-                      Seller's share: {closingMonth} of 12 months = {formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}
+                      {(() => {
+                        if (useSpecificDate && closingDate) {
+                          const d = new Date(closingDate + 'T00:00:00');
+                          if (!isNaN(d.getTime())) {
+                            const year = d.getFullYear();
+                            const startOfYear = new Date(year, 0, 1);
+                            const dayOfYear = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000) + 1;
+                            const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+                            return `Seller's share: ${dayOfYear} of ${daysInYear} days = ${formatCurrency((dayOfYear / daysInYear) * parseCurrency(annualPropertyTax))}`;
+                          }
+                        }
+                        return `Seller's share: ${closingMonth} of 12 months = ${formatCurrency((closingMonth / 12) * parseCurrency(annualPropertyTax))}`;
+                      })()}
                     </p>
                   )}
 
@@ -1987,7 +1994,19 @@ export default function Calculator() {
                       </div>
                       {displayResults.taxProration > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">Tax Proration ({closingMonth}/12 mo)</span>
+                          <span className="text-slate-500">Tax Proration ({(() => {
+                            if (useSpecificDate && closingDate) {
+                              const d = new Date(closingDate + 'T00:00:00');
+                              if (!isNaN(d.getTime())) {
+                                const year = d.getFullYear();
+                                const startOfYear = new Date(year, 0, 1);
+                                const dayOfYear = Math.floor((d.getTime() - startOfYear.getTime()) / 86400000) + 1;
+                                const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+                                return `${dayOfYear}/${daysInYear} days`;
+                              }
+                            }
+                            return `${closingMonth}/12 mo`;
+                          })()})</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(displayResults.taxProration)}</span>
                         </div>
                       )}
