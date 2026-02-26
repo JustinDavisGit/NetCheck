@@ -1971,7 +1971,7 @@ export default function Calculator() {
                         </div>
                       )}
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">Commission ({(isSample ? SAMPLE_BROKER : totalCommissionPct).toFixed(1)}%)</span>
+                        <span className="text-slate-500">Agent Fees ({(isSample ? SAMPLE_BROKER : totalCommissionPct).toFixed(1)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(displayResults.commissionAmount)}</span>
                       </div>
                       {isNM && (
