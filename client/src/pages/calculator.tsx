@@ -134,9 +134,11 @@ export default function Calculator() {
   const [hasWell, setHasWell] = useState(false);
   const [wellFee, setWellFee] = useState<string>("550");
   const [waterBill, setWaterBill] = useState<string>("0");
-  const [sellerConcessions, setSellerConcessions] = useState<string>("1");
+  const [concessionsDollars, setConcessionsDollars] = useState<number>(0);
+  const [concessionDisplay, setConcessionDisplay] = useState<string>("1.00");
   const [concessionMode, setConcessionMode] = useState<'pct' | 'dollar'>('pct');
-  const [repairCosts, setRepairCosts] = useState<string>("1");
+  const [repairsDollars, setRepairsDollars] = useState<number>(0);
+  const [repairDisplay, setRepairDisplay] = useState<string>("1.00");
   const [repairMode, setRepairMode] = useState<'pct' | 'dollar'>('pct');
   const [concessionsRepairsOpen, setConcessionsRepairsOpen] = useState(false);
   const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
@@ -157,6 +159,22 @@ export default function Calculator() {
   const animationRef = useRef<number | null>(null);
   const displayedNetRef = useRef(0);
   const pieChartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const price = parseCurrency(salePrice);
+    if (concessionMode === 'pct' && price > 0) {
+      const pct = parseFloat(concessionDisplay) || 0;
+      setConcessionsDollars(Math.round(price * pct / 100));
+    }
+  }, [salePrice, concessionMode, concessionDisplay]);
+
+  useEffect(() => {
+    const price = parseCurrency(salePrice);
+    if (repairMode === 'pct' && price > 0) {
+      const pct = parseFloat(repairDisplay) || 0;
+      setRepairsDollars(Math.round(price * pct / 100));
+    }
+  }, [salePrice, repairMode, repairDisplay]);
 
   // Load state from URL parameters on mount
   useEffect(() => {
@@ -220,13 +238,17 @@ export default function Calculator() {
     }
     const sc = params.get('sc');
     if (sc) {
-      setSellerConcessions(sc.replace(/[^0-9.]/g, ''));
+      const scVal = parseFloat(sc.replace(/[^0-9.]/g, '')) || 0;
+      setConcessionsDollars(scVal);
+      setConcessionDisplay(scVal.toLocaleString('en-US', { maximumFractionDigits: 0 }));
       setConcessionMode('dollar');
       setConcessionsRepairsOpen(true);
     }
     const rc = params.get('rc');
     if (rc) {
-      setRepairCosts(rc.replace(/[^0-9.]/g, ''));
+      const rcVal = parseFloat(rc.replace(/[^0-9.]/g, '')) || 0;
+      setRepairsDollars(rcVal);
+      setRepairDisplay(rcVal.toLocaleString('en-US', { maximumFractionDigits: 0 }));
       setRepairMode('dollar');
       setConcessionsRepairsOpen(true);
     }
@@ -294,10 +316,8 @@ export default function Calculator() {
       params.set('hoa', '1');
       if (hoaFee !== '350') params.set('hoaf', hoaFee);
     }
-    const resolvedConcessions = concessionMode === 'pct' ? Math.round(parseCurrency(salePrice) * parseFloat(sellerConcessions || '0') / 100) : parseCurrency(sellerConcessions);
-    const resolvedRepairs = repairMode === 'pct' ? Math.round(parseCurrency(salePrice) * parseFloat(repairCosts || '0') / 100) : parseCurrency(repairCosts);
-    if (resolvedConcessions > 0) params.set('sc', resolvedConcessions.toString());
-    if (resolvedRepairs > 0) params.set('rc', resolvedRepairs.toString());
+    if (concessionsDollars > 0) params.set('sc', concessionsDollars.toString());
+    if (repairsDollars > 0) params.set('rc', repairsDollars.toString());
     if (customFields.length > 0) {
       const cf = customFields.map(f => `${f.name}|${f.amount}`).join(';;');
       params.set('cf', cf);
@@ -692,8 +712,8 @@ export default function Calculator() {
     const wellAmount = hasWell ? parseCurrency(wellFee) : 0;
     const waterBillAmount = hasWell ? 0 : parseCurrency(waterBill);
     const surveyAmount = parseCurrency(surveyFee);
-    const concessionsAmt = concessionMode === 'pct' ? Math.round(price * parseFloat(sellerConcessions || '0') / 100) : parseCurrency(sellerConcessions);
-    const repairAmt = repairMode === 'pct' ? Math.round(price * parseFloat(repairCosts || '0') / 100) : parseCurrency(repairCosts);
+    const concessionsAmt = concessionsDollars;
+    const repairAmt = repairsDollars;
     const customFieldsTotal = customFields.reduce((sum, f) => sum + parseCurrency(f.amount), 0);
     const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + septicAmount + wellAmount + waterBillAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal;
     const netProceeds = price - totalLiens - totalDeductions;
@@ -719,7 +739,7 @@ export default function Calculator() {
       solarAmt,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, sellerConcessions, concessionMode, repairCosts, repairMode, customFields, selectedState]);
+  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, concessionsDollars, repairsDollars, customFields, selectedState]);
 
   const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
 
@@ -1359,15 +1379,8 @@ export default function Calculator() {
                     <p className="text-[10px] text-slate-400 mt-1">
                       {(() => {
                         const items: string[] = [];
-                        const price = parseCurrency(salePrice);
-                        const cVal = concessionMode === 'pct' ? parseFloat(sellerConcessions || '0') : 0;
-                        const cDol = concessionMode === 'dollar' ? parseCurrency(sellerConcessions) : 0;
-                        if (cVal > 0) items.push(`Concessions ${cVal}%`);
-                        else if (cDol > 0) items.push(`Concessions ${formatCurrency(cDol)}`);
-                        const rVal = repairMode === 'pct' ? parseFloat(repairCosts || '0') : 0;
-                        const rDol = repairMode === 'dollar' ? parseCurrency(repairCosts) : 0;
-                        if (rVal > 0) items.push(`Repairs ${rVal}%`);
-                        else if (rDol > 0) items.push(`Repairs ${formatCurrency(rDol)}`);
+                        if (concessionsDollars > 0) items.push(concessionMode === 'pct' ? `Concessions ${concessionDisplay}%` : `Concessions ${formatCurrency(concessionsDollars)}`);
+                        if (repairsDollars > 0) items.push(repairMode === 'pct' ? `Repairs ${repairDisplay}%` : `Repairs ${formatCurrency(repairsDollars)}`);
                         return items.length > 0 ? items.join(', ') : 'Tap to expand';
                       })()}
                     </p>
@@ -1381,124 +1394,162 @@ export default function Calculator() {
                         transition={{ duration: 0.25 }}
                         className="overflow-hidden"
                       >
-                        <div className="pt-3 space-y-3">
+                        <div className="pt-3 space-y-4">
 
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-xs font-medium text-slate-500">Seller Concessions</Label>
-                              <div className="flex gap-1">
+                          <div>
+                            <Label className="text-xs font-medium text-slate-500 mb-1.5 block">Seller Concessions</Label>
+                            <div className="flex h-11 rounded-lg border border-gray-300 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-emerald-400/50 focus-within:border-emerald-400 transition-all duration-200">
+                              <div className="relative flex-1">
+                                {concessionMode === 'dollar' && (
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">$</span>
+                                )}
+                                <input
+                                  type="text"
+                                  inputMode="decimal"
+                                  placeholder="0"
+                                  value={concessionDisplay}
+                                  onChange={(e) => {
+                                    const price = parseCurrency(salePrice);
+                                    if (concessionMode === 'pct') {
+                                      let val = e.target.value.replace(/[^0-9.]/g, '');
+                                      const num = parseFloat(val);
+                                      if (num > 100) val = '100';
+                                      setConcessionDisplay(val);
+                                      setConcessionsDollars(Math.round(price * (parseFloat(val) || 0) / 100));
+                                    } else {
+                                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                                      const num = parseInt(raw) || 0;
+                                      setConcessionDisplay(num > 0 ? num.toLocaleString('en-US') : raw);
+                                      setConcessionsDollars(num);
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    if (concessionMode === 'pct') {
+                                      const num = parseFloat(concessionDisplay) || 0;
+                                      setConcessionDisplay(num > 0 ? num.toFixed(2) : '0');
+                                    } else {
+                                      setConcessionDisplay(concessionsDollars > 0 ? concessionsDollars.toLocaleString('en-US') : '0');
+                                    }
+                                  }}
+                                  className={`w-full h-full text-sm font-semibold text-gray-900 bg-white outline-none ${concessionMode === 'dollar' ? 'pl-7 pr-3' : 'pl-3 pr-3'}`}
+                                />
+                                {concessionMode === 'pct' && (
+                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">%</span>
+                                )}
+                              </div>
+                              <div className="flex border-l border-gray-300">
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (concessionMode === 'dollar') {
+                                    if (concessionMode !== 'pct') {
+                                      const price = parseCurrency(salePrice);
+                                      const pct = price > 0 ? (concessionsDollars / price * 100) : 0;
                                       setConcessionMode('pct');
-                                      setSellerConcessions('1');
+                                      setConcessionDisplay(pct > 0 ? pct.toFixed(2) : '0');
                                     }
                                   }}
-                                  className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border transition-colors ${concessionMode === 'pct' ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                                  className={`px-3 h-full text-xs font-semibold transition-colors ${concessionMode === 'pct' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-slate-400 hover:bg-gray-100'}`}
                                 >
                                   %
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (concessionMode === 'pct') {
-                                      const resolved = Math.round(parseCurrency(salePrice) * parseFloat(sellerConcessions || '0') / 100);
+                                    if (concessionMode !== 'dollar') {
                                       setConcessionMode('dollar');
-                                      setSellerConcessions(resolved > 0 ? resolved.toString() : '');
+                                      setConcessionDisplay(concessionsDollars > 0 ? concessionsDollars.toLocaleString('en-US') : '0');
                                     }
                                   }}
-                                  className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border transition-colors ${concessionMode === 'dollar' ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                                  className={`px-3 h-full text-xs font-semibold transition-colors ${concessionMode === 'dollar' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-slate-400 hover:bg-gray-100'}`}
                                 >
                                   $
                                 </button>
                               </div>
                             </div>
-                            <div className="relative">
-                              {concessionMode === 'dollar' ? (
-                                <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                              ) : null}
-                              <input
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="0"
-                                value={sellerConcessions}
-                                onChange={(e) => {
-                                  if (concessionMode === 'pct') {
-                                    const val = e.target.value.replace(/[^0-9.]/g, '');
-                                    setSellerConcessions(val);
-                                  } else {
-                                    handleCurrencyInput(e.target.value, setSellerConcessions);
-                                  }
-                                }}
-                                onBlur={() => { if (concessionMode === 'dollar') formatCurrencyOnBlur(sellerConcessions, setSellerConcessions); }}
-                                className={`w-full ${INLINE_CURRENCY_CLASS} ${concessionMode === 'dollar' ? 'pl-6' : 'pl-2'}`}
-                              />
-                              {concessionMode === 'pct' && (
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">
-                                  % = {formatCurrency(Math.round(parseCurrency(salePrice) * parseFloat(sellerConcessions || '0') / 100))}
-                                </span>
-                              )}
-                            </div>
+                            <p className="text-[12px] text-slate-400 mt-1.5">
+                              {concessionMode === 'pct'
+                                ? `Estimated: ${formatCurrency(concessionsDollars)}`
+                                : `As % of price: ${parseCurrency(salePrice) > 0 ? (concessionsDollars / parseCurrency(salePrice) * 100).toFixed(2) : '0.00'}%`
+                              }
+                            </p>
                           </div>
 
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-xs font-medium text-slate-500">Repairs</Label>
-                              <div className="flex gap-1">
+                          <div>
+                            <Label className="text-xs font-medium text-slate-500 mb-1.5 block">Repairs</Label>
+                            <div className="flex h-11 rounded-lg border border-gray-300 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-emerald-400/50 focus-within:border-emerald-400 transition-all duration-200">
+                              <div className="relative flex-1">
+                                {repairMode === 'dollar' && (
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">$</span>
+                                )}
+                                <input
+                                  type="text"
+                                  inputMode="decimal"
+                                  placeholder="0"
+                                  value={repairDisplay}
+                                  onChange={(e) => {
+                                    const price = parseCurrency(salePrice);
+                                    if (repairMode === 'pct') {
+                                      let val = e.target.value.replace(/[^0-9.]/g, '');
+                                      const num = parseFloat(val);
+                                      if (num > 100) val = '100';
+                                      setRepairDisplay(val);
+                                      setRepairsDollars(Math.round(price * (parseFloat(val) || 0) / 100));
+                                    } else {
+                                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                                      const num = parseInt(raw) || 0;
+                                      setRepairDisplay(num > 0 ? num.toLocaleString('en-US') : raw);
+                                      setRepairsDollars(num);
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    if (repairMode === 'pct') {
+                                      const num = parseFloat(repairDisplay) || 0;
+                                      setRepairDisplay(num > 0 ? num.toFixed(2) : '0');
+                                    } else {
+                                      setRepairDisplay(repairsDollars > 0 ? repairsDollars.toLocaleString('en-US') : '0');
+                                    }
+                                  }}
+                                  className={`w-full h-full text-sm font-semibold text-gray-900 bg-white outline-none ${repairMode === 'dollar' ? 'pl-7 pr-3' : 'pl-3 pr-3'}`}
+                                />
+                                {repairMode === 'pct' && (
+                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none">%</span>
+                                )}
+                              </div>
+                              <div className="flex border-l border-gray-300">
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (repairMode === 'dollar') {
+                                    if (repairMode !== 'pct') {
+                                      const price = parseCurrency(salePrice);
+                                      const pct = price > 0 ? (repairsDollars / price * 100) : 0;
                                       setRepairMode('pct');
-                                      setRepairCosts('1');
+                                      setRepairDisplay(pct > 0 ? pct.toFixed(2) : '0');
                                     }
                                   }}
-                                  className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border transition-colors ${repairMode === 'pct' ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                                  className={`px-3 h-full text-xs font-semibold transition-colors ${repairMode === 'pct' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-slate-400 hover:bg-gray-100'}`}
                                 >
                                   %
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    if (repairMode === 'pct') {
-                                      const resolved = Math.round(parseCurrency(salePrice) * parseFloat(repairCosts || '0') / 100);
+                                    if (repairMode !== 'dollar') {
                                       setRepairMode('dollar');
-                                      setRepairCosts(resolved > 0 ? resolved.toString() : '');
+                                      setRepairDisplay(repairsDollars > 0 ? repairsDollars.toLocaleString('en-US') : '0');
                                     }
                                   }}
-                                  className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border transition-colors ${repairMode === 'dollar' ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                                  className={`px-3 h-full text-xs font-semibold transition-colors ${repairMode === 'dollar' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-50 text-slate-400 hover:bg-gray-100'}`}
                                 >
                                   $
                                 </button>
                               </div>
                             </div>
-                            <div className="relative">
-                              {repairMode === 'dollar' ? (
-                                <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
-                              ) : null}
-                              <input
-                                type="text"
-                                inputMode="decimal"
-                                placeholder="0"
-                                value={repairCosts}
-                                onChange={(e) => {
-                                  if (repairMode === 'pct') {
-                                    const val = e.target.value.replace(/[^0-9.]/g, '');
-                                    setRepairCosts(val);
-                                  } else {
-                                    handleCurrencyInput(e.target.value, setRepairCosts);
-                                  }
-                                }}
-                                onBlur={() => { if (repairMode === 'dollar') formatCurrencyOnBlur(repairCosts, setRepairCosts); }}
-                                className={`w-full ${INLINE_CURRENCY_CLASS} ${repairMode === 'dollar' ? 'pl-6' : 'pl-2'}`}
-                              />
-                              {repairMode === 'pct' && (
-                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">
-                                  % = {formatCurrency(Math.round(parseCurrency(salePrice) * parseFloat(repairCosts || '0') / 100))}
-                                </span>
-                              )}
-                            </div>
+                            <p className="text-[12px] text-slate-400 mt-1.5">
+                              {repairMode === 'pct'
+                                ? `Estimated: ${formatCurrency(repairsDollars)}`
+                                : `As % of price: ${parseCurrency(salePrice) > 0 ? (repairsDollars / parseCurrency(salePrice) * 100).toFixed(2) : '0.00'}%`
+                              }
+                            </p>
                           </div>
 
                         </div>
