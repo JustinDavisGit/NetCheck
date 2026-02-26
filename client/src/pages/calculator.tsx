@@ -440,8 +440,8 @@ export default function Calculator() {
     if (displayResults.secondMtg > 0) deductions.push({ label: 'Second Mortgage', amount: displayResults.secondMtg, color: '#a1a1aa' });
     if (displayResults.helocAmt > 0) deductions.push({ label: 'HELOC', amount: displayResults.helocAmt, color: '#b4b4bb' });
     if (displayResults.solarAmt > 0) deductions.push({ label: 'Solar Loan', amount: displayResults.solarAmt, color: '#c4c4cc' });
-    if (displayResults.commissionAmount > 0) deductions.push({ label: `Commission (${brokerPct}%)`, amount: displayResults.commissionAmount, color: '#60a5fa' });
-    if (isNM && displayResults.grtAmount > 0) deductions.push({ label: `NM GRT on Commission (${grtPct}%)`, amount: displayResults.grtAmount, color: '#fbbf24' });
+    if (displayResults.commissionAmount > 0) deductions.push({ label: `Agent Fees (${brokerPct}%)`, amount: displayResults.commissionAmount, color: '#60a5fa' });
+    if (isNM && displayResults.grtAmount > 0) deductions.push({ label: `NM GRT on Agent Fees (${grtPct}%)`, amount: displayResults.grtAmount, color: '#fbbf24' });
     if (displayResults.titleEscrowAmount > 0) deductions.push({ label: 'Est. Title & Escrow', amount: displayResults.titleEscrowAmount, color: '#f97316' });
     if (displayResults.taxProration > 0) deductions.push({ label: 'Tax Proration', amount: displayResults.taxProration, color: '#a78bfa' });
     if (displayResults.surveyAmount > 0) deductions.push({ label: 'Survey / ILR', amount: displayResults.surveyAmount, color: '#f472b6' });
@@ -541,7 +541,7 @@ export default function Calculator() {
 
     const sliceLabelMap: Record<string, string> = {
       'Mortgage Payoff': 'Mortgage', 'Second Mortgage': '2nd Mortgage', 'HELOC': 'HELOC', 'Solar Loan': 'Solar Loan',
-      [`Commission (${brokerPct}%)`]: 'Commission', [`NM GRT on Commission (${grtPct}%)`]: 'NM GRT',
+      [`Agent Fees (${brokerPct}%)`]: 'Agent Fees', [`NM GRT on Agent Fees (${grtPct}%)`]: 'NM GRT',
       'Est. Title & Escrow': 'Title/Escrow', 'Tax Proration': 'Tax Proration', 'Survey / ILR': 'Survey / ILR',
       'HOA Transfer Fee': 'HOA Transfer', 'Septic Inspection': 'Septic Inspection', 'Well Inspection': 'Well Inspection',
       'Final Water Bill': 'Final Water Bill', 'Seller Concessions': 'Concessions', 'Repairs': 'Repairs',
@@ -868,7 +868,7 @@ export default function Calculator() {
       ...(displayResults.secondMtg > 0 ? [{ name: '2nd Mortgage', value: displayResults.secondMtg, color: '#a1a1aa' }] : []),
       ...(displayResults.helocAmt > 0 ? [{ name: 'HELOC', value: displayResults.helocAmt, color: '#b4b4bb' }] : []),
       ...(displayResults.solarAmt > 0 ? [{ name: 'Solar Loan', value: displayResults.solarAmt, color: '#c4c4cc' }] : []),
-      { name: 'Commission', value: displayResults.commissionAmount, color: '#60a5fa' },
+      { name: 'Agent Fees', value: displayResults.commissionAmount, color: '#60a5fa' },
       ...(isNM && displayResults.grtAmount > 0 ? [{ name: 'NM GRT', value: displayResults.grtAmount, color: '#fbbf24' }] : []),
       { name: 'Title/Escrow', value: displayResults.titleEscrowAmount, color: '#f97316' },
       ...(displayResults.taxProration > 0 ? [{ name: 'Tax Proration', value: displayResults.taxProration, color: '#a78bfa' }] : []),
