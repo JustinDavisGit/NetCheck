@@ -3,6 +3,7 @@ import nmBg from "@assets/nm.jpg";
 import nyBg from "@assets/NY.jpg";
 import njBg from "@assets/nj.jpg";
 import caBg from "@assets/ca_1772118145828.jpeg";
+import txBg from "@assets/tx.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -96,6 +97,7 @@ const STATE_BACKGROUNDS: Record<string, string> = {
   NY: nyBg,
   NJ: njBg,
   CA: caBg,
+  TX: txBg,
 };
 
 export default function Calculator() {
