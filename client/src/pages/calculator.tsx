@@ -1136,7 +1136,7 @@ export default function Calculator() {
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
                       <Briefcase className="w-4 h-4 text-blue-400" />
-                      Real Estate Commissions
+                      Agent Fees
                     </Label>
                     <div className="flex items-center h-8 rounded-lg border border-slate-200 overflow-hidden shadow-sm focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
                       <button
