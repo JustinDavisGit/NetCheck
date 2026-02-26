@@ -40,8 +40,8 @@ function buildSampleResults() {
   const grtAmount = commissionAmount * (SAMPLE_GRT / 100);
   const titleEscrowAmount = getEstimatedTitleEscrowFee(SAMPLE_PRICE);
   const taxProration = (SAMPLE_MONTH / 12) * SAMPLE_ANNUAL_TAX;
-  const concessionsAmt = Math.round(SAMPLE_PRICE * 0.01);
-  const repairAmt = Math.round(SAMPLE_PRICE * 0.01);
+  const concessionsAmt = 0;
+  const repairAmt = 0;
   const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + SAMPLE_SURVEY + 100 + concessionsAmt + repairAmt;
   const netProceeds = SAMPLE_PRICE - SAMPLE_MORTGAGE - totalDeductions;
   return {
