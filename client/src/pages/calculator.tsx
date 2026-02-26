@@ -1529,7 +1529,7 @@ export default function Calculator() {
                     onClick={() => setPropertyDetailsOpen(!propertyDetailsOpen)}
                     className="w-full flex items-center justify-between"
                   >
-                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Property-Specific Costs & Tax Proration</p>
+                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Property-Specific Costs & Taxes</p>
                     <motion.div animate={{ rotate: propertyDetailsOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                       <ChevronDown className="w-4 h-4 text-slate-400" />
                     </motion.div>
