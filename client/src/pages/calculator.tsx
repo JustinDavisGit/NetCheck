@@ -1483,12 +1483,6 @@ export default function Calculator() {
                                 </button>
                               </div>
                             </div>
-                            <p className="text-[12px] text-slate-400 mt-1.5">
-                              {concessionMode === 'pct'
-                                ? `Estimated: ${formatCurrency(concessionsDollars)}`
-                                : `As % of price: ${parseCurrency(salePrice) > 0 ? (concessionsDollars / parseCurrency(salePrice) * 100).toFixed(2) : '0.00'}%`
-                              }
-                            </p>
                           </div>
 
                           <div>
