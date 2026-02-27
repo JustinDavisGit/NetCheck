@@ -1512,9 +1512,6 @@ export default function Calculator() {
                                 className="w-full h-11 text-sm font-semibold text-gray-900 bg-white pl-7 pr-3 rounded-lg border border-gray-300 shadow-sm outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 transition-all duration-200"
                               />
                             </div>
-                            <p className="text-[12px] text-slate-400 mt-1.5">
-                              {`As % of price: ${parseCurrency(salePrice) > 0 ? (repairsDollars / parseCurrency(salePrice) * 100).toFixed(2) : '0.00'}%`}
-                            </p>
                           </div>
 
                         </div>
