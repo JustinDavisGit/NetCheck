@@ -54,7 +54,9 @@ The frontend follows a modular component architecture:
 - **Responsive Design**: Mobile-first approach with Tailwind breakpoints
 - **Interactive Forms**: Real-time calculation updates as users input data
 - **Progress Tracking**: Visual progress indicator showing form completion
-- **Print Functionality**: Formatted print layouts for professional reports
+- **PDF Export**: Professional PDF reports with branded CTA button linking back to the exact scenario
+- **URL Sharing**: Full scenario state encoded in URL params (state, sale price, mortgage, commissions, GRT, liens, tax proration, closing date, HOA, septic, well, water bill, concessions, repairs, custom fields)
+- **Clipboard Fallback**: Supports both modern Clipboard API and legacy execCommand for older browsers
 - **Toast Notifications**: User feedback for actions and errors
 
 ## Data Flow

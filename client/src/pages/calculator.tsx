@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Copy, Check, Briefcase, Handshake, Info, Wrench, Plus, X, FileDown, ChevronDown, Minus, MapPin } from "lucide-react";
+import { DollarSign, Home, FileText, Copy, Check, Briefcase, Info, Plus, X, FileDown, ChevronDown, Minus, MapPin } from "lucide-react";
 import jsPDF from 'jspdf';
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
@@ -177,6 +177,10 @@ export default function Calculator() {
   // Load state from URL parameters on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const st = params.get('st');
+    if (st && US_STATES.some(s => s.value === st)) {
+      setSelectedState(st);
+    }
     const sp = params.get('sp');
     const mb = params.get('mb');
     const bc = params.get('bc');
@@ -239,6 +243,21 @@ export default function Calculator() {
       const hoaf = params.get('hoaf');
       if (hoaf) setHoaFee(hoaf);
     }
+    const sep = params.get('sep');
+    if (sep === '1') {
+      setHasSeptic(true);
+      const sepf = params.get('sepf');
+      if (sepf) setSepticFee(sepf);
+    }
+    const well = params.get('well');
+    if (well === '1') {
+      setHasWell(true);
+      setWaterBill("0");
+      const wellf = params.get('wellf');
+      if (wellf) setWellFee(wellf);
+    }
+    const wb = params.get('wb');
+    if (wb && !params.get('well')) setWaterBill(wb);
     const sc = params.get('sc');
     if (sc) {
       const scVal = parseFloat(sc.replace(/[^0-9.]/g, '')) || 0;
@@ -257,15 +276,17 @@ export default function Calculator() {
     const cf = params.get('cf');
     if (cf) {
       const fields = cf.split(';;').map(entry => {
-        const [name, amount] = entry.split('|');
-        return { name: name || '', amount: amount || '' };
+        const parts = entry.split('|');
+        const name = decodeURIComponent(parts[0] || '');
+        const amount = decodeURIComponent(parts[1] || '');
+        return { name, amount };
       });
       if (fields.length > 0) setCustomFields(fields);
     }
-    if (apt || cm || cd || hoa || sf) {
+    if (apt || cm || cd || hoa || sf || sep || well || wb) {
       setPropertyDetailsOpen(true);
     }
-    if (sp || mb || bc || grt || liens || apt || cm || cd || sf || hoa || sc || rc || cf) {
+    if (sp || mb || bc || grt || liens || apt || cm || cd || sf || hoa || sep || well || wb || sc || rc || cf || st) {
       setIsSample(false);
       setShowCallout(false);
     }
@@ -301,6 +322,7 @@ export default function Calculator() {
 
   const generateShareUrl = () => {
     const params = new URLSearchParams();
+    if (selectedState !== 'NM') params.set('st', selectedState);
     if (salePrice) params.set('sp', salePrice);
     if (mortgageBalance) params.set('mb', mortgageBalance);
     if (totalCommissionPct !== 6) params.set('bc', totalCommissionPct.toString());
@@ -322,10 +344,19 @@ export default function Calculator() {
       params.set('hoa', '1');
       if (hoaFee !== '350') params.set('hoaf', hoaFee);
     }
+    if (hasSeptic) {
+      params.set('sep', '1');
+      if (septicFee !== '550') params.set('sepf', septicFee);
+    }
+    if (hasWell) {
+      params.set('well', '1');
+      if (wellFee !== '550') params.set('wellf', wellFee);
+    }
+    if (!hasWell && parseCurrency(waterBill) > 0 && waterBill !== '100') params.set('wb', waterBill);
     if (concessionsDollars > 0) params.set('sc', concessionsDollars.toString());
     if (repairsDollars > 0) params.set('rc', repairsDollars.toString());
     if (customFields.length > 0) {
-      const cf = customFields.map(f => `${f.name}|${f.amount}`).join(';;');
+      const cf = customFields.map(f => `${encodeURIComponent(f.name)}|${encodeURIComponent(f.amount)}`).join(';;');
       params.set('cf', cf);
     }
 
@@ -340,14 +371,25 @@ export default function Calculator() {
 
   const copyToClipboard = async (url: string) => {
     try {
-      await navigator.clipboard.writeText(url);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
       setCopied(true);
       toast({
         title: "Link copied!",
         description: "Share this link so others can view and adjust the estimate.",
       });
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch {
       toast({
         title: "Couldn't copy link",
         description: "Please copy the URL from your browser's address bar.",
