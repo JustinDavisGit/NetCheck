@@ -630,7 +630,7 @@ export default function Calculator() {
     doc.addImage(chartImgData, 'PNG', chartX, chartY, chartPdfSize, chartPdfSize);
 
     let legendY = chartY + chartPdfSize + 6;
-    const footerLimit = doc.internal.pageSize.getHeight() - 50;
+    const footerLimit = doc.internal.pageSize.getHeight() - 130;
     const legendRowH = donutSlices.length > 12 ? 9 : 11;
     const legendFontSize = donutSlices.length > 12 ? 6 : 7;
     doc.setFont('helvetica', 'normal');
@@ -649,7 +649,54 @@ export default function Calculator() {
       doc.text(item.name, lx + 10, ly);
     });
 
-    const footerY = doc.internal.pageSize.getHeight() - 30;
+    const shareUrl = generateShareUrl();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    const ctaPromptY = pageH - 110;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.setTextColor(148, 163, 184);
+    const ctaPromptText = 'Click / tap here to adjust the numbers and run another scenario.';
+    const ctaPromptW = doc.getTextWidth(ctaPromptText);
+    doc.text(ctaPromptText, pageW / 2, ctaPromptY, { align: 'center' });
+    doc.link(pageW / 2 - ctaPromptW / 2, ctaPromptY - 9, ctaPromptW, 16, { url: shareUrl });
+
+    const btnW = 180;
+    const btnH = 38;
+    const btnX = pageW / 2 - btnW / 2;
+    const btnY = ctaPromptY + 12;
+    const btnR = btnH / 2;
+    doc.setFillColor(52, 211, 153);
+    doc.roundedRect(btnX, btnY, btnW, btnH, btnR, btnR, 'F');
+
+    doc.setFillColor(46, 196, 140);
+    doc.roundedRect(btnX + 1, btnY + 1, btnW - 2, btnH - 3, btnR - 1, btnR - 1, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    const btnNetText = 'Net';
+    const btnCheckText = 'Check';
+    doc.setFont('helvetica', 'bold');
+    const btnNetW = doc.getTextWidth(btnNetText);
+    doc.setFont('helvetica', 'normal');
+    const btnCheckW = doc.getTextWidth(btnCheckText);
+    const btnTotalW = btnNetW + btnCheckW;
+    const btnTextX = pageW / 2 - btnTotalW / 2;
+    const btnTextY = btnY + btnH / 2 + 6;
+    doc.setFont('helvetica', 'bold');
+    doc.text(btnNetText, btnTextX, btnTextY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(btnCheckText, btnTextX + btnNetW, btnTextY);
+    doc.link(btnX, btnY, btnW, btnH, { url: shareUrl });
+
+    const copyrightY = btnY + btnH + 14;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(180, 190, 200);
+    doc.text('\u00A9 2026 NetCheck, LLC', pageW / 2, copyrightY, { align: 'center' });
+
+    const footerY = pageH - 30;
     doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.3);
     doc.line(margin, footerY - 12, pageW - margin, footerY - 12);
