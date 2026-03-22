@@ -29,6 +29,8 @@ export interface TransferTax {
   customaryPayer: CustomaryPayer;
   /** Notes about the rate or special tiers */
   notes?: string;
+  /** True when tiers are graduated/marginal (rate applies to the slice, not the whole amount) */
+  graduated?: boolean;
   /** Tiered rates for states with progressive transfer taxes */
   tiers?: { threshold: number; rate: number }[];
 }
@@ -109,9 +111,26 @@ export function calculateTransferTax(salePrice: number, state: StateData): numbe
   if (transferTax.rateType === 'none') return 0;
 
   if (transferTax.rateType === 'tiered' && transferTax.tiers) {
-    // Progressive tiers (like NY mansion tax, CT, etc.)
+    const tiers = transferTax.tiers;
+
+    if (state.transferTax.graduated) {
+      // Graduated / marginal: each tier's rate applies only to the portion
+      // of the sale price within that bracket (WA REET, NJ, HI, etc.)
+      let tax = 0;
+      for (let i = 0; i < tiers.length; i++) {
+        const floor = tiers[i].threshold;
+        const ceiling = i + 1 < tiers.length ? tiers[i + 1].threshold : Infinity;
+        if (salePrice <= floor) break;
+        const taxable = Math.min(salePrice, ceiling) - floor;
+        tax += taxable * tiers[i].rate;
+      }
+      return Math.round(tax);
+    }
+
+    // Non-graduated: the highest matching tier rate applies to the full amount
+    // (CT conveyance tax, NY state transfer tax, etc.)
     let tax = 0;
-    for (const tier of transferTax.tiers) {
+    for (const tier of tiers) {
       if (salePrice >= tier.threshold) {
         tax = salePrice * tier.rate;
       }
@@ -289,7 +308,7 @@ export const STATE_DATA: Record<string, StateData> = {
     code: 'DE',
     name: 'Delaware',
     closingEntity: 'attorney',
-    transferTax: { rate: 0.04, rateType: 'percent_of_sale', customaryPayer: 'split', notes: '2% state + 1.5% county typical. Customarily split equally between buyer and seller.' },
+    transferTax: { rate: 0.035, rateType: 'percent_of_sale', customaryPayer: 'split', notes: '2% state + ~1.5% county typical. Customarily split equally between buyer and seller.' },
     serviceTaxes: [],
     estimatedTitleEscrowRate: 0.008,
     typicalSellerClosingCostPct: 3.0,
@@ -380,6 +399,7 @@ export const STATE_DATA: Record<string, StateData> = {
       rateType: 'tiered',
       customaryPayer: 'seller',
       notes: 'Conveyance tax ranges from $0.10/$100 (under $600K) up to $1.25/$100 (over $10M)',
+      graduated: true,
       tiers: [
         { threshold: 0, rate: 0.001 },
         { threshold: 600000, rate: 0.002 },
@@ -740,6 +760,7 @@ export const STATE_DATA: Record<string, StateData> = {
       rateType: 'tiered',
       customaryPayer: 'seller',
       notes: 'Realty Transfer Fee varies by sale price. Additional 1% "mansion tax" on sales over $1M.',
+      graduated: true,
       tiers: [
         { threshold: 0, rate: 0.002 },
         { threshold: 150000, rate: 0.00325 },
@@ -896,7 +917,7 @@ export const STATE_DATA: Record<string, StateData> = {
     code: 'OR',
     name: 'Oregon',
     closingEntity: 'title',
-    transferTax: { rate: 0.001, rateType: 'percent_of_sale', customaryPayer: 'seller', notes: 'Most counties have no transfer tax. Washington County: $1 per $1,000. Portland area may be higher.' },
+    transferTax: { rate: 0, rateType: 'none', customaryPayer: 'seller', notes: 'No state transfer tax. Some counties (Washington County) levy local transfer taxes.' },
     serviceTaxes: [],
     estimatedTitleEscrowRate: 0.007,
     typicalSellerClosingCostPct: 1.6,
@@ -1079,6 +1100,7 @@ export const STATE_DATA: Record<string, StateData> = {
       rateType: 'tiered',
       customaryPayer: 'seller',
       notes: 'Real Estate Excise Tax (REET) is tiered. 1.1% on first $525K, increasing above that.',
+      graduated: true,
       tiers: [
         { threshold: 0, rate: 0.011 },
         { threshold: 525000, rate: 0.0128 },
