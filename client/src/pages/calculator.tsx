@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { getStateData, calculateTransferTax, estimateTitleEscrowFee as stateEstimateTitleEscrow } from "@/lib/state-data";
 import nmBg from "@assets/nm.jpg";
 import nyBg from "@assets/NY.jpg";
 import njBg from "@assets/nj.jpg";
@@ -63,6 +64,9 @@ function buildSampleResults() {
     secondMtg: 0,
     helocAmt: 0,
     solarAmt: 0,
+    transferTaxAmount: 0,
+    attorneyFeeAmount: 0,
+    serviceTaxAmount: grtAmount,
     netProceeds,
   };
 }
@@ -118,6 +122,16 @@ export default function Calculator() {
   const [grtRate, setGrtRate] = useState<number>(7.625);
   const [grtInput, setGrtInput] = useState<string>("7.6250");
   const isNM = selectedState === 'NM';
+  const stateData = getStateData(selectedState);
+  const serviceTax = stateData?.serviceTaxes?.find(t => t.appliesToCommissions);
+  const hasServiceTax = !!serviceTax;
+  const serviceTaxName = serviceTax?.name ?? 'GRT';
+  const transferTaxLabel = (() => {
+    const notes = stateData?.transferTax?.notes ?? '';
+    if (notes.toLowerCase().includes('documentary')) return 'Documentary Stamps';
+    if (notes.toLowerCase().includes('reet')) return 'REET';
+    return 'Transfer Tax';
+  })();
   const totalCommissionPct = listingAgentPct + buyerAgentPct;
   const [isEditingTotalCommission, setIsEditingTotalCommission] = useState(false);
   useEffect(() => {
@@ -125,6 +139,17 @@ export default function Calculator() {
       setTotalCommissionInput(totalCommissionPct.toFixed(2));
     }
   }, [totalCommissionPct, isEditingTotalCommission]);
+  const isFirstStateChange = useRef(true);
+  useEffect(() => {
+    if (isFirstStateChange.current) { isFirstStateChange.current = false; return; }
+    const sd = getStateData(selectedState);
+    const st = sd?.serviceTaxes?.find(t => t.appliesToCommissions);
+    if (st) {
+      const rate = parseFloat((st.defaultRate * 100).toFixed(4));
+      setGrtRate(rate);
+      setGrtInput(rate.toFixed(4));
+    }
+  }, [selectedState]);
   const [hasAdditionalLiens, setHasAdditionalLiens] = useState(false);
   const [secondMortgage, setSecondMortgage] = useState<string>("");
   const [heloc, setHeloc] = useState<string>("");
@@ -326,7 +351,7 @@ export default function Calculator() {
     if (salePrice) params.set('sp', salePrice);
     if (mortgageBalance) params.set('mb', mortgageBalance);
     if (totalCommissionPct !== 6) params.set('bc', totalCommissionPct.toString());
-    if (isNM && grtRate !== 7.625) params.set('grt', grtRate.toString());
+    if (hasServiceTax && grtRate !== parseFloat(((serviceTax?.defaultRate ?? 0) * 100).toFixed(4))) params.set('grt', grtRate.toString());
     if (hasAdditionalLiens) {
       params.set('liens', '1');
       if (secondMortgage) params.set('sm', secondMortgage);
@@ -483,8 +508,10 @@ export default function Calculator() {
     if (displayResults.helocAmt > 0) deductions.push({ label: 'HELOC', amount: displayResults.helocAmt, color: '#b4b4bb' });
     if (displayResults.solarAmt > 0) deductions.push({ label: 'Solar Loan', amount: displayResults.solarAmt, color: '#c4c4cc' });
     if (displayResults.commissionAmount > 0) deductions.push({ label: `Agent Fees (${brokerPct}%)`, amount: displayResults.commissionAmount, color: '#60a5fa' });
-    if (isNM && displayResults.grtAmount > 0) deductions.push({ label: `NM GRT on Agent Fees (${grtPct}%)`, amount: displayResults.grtAmount, color: '#fbbf24' });
+    if (hasServiceTax && (displayResults.serviceTaxAmount ?? displayResults.grtAmount) > 0) deductions.push({ label: `${isNM ? 'NM ' : ''}${serviceTaxName} on Agent Fees (${grtPct}%)`, amount: displayResults.serviceTaxAmount ?? displayResults.grtAmount, color: '#fbbf24' });
     if (displayResults.titleEscrowAmount > 0) deductions.push({ label: 'Est. Title & Escrow', amount: displayResults.titleEscrowAmount, color: '#f97316' });
+    if ((displayResults.transferTaxAmount ?? 0) > 0) deductions.push({ label: transferTaxLabel, amount: displayResults.transferTaxAmount!, color: '#ef4444' });
+    if ((displayResults.attorneyFeeAmount ?? 0) > 0) deductions.push({ label: 'Attorney Fee (Est.)', amount: displayResults.attorneyFeeAmount!, color: '#78716c' });
     if (displayResults.taxProration > 0) deductions.push({ label: 'Tax Proration', amount: displayResults.taxProration, color: '#a78bfa' });
     if (displayResults.surveyAmount > 0) deductions.push({ label: 'Survey / ILR', amount: displayResults.surveyAmount, color: '#f472b6' });
     if (displayResults.hoaAmount > 0) deductions.push({ label: 'HOA Transfer Fee', amount: displayResults.hoaAmount, color: '#d4c5a0' });
@@ -583,10 +610,11 @@ export default function Calculator() {
 
     const sliceLabelMap: Record<string, string> = {
       'Mortgage Payoff': 'Mortgage', 'Second Mortgage': '2nd Mortgage', 'HELOC': 'HELOC', 'Solar Loan': 'Solar Loan',
-      [`Agent Fees (${brokerPct}%)`]: 'Agent Fees', [`NM GRT on Agent Fees (${grtPct}%)`]: 'NM GRT',
+      [`Agent Fees (${brokerPct}%)`]: 'Agent Fees', [`${isNM ? 'NM ' : ''}${serviceTaxName} on Agent Fees (${grtPct}%)`]: serviceTaxName,
       'Est. Title & Escrow': 'Title/Escrow', 'Tax Proration': 'Tax Proration', 'Survey / ILR': 'Survey / ILR',
       'HOA Transfer Fee': 'HOA Transfer', 'Septic Inspection': 'Septic Inspection', 'Well Inspection': 'Well Inspection',
       'Final Water Bill': 'Final Water Bill', 'Seller Concessions': 'Concessions', 'Repairs': 'Repairs',
+      [transferTaxLabel]: transferTaxLabel, 'Attorney Fee (Est.)': 'Attorney Fee',
     };
     const donutSlices: { name: string; value: number; color: string }[] = [
       { name: displayResults.netProceeds >= 0 ? 'Net Proceeds' : 'Bring to Closing', value: Math.max(displayResults.netProceeds, 0), color: '#34d399' },
@@ -798,8 +826,17 @@ export default function Calculator() {
     if (price === 0) return null;
 
     const commissionAmount = price * (totalCommissionPct / 100);
-    const grtAmount = isNM ? commissionAmount * (grtRate / 100) : 0;
-    const titleEscrowAmount = getEstimatedTitleEscrowFee(price);
+    const serviceTaxAmount = hasServiceTax ? commissionAmount * (grtRate / 100) : 0;
+    const grtAmount = serviceTaxAmount;
+    const titleEscrowAmount = stateData ? stateEstimateTitleEscrow(price, stateData) : getEstimatedTitleEscrowFee(price);
+    const transferTaxTotal = stateData ? calculateTransferTax(price, stateData) : 0;
+    const ttPayer = stateData?.transferTax?.customaryPayer;
+    const ttSellerShare = ttPayer === 'seller' ? 1 : ttPayer === 'split' ? 0.5 : ttPayer === 'negotiable' ? 0.5 : 0;
+    const transferTaxAmount = Math.round(transferTaxTotal * ttSellerShare);
+    const attorneyFeeBase = (stateData?.attorneyRequired && stateData?.estimatedAttorneyFee) ? stateData.estimatedAttorneyFee : 0;
+    const attyPayer = stateData?.attorneyFeePayer;
+    const attySellerShare = attyPayer === 'seller' ? 1 : attyPayer === 'split' ? 0.5 : 0;
+    const attorneyFeeAmount = Math.round(attorneyFeeBase * attySellerShare);
     const annualTax = parseCurrency(annualPropertyTax);
     let taxProrationFraction = closingMonth / 12;
     if (useSpecificDate && closingDate) {
@@ -821,7 +858,7 @@ export default function Calculator() {
     const concessionsAmt = concessionsDollars;
     const repairAmt = repairsDollars;
     const customFieldsTotal = customFields.reduce((sum, f) => sum + parseCurrency(f.amount), 0);
-    const totalDeductions = commissionAmount + grtAmount + titleEscrowAmount + taxProration + hoaAmount + septicAmount + wellAmount + waterBillAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal;
+    const totalDeductions = commissionAmount + serviceTaxAmount + titleEscrowAmount + taxProration + hoaAmount + septicAmount + wellAmount + waterBillAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal + transferTaxAmount + attorneyFeeAmount;
     const netProceeds = price - totalLiens - totalDeductions;
 
     return {
@@ -843,6 +880,9 @@ export default function Calculator() {
       secondMtg,
       helocAmt,
       solarAmt,
+      transferTaxAmount,
+      attorneyFeeAmount,
+      serviceTaxAmount,
       netProceeds,
     };
   }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, useSpecificDate, closingDate, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, concessionsDollars, repairsDollars, customFields, selectedState]);
@@ -958,8 +998,10 @@ export default function Calculator() {
       ...(displayResults.helocAmt > 0 ? [{ name: 'HELOC', value: displayResults.helocAmt, color: '#b4b4bb' }] : []),
       ...(displayResults.solarAmt > 0 ? [{ name: 'Solar Loan', value: displayResults.solarAmt, color: '#c4c4cc' }] : []),
       { name: 'Agent Fees', value: displayResults.commissionAmount, color: '#60a5fa' },
-      ...(isNM && displayResults.grtAmount > 0 ? [{ name: 'NM GRT', value: displayResults.grtAmount, color: '#fbbf24' }] : []),
+      ...(hasServiceTax && (displayResults.serviceTaxAmount ?? displayResults.grtAmount) > 0 ? [{ name: serviceTaxName, value: displayResults.serviceTaxAmount ?? displayResults.grtAmount, color: '#fbbf24' }] : []),
       { name: 'Title/Escrow', value: displayResults.titleEscrowAmount, color: '#f97316' },
+      ...((displayResults.transferTaxAmount ?? 0) > 0 ? [{ name: transferTaxLabel, value: displayResults.transferTaxAmount!, color: '#ef4444' }] : []),
+      ...((displayResults.attorneyFeeAmount ?? 0) > 0 ? [{ name: 'Attorney Fee', value: displayResults.attorneyFeeAmount!, color: '#78716c' }] : []),
       ...(displayResults.taxProration > 0 ? [{ name: 'Tax Proration', value: displayResults.taxProration, color: '#a78bfa' }] : []),
       ...(displayResults.surveyAmount > 0 ? [{ name: 'Survey / ILR', value: displayResults.surveyAmount, color: '#f472b6' }] : []),
       ...(displayResults.hoaAmount > 0 ? [{ name: 'HOA Transfer', value: displayResults.hoaAmount, color: '#d4c5a0' }] : []),
@@ -1108,6 +1150,12 @@ export default function Calculator() {
                               <option key={s.value} value={s.value}>{s.label}</option>
                             ))}
                           </select>
+                          {stateData?.userNote && (
+                            <div className="mt-1.5 flex items-start gap-1.5 bg-blue-50/70 border border-blue-100 rounded-md px-2.5 py-1.5">
+                              <Info className="w-3 h-3 text-blue-400 shrink-0 mt-0.5" />
+                              <p className="text-[10px] text-blue-700 leading-snug">{stateData.userNote}</p>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}
@@ -1311,10 +1359,11 @@ export default function Calculator() {
                         className="overflow-hidden"
                       >
                         <div className="bg-slate-50/80 border border-slate-100 rounded-lg px-4 py-3 space-y-2.5">
-                        {isNM && (
+                        {hasServiceTax && (
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <Label className="text-xs font-medium text-slate-500">NM GRT Rate</Label>
+                            <Label className="text-xs font-medium text-slate-500">{isNM ? 'NM GRT Rate' : `${serviceTaxName} Rate`}</Label>
+                            {isNM && (
                             <a
                               href="https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/856bdcf9-8451-40df-b807-c03fa32f9941/January%201,%202026%20-%20June%2030%202026%20GRT_CMP%20Rate%20Schedule%20Update.pdf"
                               target="_blank"
@@ -1323,6 +1372,7 @@ export default function Calculator() {
                             >
                               (Location Codes)
                             </a>
+                            )}
                           </div>
                           <div className="flex items-center gap-1">
                             <input
@@ -1330,7 +1380,7 @@ export default function Calculator() {
                               inputMode="decimal"
                               value={grtInput}
                               onChange={(e) => handlePercentInput(e.target.value, setGrtInput, setGrtRate, 15)}
-                              onBlur={() => handlePercentBlur(grtInput, setGrtInput, setGrtRate, 7.625, 15, 4)}
+                              onBlur={() => handlePercentBlur(grtInput, setGrtInput, setGrtRate, isNM ? 7.625 : parseFloat(((serviceTax?.defaultRate ?? 0.07625) * 100).toFixed(4)), 15, 4)}
                               className={`w-[72px] ${INLINE_INPUT_CLASS}`}
                             />
                             <span className="text-xs text-slate-400">%</span>
@@ -1392,7 +1442,7 @@ export default function Calculator() {
                               </button>
                               <span className="text-xs text-slate-500 font-medium ml-1 whitespace-nowrap">
                                 {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100)}
-                                {isNM && (<><span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100 * grtRate / 100)}</span><span className="text-[10px] text-slate-400"> GRT</span></>)}
+                                {hasServiceTax && (<><span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * listingAgentPct / 100 * grtRate / 100)}</span><span className="text-[10px] text-slate-400"> {serviceTaxName}</span></>)}
                               </span>
                             </div>
                           </div>
@@ -1452,16 +1502,16 @@ export default function Calculator() {
                               </button>
                               <span className="text-xs text-slate-500 font-medium ml-1 whitespace-nowrap">
                                 {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100)}
-                                {isNM && (<><span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100 * grtRate / 100)}</span><span className="text-[10px] text-slate-400"> GRT</span></>)}
+                                {hasServiceTax && (<><span className="text-slate-400"> + {formatCurrency(parseCurrency(salePrice) * buyerAgentPct / 100 * grtRate / 100)}</span><span className="text-[10px] text-slate-400"> {serviceTaxName}</span></>)}
                               </span>
                             </div>
                           </div>
                         </div>
 
                         <div className="border-t border-slate-200 pt-2 mt-1 flex items-center justify-between">
-                          <span className="text-xs font-semibold text-slate-600">{isNM ? 'Total Agent Fees + GRT' : 'Total Agent Fees'}</span>
+                          <span className="text-xs font-semibold text-slate-600">{hasServiceTax ? `Total Agent Fees + ${serviceTaxName}` : 'Total Agent Fees'}</span>
                           <span className="text-xs font-semibold text-slate-700">
-                            {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + (isNM ? parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100 : 0))}
+                            {formatCurrency(parseCurrency(salePrice) * totalCommissionPct / 100 + (hasServiceTax ? parseCurrency(salePrice) * totalCommissionPct / 100 * grtRate / 100 : 0))}
                           </span>
                         </div>
                         </div>
@@ -2054,10 +2104,10 @@ export default function Calculator() {
                         <span className="text-slate-500">Agent Fees ({(isSample ? SAMPLE_BROKER : totalCommissionPct).toFixed(1)}%)</span>
                         <span className="font-medium text-slate-600">-{formatCurrency(displayResults.commissionAmount)}</span>
                       </div>
-                      {isNM && (
+                      {hasServiceTax && (displayResults.serviceTaxAmount ?? displayResults.grtAmount) > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-500">NM GRT ({(isSample ? SAMPLE_GRT : grtRate).toFixed(4)}%)</span>
-                        <span className="font-medium text-slate-600">-{formatCurrency(displayResults.grtAmount)}</span>
+                        <span className="text-slate-500">{isNM ? 'NM ' : ''}{serviceTaxName} ({(isSample ? SAMPLE_GRT : grtRate).toFixed(4)}%)</span>
+                        <span className="font-medium text-slate-600">-{formatCurrency(displayResults.serviceTaxAmount ?? displayResults.grtAmount)}</span>
                       </div>
                       )}
                       <div className="flex justify-between text-sm">
@@ -2072,6 +2122,18 @@ export default function Calculator() {
                         </span>
                         <span className="font-medium text-slate-600">-{formatCurrency(displayResults.titleEscrowAmount)}</span>
                       </div>
+                      {(displayResults.transferTaxAmount ?? 0) > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">{transferTaxLabel}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.transferTaxAmount!)}</span>
+                        </div>
+                      )}
+                      {(displayResults.attorneyFeeAmount ?? 0) > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-slate-500">Attorney Fee (Est.)</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(displayResults.attorneyFeeAmount!)}</span>
+                        </div>
+                      )}
                       {displayResults.taxProration > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-slate-500">Tax Proration ({(() => {
