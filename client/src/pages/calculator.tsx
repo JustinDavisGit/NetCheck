@@ -1,10 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { getStateData, calculateTransferTax, estimateTitleEscrowFee as stateEstimateTitleEscrow } from "@/lib/state-data";
-import nmBg from "@assets/nm.jpg";
-import nyBg from "@assets/NY.jpg";
-import njBg from "@assets/nj.jpg";
-import caBg from "@assets/ca_1772118145828.jpeg";
-import txBg from "@assets/tx.jpg";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -96,24 +91,12 @@ const US_STATES = [
   { value: 'WI', label: 'Wisconsin' }, { value: 'WY', label: 'Wyoming' }, { value: 'DC', label: 'District of Columbia' },
 ];
 
-const STATE_BACKGROUNDS: Record<string, string> = {
-  NM: nmBg,
-  NY: nyBg,
-  NJ: njBg,
-  CA: caBg,
-  TX: txBg,
-};
+
 
 export default function Calculator() {
   const [salePrice, setSalePrice] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("NM");
-  const [isLargeScreen, setIsLargeScreen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1024);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const handler = (e: MediaQueryListEvent) => setIsLargeScreen(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+
   const [mortgageBalance, setMortgageBalance] = useState<string>("");
   const [listingAgentPct, setListingAgentPct] = useState<number>(3);
   const [buyerAgentPct, setBuyerAgentPct] = useState<number>(3);
@@ -1045,29 +1028,14 @@ export default function Calculator() {
     );
   }, [activeSlice]);
 
-  const stateBgImage = isLargeScreen ? (STATE_BACKGROUNDS[selectedState] || null) : null;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 relative overflow-hidden">
-      <AnimatePresence mode="wait">
-        {stateBgImage && (
-          <motion.div
-            key={selectedState}
-            initial={{ opacity: 0, scale: 1.03, filter: "blur(4px)" }}
-            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 1, filter: "blur(2px)" }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute inset-0 z-0"
-          >
-            <img
-              src={stateBgImage}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-900/75 via-slate-900/60 to-slate-900/85" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="min-h-screen nc-bg relative overflow-hidden">
+      {/* Ambient glow orbs — lightweight, universal, elegant */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-emerald-200/30 blur-3xl" />
+        <div className="absolute top-1/3 -right-40 w-[420px] h-[420px] rounded-full bg-blue-200/20 blur-3xl" />
+        <div className="absolute -bottom-24 left-1/4 w-[360px] h-[360px] rounded-full bg-emerald-100/25 blur-3xl" />
+      </div>
       <div className="relative z-10">
       <div className="text-center pt-6 pb-4 px-4">
         <div className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-emerald-400 mb-3 shadow-lg">
@@ -1075,7 +1043,7 @@ export default function Calculator() {
             Net<span className="font-light">Check</span>
           </span>
         </div>
-        <p className={`text-sm ${stateBgImage ? 'text-white/70' : 'text-slate-500'}`}>See what you'll walk away with.</p>
+        <p className="text-sm text-slate-500">See what you'll walk away with.</p>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pb-24 lg:pb-8">
@@ -2389,7 +2357,7 @@ export default function Calculator() {
         )}
       </AnimatePresence>
 
-      <footer className={`text-center py-6 ${stateBgImage ? 'text-white/50' : 'text-slate-400'}`}>
+      <footer className="text-center py-6 text-slate-400">
         <p className="text-sm">NetCheck LLC © 2026</p>
         <p className="text-[10px] mt-1 max-w-md mx-auto leading-snug">NetCheck LLC provides estimates only - not financial advice. Actual results and amounts may vary. Always consult a licensed professional.</p>
       </footer>
