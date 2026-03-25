@@ -351,7 +351,7 @@ export const STATE_DATA: Record<string, StateData> = {
     ],
     taxProrationMethod: 'fiscal_year',
     fiscalYearStartMonth: 10,
-    userNote: 'DC has both a transfer tax and a recordation tax — combined around 2.9%, typically split between buyer and seller.',
+    userNote: 'DC has both a transfer tax and a recordation tax, typically split between buyer and seller. Your share of each is estimated here.',
   },
 
   FL: {

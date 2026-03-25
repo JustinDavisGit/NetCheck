@@ -62,6 +62,7 @@ function buildSampleResults() {
     transferTaxAmount: 0,
     attorneyFeeAmount: 0,
     serviceTaxAmount: grtAmount,
+    stateAdditionalCosts: [] as { name: string; amount: number }[],
     netProceeds,
   };
 }
@@ -507,6 +508,10 @@ export default function Calculator() {
     displayResults.customFields.forEach((f, i) => {
       if (f.amount > 0) deductions.push({ label: f.name, amount: f.amount, color: customColors[i % 5] });
     });
+    const stateAdditionalColors = ['#dc2626', '#b91c1c', '#991b1b'];
+    displayResults.stateAdditionalCosts.forEach((c, i) => {
+      deductions.push({ label: c.name, amount: c.amount, color: stateAdditionalColors[i % 3] });
+    });
 
     const totalDeductions = deductions.reduce((s, d) => s + d.amount, 0);
 
@@ -841,7 +846,48 @@ export default function Calculator() {
     const concessionsAmt = concessionsDollars;
     const repairAmt = repairsDollars;
     const customFieldsTotal = customFields.reduce((sum, f) => sum + parseCurrency(f.amount), 0);
-    const totalDeductions = commissionAmount + serviceTaxAmount + titleEscrowAmount + taxProration + hoaAmount + septicAmount + wellAmount + waterBillAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal + transferTaxAmount + attorneyFeeAmount;
+
+    // Compute state-specific additional seller costs from state data
+    const stateAdditionalCosts: { name: string; amount: number }[] = [];
+    if (stateData?.additionalSellerCosts) {
+      for (const cost of stateData.additionalSellerCosts) {
+        // Skip costs already accounted for elsewhere (NM survey/water, FL doc stamps as transfer tax, etc.)
+        if (cost.name === 'Survey / ILR' || cost.name === 'Survey' || cost.name === 'Final Water Bill') continue;
+        // Skip costs that duplicate the transfer tax (FL Documentary Stamp Tax IS the transfer tax)
+        if (cost.name === 'Documentary Stamp Tax') continue;
+        // Skip county/city-level costs that require location data we don't have
+        if (cost.name.includes('County Transfer Tax') || cost.name.includes('Chicago') || cost.name.includes('NYC') || cost.name.includes('Congestion Relief') || cost.name.includes('HARPTA')) continue;
+        // Skip buyer-paid costs that don't affect seller net
+        if (cost.name.includes('Mansion Tax') && stateData.code === 'NY') continue; // NY mansion tax is buyer-paid
+        
+        let amount = 0;
+        if (cost.name === 'Mansion Tax (if >$1M)' && stateData.code === 'NJ') {
+          // NJ graduated mansion tax (effective July 2025) — applies to full sale price
+          if (price > 1000000) {
+            if (price <= 2000000) amount = Math.round(price * 0.01);
+            else if (price <= 2500000) amount = Math.round(price * 0.02);
+            else if (price <= 3000000) amount = Math.round(price * 0.025);
+            else if (price <= 3500000) amount = Math.round(price * 0.03);
+            else amount = Math.round(price * 0.035);
+          }
+        } else if (cost.name === 'Recordation Tax' && stateData.code === 'DC') {
+          // DC recordation tax — tiered like the transfer tax, customarily split
+          const fullAmount = price < 400000 ? price * 0.011 : price * 0.0145;
+          amount = Math.round(fullAmount * 0.5); // seller's share (split)
+        } else if (cost.estimatedAmount !== null) {
+          amount = cost.estimatedAmount;
+        } else if (cost.estimatedRate) {
+          amount = Math.round(price * cost.estimatedRate);
+        }
+        
+        if (amount > 0) {
+          stateAdditionalCosts.push({ name: cost.name, amount });
+        }
+      }
+    }
+    const stateAdditionalCostsTotal = stateAdditionalCosts.reduce((sum, c) => sum + c.amount, 0);
+
+    const totalDeductions = commissionAmount + serviceTaxAmount + titleEscrowAmount + taxProration + hoaAmount + septicAmount + wellAmount + waterBillAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal + transferTaxAmount + attorneyFeeAmount + stateAdditionalCostsTotal;
     const netProceeds = price - totalLiens - totalDeductions;
 
     return {
@@ -866,6 +912,7 @@ export default function Calculator() {
       transferTaxAmount,
       attorneyFeeAmount,
       serviceTaxAmount,
+      stateAdditionalCosts,
       netProceeds,
     };
   }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, useSpecificDate, closingDate, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, concessionsDollars, repairsDollars, customFields, selectedState]);
@@ -994,6 +1041,7 @@ export default function Calculator() {
       ...(displayResults.concessionsAmt > 0 ? [{ name: 'Concessions', value: displayResults.concessionsAmt, color: '#fb923c' }] : []),
       ...(displayResults.repairAmt > 0 ? [{ name: 'Repairs', value: displayResults.repairAmt, color: '#e879f9' }] : []),
       ...displayResults.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
+      ...displayResults.stateAdditionalCosts.map((c, i) => ({ name: c.name, value: c.amount, color: ['#dc2626', '#b91c1c', '#991b1b'][i % 3] })),
     ].filter(d => d.value > 0);
   }, [displayResults]);
 
@@ -2194,6 +2242,12 @@ export default function Calculator() {
                         <div key={i} className="flex justify-between text-sm">
                           <span className="text-slate-500">{f.name}</span>
                           <span className="font-medium text-slate-600">-{formatCurrency(f.amount)}</span>
+                        </div>
+                      ))}
+                      {displayResults.stateAdditionalCosts.map((c, i) => (
+                        <div key={`sac-${i}`} className="flex justify-between text-sm">
+                          <span className="text-slate-500">{c.name}</span>
+                          <span className="font-medium text-slate-600">-{formatCurrency(c.amount)}</span>
                         </div>
                       ))}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
