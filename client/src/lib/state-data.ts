@@ -182,7 +182,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Alabama is an attorney-close state. An attorney must supervise the closing.',
+    userNote: 'An attorney typically supervises closings in Alabama. Transfer tax is low at $0.50 per $500.',
   },
 
   AK: {
@@ -199,7 +199,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Alaska has no state transfer tax.',
+    userNote: 'Alaska has no state transfer tax. Closing costs tend to be on the lower side.',
   },
 
   AZ: {
@@ -218,6 +218,7 @@ export const STATE_DATA: Record<string, StateData> = {
       { name: 'Affidavit of Value', estimatedAmount: 2, notes: 'Flat $2 recording fee' },
     ],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Arizona has no state transfer tax — just a flat $2 Affidavit of Value fee.',
   },
 
   AR: {
@@ -234,6 +235,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Arkansas transfer tax is $3.30 per $1,000 of sale price, paid by the seller.',
   },
 
   CA: {
@@ -271,7 +273,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Colorado has a very low transfer tax. In the Denver metro, sellers customarily pay title insurance and closing fees.',
+    userNote: 'Colorado has one of the lowest transfer taxes in the US. Sellers customarily pay for title insurance.',
   },
 
   CT: {
@@ -301,7 +303,7 @@ export const STATE_DATA: Record<string, StateData> = {
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
     fiscalYearStartMonth: 7,
-    userNote: 'Connecticut requires attorneys at closing. Transfer tax is tiered — higher rates apply to sales above $800K and $2.5M.',
+    userNote: 'Connecticut requires an attorney at closing. Conveyance tax is tiered: 0.75% base, up to 2.25% on higher-value sales.',
   },
 
   DE: {
@@ -320,7 +322,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Delaware has one of the highest combined transfer tax rates in the US, typically split between buyer and seller.',
+    userNote: 'Delaware requires an attorney at closing. Combined transfer tax is about 3.5%, typically split between buyer and seller.',
   },
 
   DC: {
@@ -349,7 +351,7 @@ export const STATE_DATA: Record<string, StateData> = {
     ],
     taxProrationMethod: 'fiscal_year',
     fiscalYearStartMonth: 10,
-    userNote: 'DC has both a transfer tax and a recordation tax — combined can be ~2.9% of sale price. Customarily split.',
+    userNote: 'DC has both a transfer tax and a recordation tax — combined around 2.9%, typically split between buyer and seller.',
   },
 
   FL: {
@@ -368,7 +370,7 @@ export const STATE_DATA: Record<string, StateData> = {
       { name: 'Documentary Stamp Tax', estimatedAmount: null, estimatedRate: 0.007, notes: 'This IS the transfer tax — $0.70 per $100. Seller pays in most FL counties.' },
     ],
     taxProrationMethod: 'calendar_year',
-    userNote: 'In most of Florida, the seller pays for documentary stamps (transfer tax) and owner\'s title insurance. Miami-Dade County has different customs.',
+    userNote: 'Florida documentary stamps are 70¢ per $100, paid by the seller. Miami-Dade County has different customs.',
   },
 
   GA: {
@@ -387,7 +389,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Georgia requires an attorney to close. Transfer tax is relatively low at $1 per $1,000.',
+    userNote: 'Georgia requires an attorney at closing. Transfer tax is $1 per $1,000 of sale price.',
   },
 
   HI: {
@@ -431,7 +433,7 @@ export const STATE_DATA: Record<string, StateData> = {
     ],
     taxProrationMethod: 'fiscal_year',
     fiscalYearStartMonth: 7,
-    userNote: 'Hawaii\'s GET (General Excise Tax) applies to agent commissions — similar to NM\'s GRT. Conveyance tax is tiered based on sale price.',
+    userNote: 'Hawaii\'s GET (General Excise Tax) applies to agent commissions. Conveyance tax is tiered based on sale price.',
   },
 
   ID: {
@@ -448,7 +450,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Idaho has no state transfer tax.',
+    userNote: 'Idaho has no state transfer tax. Closing costs are generally low.',
   },
 
   IL: {
@@ -469,7 +471,7 @@ export const STATE_DATA: Record<string, StateData> = {
       { name: 'Chicago Transfer Tax', estimatedAmount: null, estimatedRate: 0.0105, notes: 'City of Chicago levies $10.50 per $1,000 in addition to state and county taxes' },
     ],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Attorneys are customary (not required) in Illinois. Chicago has very high combined transfer taxes.',
+    userNote: 'Attorneys are customary in Illinois. Chicago and Cook County add significant local transfer taxes.',
   },
 
   IN: {
@@ -486,7 +488,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Indiana has no state transfer tax.',
+    userNote: 'Indiana has no state transfer tax. Closing costs are generally low.',
   },
 
   IA: {
@@ -503,6 +505,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
+    userNote: 'Iowa transfer tax is $0.80 per $500 of value. Property tax prorates on a July–June fiscal year.',
     fiscalYearStartMonth: 7,
   },
 
@@ -520,6 +523,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Kansas has no state transfer tax. Seller customarily pays for title insurance.',
   },
 
   KY: {
@@ -538,6 +542,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Kentucky requires an attorney at closing. Transfer tax is $0.50 per $500.',
   },
 
   LA: {
@@ -556,7 +561,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Louisiana is an attorney-close state with no transfer tax. Uses civil law system (not common law).',
+    userNote: 'Louisiana requires an attorney at closing. No state transfer tax.',
   },
 
   ME: {
@@ -575,6 +580,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
+    userNote: 'Maine requires an attorney at closing. Transfer tax is split between buyer and seller.',
     fiscalYearStartMonth: 7,
   },
 
@@ -594,6 +600,7 @@ export const STATE_DATA: Record<string, StateData> = {
       { name: 'County Transfer Tax', estimatedAmount: null, estimatedRate: 0.01, notes: 'Varies by county — typically 0.5% to 1.5% additional' },
     ],
     taxProrationMethod: 'fiscal_year',
+    userNote: 'Maryland has both state and county transfer taxes — total varies by county but is typically 1–2% combined.',
     fiscalYearStartMonth: 7,
   },
 
@@ -613,6 +620,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
+    userNote: 'Massachusetts requires an attorney at closing. Property tax prorates on a July–June fiscal year.',
     fiscalYearStartMonth: 7,
   },
 
@@ -630,6 +638,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Michigan\'s combined state and county transfer tax is about $8.60 per $1,000 of sale price.',
   },
 
   MN: {
@@ -646,6 +655,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Minnesota deed tax is $1.65 per $500 of sale price, paid by the seller.',
   },
 
   MS: {
@@ -664,6 +674,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Mississippi requires an attorney for title examination. No state transfer tax.',
   },
 
   MO: {
@@ -680,6 +691,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Missouri has no state transfer tax. Closing costs are among the lowest in the country.',
   },
 
   MT: {
@@ -696,6 +708,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Montana has no state transfer tax.',
   },
 
   NE: {
@@ -712,6 +725,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Nebraska transfer tax is $2.25 per $1,000 of sale price.',
   },
 
   NV: {
@@ -728,6 +742,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
+    userNote: 'Nevada transfer tax is $1.95 per $500 of value. Clark County (Las Vegas) adds an additional $0.60 per $500.',
     fiscalYearStartMonth: 7,
   },
 
@@ -748,7 +763,7 @@ export const STATE_DATA: Record<string, StateData> = {
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
     fiscalYearStartMonth: 4,
-    userNote: 'NH transfer tax is split equally — seller pays 0.75% and buyer pays 0.75%.',
+    userNote: 'New Hampshire requires an attorney at closing. Transfer tax is 1.5% total, split equally between buyer and seller.',
   },
 
   NJ: {
@@ -781,10 +796,10 @@ export const STATE_DATA: Record<string, StateData> = {
     estimatedAttorneyFee: 1500,
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [
-      { name: 'Mansion Tax (if >$1M)', estimatedAmount: null, estimatedRate: 0.01, notes: '1% additional fee on sales over $1 million' },
+      { name: 'Mansion Tax (if >$1M)', estimatedAmount: null, estimatedRate: 0.01, notes: 'Graduated seller-paid fee on sales over $1M: 1% up to $2M, 2% up to $2.5M, 2.5% up to $3M, 3% up to $3.5M, 3.5% above. Applies to full sale price.' },
     ],
     taxProrationMethod: 'calendar_year',
-    userNote: 'New Jersey transfer taxes are tiered and seller-paid. Sales over $1M trigger an additional 1% mansion tax.',
+    userNote: 'New Jersey requires an attorney at closing. Transfer fees are tiered and seller-paid. Sales over $1M have a graduated mansion tax (up to 3.5%).',
   },
 
   NM: {
@@ -813,7 +828,7 @@ export const STATE_DATA: Record<string, StateData> = {
       { name: 'Final Water Bill', estimatedAmount: 100, notes: 'Seller responsible for final water bill at closing' },
     ],
     taxProrationMethod: 'calendar_year',
-    userNote: 'New Mexico has no transfer tax, but GRT (Gross Receipts Tax) applies to agent commissions. Rate varies by city.',
+    userNote: 'New Mexico has no transfer tax. GRT (Gross Receipts Tax) applies to agent commissions — rate varies by city.',
   },
 
   NY: {
@@ -844,7 +859,7 @@ export const STATE_DATA: Record<string, StateData> = {
       { name: 'Mansion Tax (if >$1M)', estimatedAmount: null, estimatedRate: 0.01, notes: '1% on sales at or above $1M. Buyer pays but affects negotiation.' },
     ],
     taxProrationMethod: 'calendar_year',
-    userNote: 'New York has high closing costs. NYC sellers face combined transfer taxes of ~2%+. Attorney representation is mandatory.',
+    userNote: 'New York requires an attorney at closing. NYC has additional city transfer taxes that can add 1–1.4% on top of the state rate.',
   },
 
   NC: {
@@ -863,6 +878,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'North Carolina requires an attorney at closing. Transfer tax is $1 per $500.',
   },
 
   ND: {
@@ -879,6 +895,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'North Dakota has no state transfer tax. An attorney is involved for title opinions.',
   },
 
   OH: {
@@ -895,6 +912,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Ohio transfer tax is roughly $4 per $1,000 combined (state + county). Rates vary by county.',
   },
 
   OK: {
@@ -911,6 +929,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Oklahoma has a low transfer tax at $0.75 per $1,000 of sale price.',
   },
 
   OR: {
@@ -928,7 +947,7 @@ export const STATE_DATA: Record<string, StateData> = {
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
     fiscalYearStartMonth: 7,
-    userNote: 'Most Oregon counties have no transfer tax. Portland area may have additional local taxes.',
+    userNote: 'Oregon has no state transfer tax. Some local jurisdictions (like Washington County) may levy a local transfer tax.',
   },
 
   PA: {
@@ -946,7 +965,7 @@ export const STATE_DATA: Record<string, StateData> = {
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
     fiscalYearStartMonth: 7,
-    userNote: 'Pennsylvania transfer tax is typically 2% (1% state + 1% local), split between buyer and seller. Pittsburgh is 4% total.',
+    userNote: 'Pennsylvania transfer tax is typically 2% (1% state + 1% local), split between buyer and seller. Some cities are higher.',
   },
 
   RI: {
@@ -965,6 +984,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
+    userNote: 'Rhode Island requires attorney involvement at closing. Transfer tax is $2.30 per $500.',
     fiscalYearStartMonth: 7,
   },
 
@@ -984,6 +1004,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'South Carolina requires an attorney at closing. Transfer tax is $1.85 per $500.',
   },
 
   SD: {
@@ -1000,6 +1021,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'South Dakota has a low transfer tax at $0.50 per $500 of sale price.',
   },
 
   TN: {
@@ -1016,6 +1038,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Tennessee transfer tax is $0.37 per $100 of sale price, paid by the seller.',
   },
 
   TX: {
@@ -1034,7 +1057,7 @@ export const STATE_DATA: Record<string, StateData> = {
       { name: 'Survey', estimatedAmount: 400, notes: 'Surveys are customary in Texas and typically seller-paid' },
     ],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Texas has no state income tax and no transfer tax. Title insurance rates are set by the state (TLTA rates). Seller typically pays for owner\'s title policy.',
+    userNote: 'Texas has no transfer tax. Title insurance rates are regulated by the state. Seller typically pays for the owner\'s title policy.',
   },
 
   UT: {
@@ -1051,7 +1074,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Utah has no transfer tax.',
+    userNote: 'Utah has no transfer tax. Closing costs are generally low.',
   },
 
   VT: {
@@ -1070,6 +1093,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
+    userNote: 'Vermont requires an attorney at closing. Transfer tax is 1.25%, typically split between buyer and seller.',
     fiscalYearStartMonth: 7,
   },
 
@@ -1089,6 +1113,7 @@ export const STATE_DATA: Record<string, StateData> = {
       { name: 'Congestion Relief Fee (NoVA)', estimatedAmount: null, estimatedRate: 0.0015, notes: 'Additional $0.15 per $100 in Northern Virginia (Hampton Roads, NoVA regions)' },
     ],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Virginia grantor tax is $1 per $1,000. Some counties add additional local transfer taxes.',
   },
 
   WA: {
@@ -1117,7 +1142,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Washington\'s Real Estate Excise Tax (REET) is one of the highest in the US — tiered from 1.1% to 3% based on sale price.',
+    userNote: 'Washington\'s Real Estate Excise Tax (REET) is tiered from 1.1% to 3% based on sale price. Local REET may also apply.',
   },
 
   WV: {
@@ -1136,6 +1161,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyFeePayer: 'buyer',
     additionalSellerCosts: [],
     taxProrationMethod: 'fiscal_year',
+    userNote: 'West Virginia requires an attorney at closing. Transfer tax is typically split between buyer and seller.',
     fiscalYearStartMonth: 7,
   },
 
@@ -1153,6 +1179,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
+    userNote: 'Wisconsin transfer tax is $3 per $1,000 of sale price, paid by the seller.',
   },
 
   WY: {
@@ -1169,7 +1196,7 @@ export const STATE_DATA: Record<string, StateData> = {
     attorneyRequired: false,
     additionalSellerCosts: [],
     taxProrationMethod: 'calendar_year',
-    userNote: 'Wyoming has no state transfer tax and no state income tax.',
+    userNote: 'Wyoming has no state transfer tax. Closing costs are among the lowest in the US.',
   },
 
 };
