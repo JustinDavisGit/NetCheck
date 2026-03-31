@@ -5,11 +5,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Calculator from "@/pages/calculator";
+import Quiz, { QuizResultRoute } from "@/pages/quiz";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Calculator} />
+      <Route path="/quiz" component={Quiz} />
+      <Route path="/quiz/result/:profile" component={QuizResultRoute} />
       <Route component={NotFound} />
     </Switch>
   );

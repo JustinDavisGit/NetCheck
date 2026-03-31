@@ -2439,6 +2439,14 @@ export default function Calculator() {
         )}
       </AnimatePresence>
 
+      <div className="text-center py-6 px-4">
+        <a
+          href="/quiz"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium hover:bg-emerald-100 hover:border-emerald-300 transition-colors"
+        >
+          🤔 Not sure if you should sell? <span className="underline underline-offset-2">Take the quiz →</span>
+        </a>
+      </div>
       <footer className="text-center py-6 text-slate-400">
         <p className="text-sm">NetCheck LLC © 2026</p>
         <p className="text-[10px] mt-1 max-w-md mx-auto leading-snug">NetCheck LLC provides estimates only - not financial advice. Actual results and amounts may vary. Always consult a licensed professional.</p>
