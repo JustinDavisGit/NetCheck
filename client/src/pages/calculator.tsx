@@ -63,6 +63,7 @@ function buildSampleResults() {
     attorneyFeeAmount: 0,
     serviceTaxAmount: grtAmount,
     stateAdditionalCosts: [] as { name: string; amount: number }[],
+    capitalGainsTaxAmount: 0,
     netProceeds,
   };
 }
@@ -158,6 +159,12 @@ export default function Calculator() {
   const [customFields, setCustomFields] = useState<{ name: string; amount: string }[]>([]);
   const [surveyFee, setSurveyFee] = useState<string>("0");
   const [propertyDetailsOpen, setPropertyDetailsOpen] = useState(false);
+  const [capitalGainsOpen, setCapitalGainsOpen] = useState(false);
+  const [isPrimaryResidence, setIsPrimaryResidence] = useState<boolean | null>(null);
+  const [meetsResidencyReq, setMeetsResidencyReq] = useState<boolean | null>(null);
+  const [originalPurchasePrice, setOriginalPurchasePrice] = useState<string>("");
+  const [filingStatus, setFilingStatus] = useState<'single' | 'joint'>('single');
+  const [capitalGainsRate, setCapitalGainsRate] = useState<number>(15);
   const defaultCostsApplied = useRef(false);
   const [copied, setCopied] = useState(false);
   const [isSample, setIsSample] = useState(true);
@@ -512,6 +519,7 @@ export default function Calculator() {
     displayResults.stateAdditionalCosts.forEach((c, i) => {
       deductions.push({ label: c.name, amount: c.amount, color: stateAdditionalColors[i % 3] });
     });
+    if ((displayResults.capitalGainsTaxAmount ?? 0) > 0) deductions.push({ label: 'Est. Capital Gains Tax', amount: displayResults.capitalGainsTaxAmount!, color: '#d97706' });
 
     const totalDeductions = deductions.reduce((s, d) => s + d.amount, 0);
 
@@ -887,7 +895,18 @@ export default function Calculator() {
     }
     const stateAdditionalCostsTotal = stateAdditionalCosts.reduce((sum, c) => sum + c.amount, 0);
 
-    const totalDeductions = commissionAmount + serviceTaxAmount + titleEscrowAmount + taxProration + hoaAmount + septicAmount + wellAmount + waterBillAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal + transferTaxAmount + attorneyFeeAmount + stateAdditionalCostsTotal;
+    // Capital gains tax calculation
+    let capitalGainsTaxAmount = 0;
+    const purchasePrice = parseCurrency(originalPurchasePrice);
+    const qualifiesForExclusion = isPrimaryResidence === true && meetsResidencyReq === true;
+    if (purchasePrice > 0 && price > purchasePrice) {
+      const gain = price - purchasePrice;
+      const exclusion = qualifiesForExclusion ? (filingStatus === 'joint' ? 500000 : 250000) : 0;
+      const taxableGain = Math.max(gain - exclusion, 0);
+      capitalGainsTaxAmount = Math.round(taxableGain * (capitalGainsRate / 100));
+    }
+
+    const totalDeductions = commissionAmount + serviceTaxAmount + titleEscrowAmount + taxProration + hoaAmount + septicAmount + wellAmount + waterBillAmount + surveyAmount + concessionsAmt + repairAmt + customFieldsTotal + transferTaxAmount + attorneyFeeAmount + stateAdditionalCostsTotal + capitalGainsTaxAmount;
     const netProceeds = price - totalLiens - totalDeductions;
 
     return {
@@ -913,9 +932,10 @@ export default function Calculator() {
       attorneyFeeAmount,
       serviceTaxAmount,
       stateAdditionalCosts,
+      capitalGainsTaxAmount,
       netProceeds,
     };
-  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, useSpecificDate, closingDate, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, concessionsDollars, repairsDollars, customFields, selectedState]);
+  }, [salePrice, mortgageBalance, listingAgentPct, buyerAgentPct, grtRate, hasAdditionalLiens, secondMortgage, heloc, solarLoan, annualPropertyTax, closingMonth, useSpecificDate, closingDate, hasHoa, hoaFee, hasSeptic, septicFee, hasWell, wellFee, waterBill, surveyFee, concessionsDollars, repairsDollars, customFields, selectedState, isPrimaryResidence, meetsResidencyReq, originalPurchasePrice, filingStatus, capitalGainsRate]);
 
   const displayResults = results || (isSample ? SAMPLE_RESULTS : null);
 
@@ -1042,6 +1062,7 @@ export default function Calculator() {
       ...(displayResults.repairAmt > 0 ? [{ name: 'Repairs', value: displayResults.repairAmt, color: '#e879f9' }] : []),
       ...displayResults.customFields.filter(f => f.amount > 0).map((f, i) => ({ name: f.name, value: f.amount, color: ['#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#6366f1'][i % 5] })),
       ...displayResults.stateAdditionalCosts.map((c, i) => ({ name: c.name, value: c.amount, color: ['#dc2626', '#b91c1c', '#991b1b'][i % 3] })),
+      ...((displayResults.capitalGainsTaxAmount ?? 0) > 0 ? [{ name: 'Capital Gains Tax', value: displayResults.capitalGainsTaxAmount!, color: '#d97706' }] : []),
     ].filter(d => d.value > 0);
   }, [displayResults]);
 
@@ -2033,6 +2054,153 @@ export default function Calculator() {
                   </AnimatePresence>
                 </div>
 
+                {/* Capital Gains Tax Section */}
+                <div className="bg-amber-50/80 border border-amber-100 rounded-lg px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => setCapitalGainsOpen(!capitalGainsOpen)}
+                    className="w-full flex items-center justify-between"
+                  >
+                    <p className="text-[11px] font-medium text-amber-600 uppercase tracking-wide">⚠️ Capital Gains Tax</p>
+                    <motion.div animate={{ rotate: capitalGainsOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                      <ChevronDown className="w-4 h-4 text-amber-400" />
+                    </motion.div>
+                  </button>
+                  {!capitalGainsOpen && (
+                    <p className="text-[10px] text-amber-500 mt-1">
+                      {isPrimaryResidence === null ? 'May apply if not your primary residence — tap to check' : isPrimaryResidence && meetsResidencyReq ? 'Section 121 exclusion likely applies' : (parseCurrency(originalPurchasePrice) > 0 && results && results.capitalGainsTaxAmount > 0) ? `Est. ${formatCurrency(results.capitalGainsTaxAmount)} in capital gains tax` : 'Tap to check if this applies to you'}
+                    </p>
+                  )}
+                  <AnimatePresence>
+                    {capitalGainsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-3 space-y-3">
+
+                          <div className="flex items-start gap-1.5 bg-amber-100/50 border border-amber-200 rounded-md px-2.5 py-2">
+                            <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                            <p className="text-[10px] text-amber-700 leading-snug">
+                              If you've owned and lived in your home as your primary residence for at least <strong>2 of the last 5 years</strong>, you can exclude up to <strong>$250K</strong> (single) or <strong>$500K</strong> (married) of profit from capital gains tax. Otherwise, most sellers pay <strong>15%</strong> on the gain.
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-xs font-medium text-slate-500">Is this your primary residence?</Label>
+                              <div className="flex gap-1.5">
+                                <button type="button" onClick={() => { setIsPrimaryResidence(true); if (isSample) setIsSample(false); }} className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${isPrimaryResidence === true ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}>Yes</button>
+                                <button type="button" onClick={() => { setIsPrimaryResidence(false); setMeetsResidencyReq(false); if (isSample) setIsSample(false); }} className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${isPrimaryResidence === false ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}>No</button>
+                              </div>
+                            </div>
+
+                            <AnimatePresence>
+                              {isPrimaryResidence === true && (
+                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                                  <div className="flex items-center justify-between pt-1">
+                                    <Label className="text-xs font-medium text-slate-500">Lived here 2+ of last 5 years?</Label>
+                                    <div className="flex gap-1.5">
+                                      <button type="button" onClick={() => { setMeetsResidencyReq(true); if (isSample) setIsSample(false); }} className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${meetsResidencyReq === true ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}>Yes</button>
+                                      <button type="button" onClick={() => { setMeetsResidencyReq(false); if (isSample) setIsSample(false); }} className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${meetsResidencyReq === false ? 'bg-amber-50 border-amber-300 text-amber-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}>No</button>
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
+                            {isPrimaryResidence === true && meetsResidencyReq === true && (
+                              <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-md px-2.5 py-2 mt-1">
+                                <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                <p className="text-[10px] text-emerald-700 leading-snug">
+                                  You likely qualify for the <strong>Section 121 exclusion</strong>. Enter your purchase price below to see if any gain exceeds the exclusion limit.
+                                </p>
+                              </div>
+                            )}
+
+                            {(isPrimaryResidence === false || meetsResidencyReq === false) && isPrimaryResidence !== null && (
+                              <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-2 mt-1">
+                                <Info className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                <p className="text-[10px] text-amber-700 leading-snug">
+                                  You may owe <strong>capital gains tax</strong> on the profit from this sale. Enter your purchase price to see the estimated impact.
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="pt-1">
+                              <Label className="text-xs font-medium text-slate-500 mb-1.5 block">Original Purchase Price</Label>
+                              <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                <Input
+                                  type="text"
+                                  inputMode="decimal"
+                                  placeholder="0"
+                                  value={originalPurchasePrice}
+                                  onChange={(e) => { handleCurrencyInput(e.target.value, setOriginalPurchasePrice); }}
+                                  onBlur={() => formatCurrencyOnBlur(originalPurchasePrice, setOriginalPurchasePrice)}
+                                  className="pl-7 text-sm h-10"
+                                />
+                              </div>
+                            </div>
+
+                            {isPrimaryResidence === true && meetsResidencyReq === true && (
+                              <div className="flex items-center justify-between pt-1">
+                                <Label className="text-xs font-medium text-slate-500">Filing Status</Label>
+                                <div className="flex gap-1.5">
+                                  <button type="button" onClick={() => setFilingStatus('single')} className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${filingStatus === 'single' ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}>Single ($250K)</button>
+                                  <button type="button" onClick={() => setFilingStatus('joint')} className={`px-3 py-1 text-[11px] font-medium rounded-full border transition-colors ${filingStatus === 'joint' ? 'bg-blue-50 border-blue-300 text-blue-600' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}>Married ($500K)</button>
+                                </div>
+                              </div>
+                            )}
+
+                            {(isPrimaryResidence === false || meetsResidencyReq === false) && isPrimaryResidence !== null && (
+                              <div className="flex items-center justify-between pt-1">
+                                <Label className="text-xs font-medium text-slate-500">Estimated Tax Rate</Label>
+                                <div className="flex items-center gap-1">
+                                  <select
+                                    value={capitalGainsRate}
+                                    onChange={(e) => setCapitalGainsRate(parseFloat(e.target.value))}
+                                    className="text-xs font-medium text-gray-900 bg-white border border-gray-300 rounded-lg px-2 py-1.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400"
+                                  >
+                                    <option value={0}>0% (low income)</option>
+                                    <option value={15}>15% (most common)</option>
+                                    <option value={20}>20% (high income)</option>
+                                    <option value={23.8}>23.8% (20% + 3.8% NIIT)</option>
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+
+                            {results && results.capitalGainsTaxAmount > 0 && (
+                              <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2.5 mt-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-medium text-red-700">Est. Capital Gains Tax</span>
+                                  <span className="text-sm font-bold text-red-600">{formatCurrency(results.capitalGainsTaxAmount)}</span>
+                                </div>
+                                {isPrimaryResidence === true && meetsResidencyReq === true && (
+                                  <p className="text-[10px] text-red-500 mt-1">Gain exceeds the ${filingStatus === 'joint' ? '500K' : '250K'} Section 121 exclusion</p>
+                                )}
+                              </div>
+                            )}
+
+                            {results && parseCurrency(originalPurchasePrice) > 0 && results.capitalGainsTaxAmount === 0 && isPrimaryResidence === true && meetsResidencyReq === true && (
+                              <div className="bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 mt-1">
+                                <p className="text-[10px] text-emerald-700">✅ Your gain is within the Section 121 exclusion — <strong>$0 capital gains tax</strong></p>
+                              </div>
+                            )}
+
+                            <p className="text-[9px] text-slate-400 mt-1">This is an estimate. Consult a tax professional for your specific situation. State taxes may also apply.</p>
+
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 {customFields.map((field, index) => (
                   <div key={index} className="space-y-2 bg-slate-50 rounded-lg p-3">
                     <div className="flex items-center justify-between">
@@ -2250,6 +2418,20 @@ export default function Calculator() {
                           <span className="font-medium text-slate-600">-{formatCurrency(c.amount)}</span>
                         </div>
                       ))}
+                      {(displayResults.capitalGainsTaxAmount ?? 0) > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-amber-600 flex items-center gap-1">
+                            Est. Capital Gains Tax
+                            <span className="relative group">
+                              <Info className="w-3 h-3 text-amber-400 cursor-help" />
+                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 w-52 p-2 text-[10px] leading-tight text-white bg-slate-800 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-10">
+                                Based on your purchase price and residency status. Section 121 may exclude up to $250K/$500K of gain. Consult a tax professional.
+                              </span>
+                            </span>
+                          </span>
+                          <span className="font-medium text-amber-600">-{formatCurrency(displayResults.capitalGainsTaxAmount!)}</span>
+                        </div>
+                      )}
                       <div className="border-t border-slate-300 pt-3 mt-1 flex justify-between text-sm">
                         <span className="font-bold text-slate-800">{displayResults.netProceeds >= 0 ? 'Estimated Net' : 'Bring to Closing'}</span>
                         <span className={`font-bold ${displayResults.netProceeds >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>

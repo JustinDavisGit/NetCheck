@@ -334,8 +334,8 @@ export const PROFILES: Record<ProfileKey, Profile> = {
       "Based on your answers, you're weighing multiple angles—financial, practical, and emotional. You're not the type to rush into a move just because 'the market says so.' Most people in your position don't need a yes/no answer—they need to see the tradeoffs clearly before committing.",
     insight:
       "What often gets missed here isn't the big decision—it's how dramatically the numbers can shift depending on small variables (price, concessions, timing).",
-    recommendation: "Your best next step isn't guessing—it's running the scenarios side by side.",
-    ctaText: "👉 Compare Sell vs. Rent Now",
+    recommendation: "Your best next step isn't guessing—it's seeing exactly what the numbers look like.",
+    ctaText: "👉 See Your Numbers",
   },
   'equity-maximizer': {
     key: 'equity-maximizer',
@@ -358,8 +358,8 @@ export const PROFILES: Record<ProfileKey, Profile> = {
       "You see the appeal of holding onto the asset—especially if it can generate income and appreciate over time.",
     insight: "The key isn't just whether to rent—it's whether the numbers justify the effort.",
     recommendation:
-      "Before deciding, compare your rental upside against what selling would actually give you today.",
-    ctaText: "👉 Compare Rent vs. Sell",
+      "Before deciding, know exactly what selling would put in your pocket today—so you have a real number to compare against.",
+    ctaText: "👉 Start With Your Sell Number",
   },
   'optionality-keeper': {
     key: 'optionality-keeper',
@@ -370,8 +370,8 @@ export const PROFILES: Record<ProfileKey, Profile> = {
       "You value flexibility. You'd rather stay in control of your options than rush into a decision that limits future choices.",
     insight:
       "In many cases, the best move isn't immediate action—it's understanding your position clearly enough to act when the timing is right.",
-    recommendation: "Get clarity on both paths now—so you can move decisively later.",
-    ctaText: "👉 See Both Paths Side by Side",
+    recommendation: "Get clarity on your sell-side numbers now—so when you're ready to move, you'll have real data.",
+    ctaText: "👉 See Where You Stand",
   },
   'simplicity-seeker': {
     key: 'simplicity-seeker',
