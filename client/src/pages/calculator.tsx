@@ -4,11 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Home, FileText, Copy, Check, Briefcase, Info, Plus, X, FileDown, ChevronDown, Minus, MapPin } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DollarSign, Home, FileText, Copy, Check, Briefcase, Info, Plus, X, FileDown, ChevronDown, Minus, MapPin, Mail, Save } from "lucide-react";
 import jsPDF from 'jspdf';
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from "recharts";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 
 function getEstimatedTitleEscrowFee(salePrice: number): number {
   let rate: number;
@@ -168,6 +170,11 @@ export default function Calculator() {
   const defaultCostsApplied = useRef(false);
   const [copied, setCopied] = useState(false);
   const [isSample, setIsSample] = useState(true);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [saveMode, setSaveMode] = useState<'save' | 'email'>('save');
+  const [savedScenarioName, setSavedScenarioName] = useState('My NetCheck Scenario');
+  const [emailAddress, setEmailAddress] = useState('');
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
   const [showCallout, setShowCallout] = useState(true);
   const [displayedNet, setDisplayedNet] = useState(0);
   const [activeSlice, setActiveSlice] = useState<number | null>(null);
@@ -309,6 +316,7 @@ export default function Calculator() {
   }, []);
 
   useEffect(() => {
+    trackEvent("calculator_viewed");
     const timer = setTimeout(() => {
       if (salePriceRef.current) {
         salePriceRef.current.focus();
@@ -382,6 +390,7 @@ export default function Calculator() {
 
   const handleShare = async () => {
     const shareUrl = generateShareUrl();
+    trackEvent("calculator_link_copied", { state: selectedState, hasSalePrice: !!salePrice, hasMortgage: !!mortgageBalance });
     await copyToClipboard(shareUrl);
   };
 
@@ -416,6 +425,7 @@ export default function Calculator() {
 
   const handleGeneratePDF = async () => {
     if (!displayResults) return;
+    trackEvent("calculator_pdf_generated", { state: selectedState, hasCapitalGains: (displayResults.capitalGainsTaxAmount ?? 0) > 0 });
     try {
 
     const fmt = (value: number) =>
@@ -810,6 +820,47 @@ export default function Calculator() {
   };
 
   const parseCurrency = (value: string) => parseFloat(value.replace(/,/g, '')) || 0;
+
+  const saveScenarioLocally = () => {
+    const scenario = {
+      id: crypto?.randomUUID?.() ?? `scenario_${Date.now()}`,
+      name: savedScenarioName || 'My NetCheck Scenario',
+      createdAt: new Date().toISOString(),
+      shareUrl: generateShareUrl(),
+      snapshot: {
+        salePrice,
+        mortgageBalance,
+        selectedState,
+        netProceeds: displayResults?.netProceeds ?? null,
+      },
+    };
+
+    const existing = JSON.parse(window.localStorage.getItem('nc_saved_scenarios') || '[]');
+    const next = [scenario, ...existing].slice(0, 10);
+    window.localStorage.setItem('nc_saved_scenarios', JSON.stringify(next));
+    trackEvent('scenario_saved_locally', { state: selectedState, hasEmail: false });
+    setSaveSuccessMessage(`Saved \"${scenario.name}\" on this device.`);
+  };
+
+  const handleEmailCapture = () => {
+    const normalized = emailAddress.trim();
+    if (!normalized || !normalized.includes('@')) {
+      toast({ title: 'Enter a valid email', description: 'We\'ll use it to send your report later.', variant: 'destructive' });
+      return;
+    }
+
+    const leads = JSON.parse(window.localStorage.getItem('nc_email_leads') || '[]');
+    const payload = {
+      email: normalized,
+      createdAt: new Date().toISOString(),
+      shareUrl: generateShareUrl(),
+      state: selectedState,
+      netProceeds: displayResults?.netProceeds ?? null,
+    };
+    window.localStorage.setItem('nc_email_leads', JSON.stringify([payload, ...leads].slice(0, 50)));
+    trackEvent('email_capture_submitted', { state: selectedState, source: 'calculator_save_dialog' });
+    setSaveSuccessMessage(`Nice — we captured ${normalized}. We can wire real email delivery next.`);
+  };
 
   const results = useMemo(() => {
     const price = parseCurrency(salePrice);
@@ -2058,7 +2109,10 @@ export default function Calculator() {
                 <div className="bg-amber-50/80 border border-amber-100 rounded-lg px-4 py-3">
                   <button
                     type="button"
-                    onClick={() => setCapitalGainsOpen(!capitalGainsOpen)}
+                    onClick={() => {
+                      trackEvent("capital_gains_section_toggled", { open: !capitalGainsOpen });
+                      setCapitalGainsOpen(!capitalGainsOpen);
+                    }}
                     className="w-full flex items-center justify-between"
                   >
                     <p className="text-[11px] font-medium text-amber-600 uppercase tracking-wide">⚠️ Capital Gains Tax</p>
@@ -2539,8 +2593,8 @@ export default function Calculator() {
                       </div>
                     </div>
 
-                    <div className="mt-3 flex gap-2">
-                      <div className="flex-1 min-w-0">
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <div className="min-w-0">
                         <Button
                           onClick={handleShare}
                           variant="outline"
@@ -2562,7 +2616,7 @@ export default function Calculator() {
                           Recipients can view &amp; adjust
                         </p>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="min-w-0">
                         <Button
                           onClick={handleGeneratePDF}
                           variant="outline"
@@ -2570,6 +2624,35 @@ export default function Calculator() {
                         >
                           <FileDown className="w-4 h-4" />
                           PDF
+                        </Button>
+                      </div>
+                      <div className="min-w-0">
+                        <Button
+                          onClick={() => {
+                            setSaveMode('save');
+                            setSaveSuccessMessage(null);
+                            setSaveDialogOpen(true);
+                            trackEvent('save_dialog_opened', { mode: 'save' });
+                          }}
+                          variant="outline"
+                          className="w-full flex items-center justify-center gap-2 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
+                        >
+                          <Save className="w-4 h-4" />
+                          Save
+                        </Button>
+                      </div>
+                      <div className="min-w-0">
+                        <Button
+                          onClick={() => {
+                            setSaveMode('email');
+                            setSaveSuccessMessage(null);
+                            setSaveDialogOpen(true);
+                            trackEvent('save_dialog_opened', { mode: 'email' });
+                          }}
+                          className="w-full flex items-center justify-center gap-2 bg-emerald-400 hover:bg-emerald-500 text-white"
+                        >
+                          <Mail className="w-4 h-4" />
+                          Email me this
                         </Button>
                       </div>
                     </div>
@@ -2580,6 +2663,67 @@ export default function Calculator() {
           </motion.div>
         </div>
       </div>
+
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>{saveMode === 'save' ? 'Save this scenario' : 'Email yourself this scenario'}</DialogTitle>
+            <DialogDescription>
+              {saveMode === 'save'
+                ? 'No signup required. Save this scenario on this device so you can come back to it later.'
+                : 'Still no full signup wall. Drop your email and we can use this as a soft capture point while keeping the product friction-light.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {saveMode === 'save' ? (
+              <div className="space-y-2">
+                <Label htmlFor="scenario-name">Scenario name</Label>
+                <Input
+                  id="scenario-name"
+                  value={savedScenarioName}
+                  onChange={(e) => setSavedScenarioName(e.target.value)}
+                  placeholder="My NetCheck Scenario"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="email-address">Email address</Label>
+                <Input
+                  id="email-address"
+                  type="email"
+                  value={emailAddress}
+                  onChange={(e) => setEmailAddress(e.target.value)}
+                  placeholder="you@example.com"
+                />
+                <p className="text-xs text-slate-400">For now, we capture the lead locally and preserve the UX pattern. Next step is wiring real delivery.</p>
+              </div>
+            )}
+
+            {saveSuccessMessage && (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                {saveSuccessMessage}
+              </div>
+            )}
+
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
+              <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Close</Button>
+              <Button
+                onClick={() => {
+                  if (saveMode === 'save') {
+                    saveScenarioLocally();
+                  } else {
+                    handleEmailCapture();
+                  }
+                }}
+                className="bg-emerald-400 hover:bg-emerald-500 text-white"
+              >
+                {saveMode === 'save' ? 'Save scenario' : 'Save email'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AnimatePresence>
         {displayResults && !resultsInView && (
@@ -2629,9 +2773,14 @@ export default function Calculator() {
           🤔 Not sure if you should sell? <span className="underline underline-offset-2">Take the quiz →</span>
         </a>
       </div>
-      <footer className="text-center py-6 text-slate-400">
+      <footer className="text-center py-6 text-slate-400 px-4">
         <p className="text-sm">NetCheck LLC © 2026</p>
         <p className="text-[10px] mt-1 max-w-md mx-auto leading-snug">NetCheck LLC provides estimates only - not financial advice. Actual results and amounts may vary. Always consult a licensed professional.</p>
+        <div className="mt-3 flex items-center justify-center gap-4 text-xs">
+          <a href="/privacy" className="hover:text-slate-600 hover:underline">Privacy</a>
+          <a href="/terms" className="hover:text-slate-600 hover:underline">Terms</a>
+          <a href="mailto:support@getnetcheck.com" className="hover:text-slate-600 hover:underline">Support</a>
+        </div>
       </footer>
       </div>
     </div>

@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Calculator from "@/pages/calculator";
 import Quiz, { QuizResultRoute } from "@/pages/quiz";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
 
 function Router() {
   return (
@@ -13,6 +15,8 @@ function Router() {
       <Route path="/" component={Calculator} />
       <Route path="/quiz" component={Quiz} />
       <Route path="/quiz/result/:profile" component={QuizResultRoute} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
       <Route component={NotFound} />
     </Switch>
   );

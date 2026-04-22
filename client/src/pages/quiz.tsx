@@ -11,6 +11,7 @@ import {
   type ProfileKey,
   type QuizResult,
 } from "@/lib/quiz-data";
+import { trackEvent } from "@/lib/analytics";
 
 // ─── Color maps per profile ─────────────────────────────────
 const PROFILE_COLORS: Record<ProfileKey, { bg: string; border: string; text: string; badge: string; accent: string; light: string }> = {
@@ -53,6 +54,10 @@ const slideVariants = {
 
 // ─── Entry Screen ───────────────────────────────────────────
 function EntryScreen({ onStart }: { onStart: () => void }) {
+  useEffect(() => {
+    trackEvent("quiz_entry_viewed");
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -103,6 +108,10 @@ function QuestionScreen({
 }) {
   const question = QUESTIONS[questionIndex];
   const progress = ((questionIndex + 1) / QUESTIONS.length) * 100;
+
+  useEffect(() => {
+    trackEvent("quiz_question_viewed", { questionIndex: questionIndex + 1, questionText: question.text });
+  }, [questionIndex, question.text]);
 
   return (
     <div className="min-h-[calc(100vh-80px)] flex flex-col">
@@ -220,6 +229,7 @@ function ResultScreen({
         document.body.removeChild(ta);
       }
       setCopied(true);
+      trackEvent("quiz_result_link_copied", { profile: result.primary });
       toast({ title: "Link copied!", description: "Share your Decision Profile with others." });
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -376,6 +386,9 @@ function ResultScreen({
 // ─── Static Result Page (direct URL) ────────────────────────
 function StaticResultPage({ profileKey }: { profileKey: ProfileKey }) {
   const profile = PROFILES[profileKey];
+  useEffect(() => {
+    trackEvent("quiz_result_page_viewed", { profile: profileKey, shared: true });
+  }, [profileKey]);
   const colors = PROFILE_COLORS[profileKey];
   const [, navigate] = useLocation();
   const [copied, setCopied] = useState(false);
@@ -502,6 +515,7 @@ export default function Quiz() {
   const [, navigate] = useLocation();
 
   const handleStart = useCallback(() => {
+    trackEvent("quiz_started");
     setPhase("questions");
     setCurrentQuestion(0);
     setDirection(1);
@@ -512,6 +526,11 @@ export default function Quiz() {
       const newAnswers = [...answers];
       newAnswers[currentQuestion] = answerIndex;
       setAnswers(newAnswers);
+      trackEvent("quiz_answer_selected", {
+        questionIndex: currentQuestion + 1,
+        answerIndex: answerIndex + 1,
+        answerText: QUESTIONS[currentQuestion]?.answers[answerIndex]?.text,
+      });
 
       // Auto-advance after brief delay
       setTimeout(() => {
@@ -521,6 +540,11 @@ export default function Quiz() {
         } else {
           // Last question — compute results
           const result = getQuizResult(newAnswers);
+          trackEvent("quiz_completed", {
+            profile: result.primary,
+            secondaryProfile: result.secondary,
+            confidence: result.confidence,
+          });
           setQuizResult(result);
           setPhase("results");
           // Update URL for shareability
@@ -541,6 +565,7 @@ export default function Quiz() {
   }, [currentQuestion]);
 
   const handleRetake = useCallback(() => {
+    trackEvent("quiz_retake_clicked", { profile: quizResult?.primary ?? null });
     setPhase("entry");
     setCurrentQuestion(0);
     setAnswers(new Array(QUESTIONS.length).fill(null));
@@ -595,8 +620,13 @@ export default function Quiz() {
 
         {/* Footer only on entry */}
         {phase === "entry" && (
-          <footer className="text-center py-6 text-slate-400">
+          <footer className="text-center py-6 text-slate-400 px-4">
             <p className="text-sm">NetCheck LLC © 2026</p>
+            <div className="mt-3 flex items-center justify-center gap-4 text-xs">
+              <a href="/privacy" className="hover:text-slate-600 hover:underline">Privacy</a>
+              <a href="/terms" className="hover:text-slate-600 hover:underline">Terms</a>
+              <a href="mailto:support@getnetcheck.com" className="hover:text-slate-600 hover:underline">Support</a>
+            </div>
           </footer>
         )}
       </div>
