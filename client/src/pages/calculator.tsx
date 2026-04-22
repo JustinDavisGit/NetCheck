@@ -842,24 +842,39 @@ export default function Calculator() {
     setSaveSuccessMessage(`Saved \"${scenario.name}\" on this device.`);
   };
 
-  const handleEmailCapture = () => {
+  const handleEmailCapture = async () => {
     const normalized = emailAddress.trim();
     if (!normalized || !normalized.includes('@')) {
-      toast({ title: 'Enter a valid email', description: 'We\'ll use it to send your report later.', variant: 'destructive' });
+      toast({ title: 'Enter a valid email', description: 'We\'ll send your report there.', variant: 'destructive' });
       return;
     }
 
-    const leads = JSON.parse(window.localStorage.getItem('nc_email_leads') || '[]');
-    const payload = {
-      email: normalized,
-      createdAt: new Date().toISOString(),
-      shareUrl: generateShareUrl(),
-      state: selectedState,
-      netProceeds: displayResults?.netProceeds ?? null,
-    };
-    window.localStorage.setItem('nc_email_leads', JSON.stringify([payload, ...leads].slice(0, 50)));
-    trackEvent('email_capture_submitted', { state: selectedState, source: 'calculator_save_dialog' });
-    setSaveSuccessMessage(`Nice — we captured ${normalized}. We can wire real email delivery next.`);
+    try {
+      const response = await fetch('/api/email-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: normalized,
+          shareUrl: generateShareUrl(),
+          summary: {
+            netProceeds: displayResults?.netProceeds ?? null,
+            state: selectedState,
+            salePrice: parseCurrency(salePrice),
+          },
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || 'Failed to send email');
+      }
+
+      trackEvent('email_capture_submitted', { state: selectedState, source: 'calculator_save_dialog' });
+      setSaveSuccessMessage(`Sent — check ${normalized} in a minute.`);
+      toast({ title: 'Report on the way', description: 'Your NetCheck scenario has been emailed.' });
+    } catch (error: any) {
+      toast({ title: 'Couldn\'t send email yet', description: error?.message || 'Please try again in a moment.', variant: 'destructive' });
+    }
   };
 
   const results = useMemo(() => {
@@ -2593,55 +2608,19 @@ export default function Calculator() {
                       </div>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <div className="min-w-0">
-                        <Button
-                          onClick={handleShare}
-                          variant="outline"
-                          className="w-full flex items-center justify-center gap-2 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
-                        >
-                          {copied ? (
-                            <>
-                              <Check className="w-4 h-4 text-emerald-500" />
-                              Copied!
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-4 h-4" />
-                              Copy Link
-                            </>
-                          )}
-                        </Button>
-                        <p className="text-[11px] text-slate-400 text-center mt-1.5">
-                          Recipients can view &amp; adjust
-                        </p>
+                    <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-800">Take this with you</h4>
+                          <p className="text-xs text-slate-400 mt-0.5">Save it, send it to yourself, or share it with someone you trust.</p>
+                        </div>
+                        <div className="hidden sm:flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-500">
+                          <Copy className="w-3 h-3" />
+                          Shareable link included
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <Button
-                          onClick={handleGeneratePDF}
-                          variant="outline"
-                          className="w-full flex items-center justify-center gap-2 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
-                        >
-                          <FileDown className="w-4 h-4" />
-                          PDF
-                        </Button>
-                      </div>
-                      <div className="min-w-0">
-                        <Button
-                          onClick={() => {
-                            setSaveMode('save');
-                            setSaveSuccessMessage(null);
-                            setSaveDialogOpen(true);
-                            trackEvent('save_dialog_opened', { mode: 'save' });
-                          }}
-                          variant="outline"
-                          className="w-full flex items-center justify-center gap-2 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
-                        >
-                          <Save className="w-4 h-4" />
-                          Save
-                        </Button>
-                      </div>
-                      <div className="min-w-0">
+
+                      <div className="grid grid-cols-1 sm:grid-cols-[1.2fr_0.8fr] gap-2.5">
                         <Button
                           onClick={() => {
                             setSaveMode('email');
@@ -2649,10 +2628,51 @@ export default function Calculator() {
                             setSaveDialogOpen(true);
                             trackEvent('save_dialog_opened', { mode: 'email' });
                           }}
-                          className="w-full flex items-center justify-center gap-2 bg-emerald-400 hover:bg-emerald-500 text-white"
+                          className="h-12 w-full flex items-center justify-center gap-2 bg-emerald-400 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold shadow-sm"
                         >
                           <Mail className="w-4 h-4" />
-                          Email me this
+                          Email my report
+                        </Button>
+                        <Button
+                          onClick={handleGeneratePDF}
+                          variant="outline"
+                          className="h-12 w-full flex items-center justify-center gap-2 rounded-xl border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700"
+                        >
+                          <FileDown className="w-4 h-4" />
+                          Download PDF
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mt-2.5">
+                        <Button
+                          onClick={() => {
+                            setSaveMode('save');
+                            setSaveSuccessMessage(null);
+                            setSaveDialogOpen(true);
+                            trackEvent('save_dialog_opened', { mode: 'save' });
+                          }}
+                          variant="ghost"
+                          className="h-10 flex items-center justify-center gap-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+                        >
+                          <Save className="w-4 h-4" />
+                          Save scenario
+                        </Button>
+                        <Button
+                          onClick={handleShare}
+                          variant="ghost"
+                          className="h-10 flex items-center justify-center gap-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-4 h-4 text-emerald-500" />
+                              Copied link
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              Copy share link
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -2665,17 +2685,21 @@ export default function Calculator() {
       </div>
 
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>{saveMode === 'save' ? 'Save this scenario' : 'Email yourself this scenario'}</DialogTitle>
-            <DialogDescription>
-              {saveMode === 'save'
-                ? 'No signup required. Save this scenario on this device so you can come back to it later.'
-                : 'Still no full signup wall. Drop your email and we can use this as a soft capture point while keeping the product friction-light.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-md rounded-[24px] border-none p-0 overflow-hidden shadow-2xl">
+          <div className="bg-gradient-to-br from-emerald-50 via-white to-slate-50 px-6 pt-6 pb-5 border-b border-slate-100">
+            <DialogHeader>
+              <DialogTitle className="text-[30px] leading-tight text-slate-900">
+                {saveMode === 'save' ? 'Save this scenario' : 'Send this report to yourself'}
+              </DialogTitle>
+              <DialogDescription className="text-base leading-relaxed text-slate-500 mt-2 max-w-sm">
+                {saveMode === 'save'
+                  ? 'Want to come back to these numbers later? Save this scenario on this device in one tap.'
+                  : 'Want to come back to these numbers later? Enter your email and keep this scenario handy.'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5 px-6 py-5 bg-white">
             {saveMode === 'save' ? (
               <div className="space-y-2">
                 <Label htmlFor="scenario-name">Scenario name</Label>
@@ -2696,7 +2720,7 @@ export default function Calculator() {
                   onChange={(e) => setEmailAddress(e.target.value)}
                   placeholder="you@example.com"
                 />
-                <p className="text-xs text-slate-400">For now, we capture the lead locally and preserve the UX pattern. Next step is wiring real delivery.</p>
+                <p className="text-xs text-slate-400">No full account required. Just a simple way to keep your numbers within reach.</p>
               </div>
             )}
 
@@ -2706,19 +2730,19 @@ export default function Calculator() {
               </div>
             )}
 
-            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
-              <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Close</Button>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end pt-1">
+              <Button variant="outline" className="rounded-xl border-slate-200" onClick={() => setSaveDialogOpen(false)}>Close</Button>
               <Button
-                onClick={() => {
+                onClick={async () => {
                   if (saveMode === 'save') {
                     saveScenarioLocally();
                   } else {
-                    handleEmailCapture();
+                    await handleEmailCapture();
                   }
                 }}
-                className="bg-emerald-400 hover:bg-emerald-500 text-white"
+                className="rounded-xl bg-emerald-400 hover:bg-emerald-500 text-white px-5"
               >
-                {saveMode === 'save' ? 'Save scenario' : 'Save email'}
+                {saveMode === 'save' ? 'Save scenario' : 'Email my report'}
               </Button>
             </div>
           </div>
